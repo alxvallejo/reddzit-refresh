@@ -1,8 +1,9 @@
 import _ from 'lodash';
 
-export const client_id = `${import.meta.env.REACT_APP_REDDIT_CLIENT_ID}`;
-export const secret = `${import.meta.env.REACT_APP_REDDIT_SECRET}`;
-export const redirect_uri = `${import.meta.env.REACT_APP_REDDIT_REDIRECT_URI}`;
+export const client_id = import.meta.env.VITE_REDDIT_CLIENT_ID;
+console.log('client_id: ', client_id);
+export const secret = `${import.meta.env.VITE_REDDIT_SECRET}`;
+export const redirect_uri = `${import.meta.env.VITE_REDDIT_REDIRECT_URI}`;
 
 export const reddit_host = 'https://www.reddit.com';
 export const reddit_use_host = 'https://oauth.reddit.com';
@@ -12,7 +13,7 @@ import queryString from 'query-string';
 
 export class RedditAuth {
   getAuthHeaders = async () => {
-    let encodedAuth = new Buffer(client_id + ':' + secret).toString('base64');
+    let encodedAuth = btoa(client_id + ':' + secret);
     let authHeaders = {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       Authorization: 'Basic ' + encodedAuth,
