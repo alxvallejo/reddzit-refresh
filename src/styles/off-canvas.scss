@@ -1,0 +1,201 @@
+/* Navigation Menu - Background */
+.navigation,
+.showDrawer {
+    /* critical sizing and position styles */
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+
+    /* non-critical appearance styles */
+    list-style: none;
+    /* background: #111; */
+
+    overflow-y: scroll;
+
+    margin-top: 0;
+
+    background: white;
+    &.darkMode {
+        background: $darkMode;
+        color: $darkModeFont;
+    }
+}
+
+.read-content {
+    width: 51%;
+
+    font-family: 'Zilla Slab', serif;
+    font-size: 18px;
+
+    // .read-controls-wrapper.darkMode ~ .read-content-inner {
+    //     background: $darkMode;
+    //     color: $darkModeFont;
+    // }
+    // .read-controls-wrapper.darkMode ~ .read-content-footer {
+    //     background: $darkMode;
+    // }
+    .read-content-inner {
+        //max-width: 600px;
+        margin: 0 auto;
+        padding-right: 60px;
+        &.media {
+            max-width: none;
+            img {
+                margin: 0 auto;
+            }
+        }
+    }
+    .read-controls-footer {
+        padding: 0;
+        justify-content: center;
+        margin-right: 0;
+        padding-bottom: 250px;
+        .control {
+            a,
+            button {
+                border: 1px solid $primary-color;
+                border-radius: 3px;
+                color: $primary-color;
+                background: transparent;
+            }
+
+            a {
+                margin-left: 0;
+            }
+        }
+    }
+}
+
+.fix-image {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Navigation Menu - List items */
+.nav-item {
+    /* non-critical appearance styles */
+    width: 200px;
+    border-top: 1px solid #111;
+    border-bottom: 1px solid #000;
+}
+
+.nav-item a {
+    /* non-critical appearance styles */
+    display: block;
+    padding: 1em;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.65) 100%);
+    color: white;
+    font-size: 1.2em;
+    text-decoration: none;
+    transition: color 0.2s, background 0.5s;
+}
+
+.nav-item a:hover {
+    color: #c74438;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(75, 20, 20, 0.65) 100%);
+}
+
+.copy-wrapper {
+    display: inline-block;
+}
+
+/* Nav Trigger */
+.nav-trigger {
+    /* critical styles - hide the checkbox input */
+    position: absolute;
+    clip: rect(0, 0, 0, 0);
+}
+
+.fixed-controls {
+    left: calc(50% - 60px);
+    position: fixed;
+    top: 15px;
+    z-index: 2;
+    background-size: contain;
+}
+
+label[for='nav-trigger'] {
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+}
+
+/* Make the Magic Happen */
+.nav-trigger + label,
+.site-wrap,
+.copy-wrapper {
+    transition: left 0.2s;
+}
+
+.showDrawer + label {
+    left: calc(50% - 50px);
+}
+
+.showDrawer ~ .site-wrap {
+    left: 50%;
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+.copy-wrapper {
+    .copied-text {
+        color: white;
+        margin-right: 20px;
+        opacity: 0;
+        //transition: flickerAnimation 0.5s ease-in-out;
+    }
+}
+
+@keyframes flickerAnimation {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.fadeOut {
+    opacity: 1;
+    transition: fadeOut 0.5s ease-in-out;
+}
+
+body {
+    /* Without this, the body has excess horizontal scroll when the menu is open */
+    overflow-x: hidden;
+}
+
+/* Additional non-critical styles */
+
+h1,
+h3,
+p {
+    max-width: 600px;
+    margin: 0 auto 1em;
+}
+
+code {
+    padding: 2px;
+    background: #ddd;
+}
+
+/* Micro reset */
+*,
+*:before,
+*:after {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+html,
+body {
+    height: 100%;
+    width: 100%;
+    font-family: Helvetica, Arial, sans-serif;
+}

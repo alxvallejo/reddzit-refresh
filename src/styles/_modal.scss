@@ -1,0 +1,135 @@
+#modal-container {
+    position: fixed;
+    display: table;
+    height: 100vh;
+    width: 100%;
+    top: 0;
+    left: 0;
+    transform: scale(1);
+    z-index: 1;
+    overflow-y: auto;
+    .modal-background {
+        background: rgba(50, 42, 90, 0);
+        animation: fadeIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        color: $darkModeFont;
+        .content-modal {
+            opacity: 0;
+            animation: scaleUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+            background: rgba(50, 42, 90, 1);
+            height: 100%;
+            min-height: 100%;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+    + .site-wrap {
+        animation: scaleBack 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        min-height: 100%;
+    }
+    &.out {
+        animation: quickScaleDown 0s 0.5s linear forwards;
+        .modal-background {
+            animation: fadeOut 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+            .content-modal {
+                animation: scaleDown 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+            }
+        }
+        + .site-wrap {
+            animation: scaleForward 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+    }
+    &.active {
+        + .site-wrap {
+            overflow: hidden;
+        }
+    }
+}
+
+@keyframes scaleUp {
+    0% {
+        transform: scale(0.8) translateY(1000px);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) translateY(0px);
+        opacity: 1;
+    }
+}
+
+@keyframes scaleDown {
+    0% {
+        transform: scale(1) translateY(0px);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8) translateY(1000px);
+        opacity: 0;
+    }
+}
+
+@keyframes scaleBack {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0.85);
+    }
+}
+
+@keyframes scaleForward {
+    0% {
+        transform: scale(0.85);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes quickScaleDown {
+    0% {
+        transform: scale(1);
+    }
+    99.9% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0);
+    }
+}
+
+@media (max-width: $screen-md-min) {
+    .site-wrap {
+        position: static;
+        z-index: 0;
+        transform: scale(1);
+    }
+
+    .content-modal {
+        // padding: 0;
+        // position: absolute;
+        // top: 0px;
+        // left: 0px;
+        // right: 0px;
+        // bottom: 0px;
+        // border: none;
+        // background: none;
+        // overflow: auto;
+        // outline: none;
+        .read-content {
+            background: white;
+            &.darkMode {
+                background: $darkMode;
+                color: $darkModeFont;
+            }
+        }
+    }
+    .close-modal {
+        position: fixed;
+        right: 15px;
+        top: 15px;
+        z-index: 1051;
+    }
+}

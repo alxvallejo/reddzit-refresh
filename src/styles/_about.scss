@@ -1,0 +1,70 @@
+.about-container {
+    background: #aaf1d5; // mint
+    color: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .label {
+        background: none;
+    }
+
+    .about-header {
+        .logo {
+            width: 120px;
+        }
+
+        .site-name {
+            flex: 0.5;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            padding: 0 3em;
+            font-family: Montserrat;
+            .left-box {
+                flex: 0.4;
+                border-right: 3px white solid;
+                border-radius: 8px;
+                padding: 100px;
+                a.back-button {
+                    font-size: 4em;
+                    color: $medium-green;
+                    &:hover {
+                        color: $dark-green;
+                    }
+                }
+            }
+            .description {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                font-size: 17px;
+                a {
+                    color: $medium-green;
+                    text-decoration: none;
+                    margin-bottom: 10px;
+                    padding: 15px;
+                    padding-left: 0;
+                    margin-left: 15px;
+                    border: 1px solid transparent;
+                    &:hover {
+                        color: $dark-green;
+                    }
+                }
+                .label {
+                    padding: 20px;
+                }
+            }
+            .sign-up-message,
+            .caption {
+                margin: 20px;
+                font-size: 18px;
+                //font-family: Zilla Slab;
+                font-family: Montserrat;
+            }
+        }
+    }
+}
