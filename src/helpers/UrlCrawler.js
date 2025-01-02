@@ -36,7 +36,7 @@ export const getImageUrl = (url) => {
 
 export const crawlUrl = async (url) => {
   try {
-    let readApi = `${process.env.REACT_APP_READ_API}`;
+    let readApi = `${import.meta.env.VITE_READ_API}`;
     let httpsUrl = url.replace('http://', 'https://');
     let article = await axios.post(readApi, {
       url: httpsUrl,

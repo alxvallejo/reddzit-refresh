@@ -4,6 +4,19 @@
     height: 100%;
 }
 
+.header {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: space-evenly;
+    max-height: 100px;
+}
+
+.header img {
+    width: 100px;
+    height: 100px;
+}
+
 .App {
     height: 100%;
     .main-wrapper {
