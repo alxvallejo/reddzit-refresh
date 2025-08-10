@@ -1,0 +1,41 @@
+image: node:18
+
+definitions:
+  services:
+    docker:
+      memory: 2048
+
+pipelines:
+  default:
+    - step:
+        name: Build and Deploy
+        deployment: production
+        script:
+          # Install dependencies
+          - npm install -g yarn
+          - yarn install
+          
+          # Build the project
+          - yarn build
+          
+          # Deploy to server via SSH
+          - pipe: atlassian/ssh-run:0.4.0
+            variables:
+              SSH_USER: 'alxvallejo'
+              SERVER: 'seojeek.com'
+              COMMAND: 'cd /var/www/reddzit-refresh && git pull && yarn install && yarn build && sudo chown -R www-data:www-data dist/ && sudo systemctl reload nginx'
+              
+  branches:
+    master:
+      - step:
+          name: Build and Deploy to Production
+          deployment: production
+          script:
+            - npm install -g yarn
+            - yarn install
+            - yarn build
+            - pipe: atlassian/ssh-run:0.4.0
+              variables:
+                SSH_USER: 'alxvallejo'
+                SERVER: 'seojeek.com'
+                COMMAND: 'cd /var/www/reddzit-refresh && git pull && yarn install && yarn build && sudo chown -R www-data:www-data dist/ && sudo systemctl reload nginx'
