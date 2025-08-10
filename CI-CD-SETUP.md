@@ -46,3 +46,42 @@ cd /var/www/reddzit-refresh
 - Check Bitbucket Pipelines logs if build fails
 - SSH permissions must be set up correctly
 - Server sudo permissions configured for nginx reload
+
+## Recent Fix Applied ✅
+- **Fixed yarn installation error**: Removed redundant `npm install -g yarn` since Node:18 image already includes yarn
+- **Added yarn version check**: For better debugging
+
+## Additional Troubleshooting:
+
+### Common Pipeline Errors:
+
+1. **EEXIST: file already exists (yarn)**
+   - ✅ Fixed: Removed redundant yarn installation
+
+2. **SSH Connection Issues**
+   - Ensure SSH key is added to Bitbucket: Settings → SSH Keys
+   - Verify server allows connections from Bitbucket IPs
+   - Check if user has proper SSH access
+
+3. **Sudo Permission Errors** 
+   - Server needs sudo permissions configured for:
+     - `chown -R www-data:www-data /var/www/reddzit-refresh/dist/`
+     - `systemctl reload nginx`
+
+4. **Build Failures**
+   - Check if all dependencies are in package.json
+   - Verify tsconfig.app.json allows relaxed TypeScript compilation
+
+### Test Build Locally:
+```bash
+yarn install
+yarn build
+ls -la dist/  # Should show built files
+```
+
+### Manual Deployment (if CI fails):
+```bash
+ssh alxvallejo@seojeek.com
+cd /var/www/reddzit-refresh
+./deploy.sh
+```
