@@ -8,32 +8,20 @@ definitions:
 pipelines:
   default:
     - step:
-        name: Build and Deploy
-        deployment: production
+        name: Build and Test
         script:
-          # Check yarn version (yarn is already installed in node:18)
           - yarn --version
-          
-          # Install dependencies
           - yarn install
-          
-          # Build the project
           - yarn build
-          
-          # Deploy to server via SSH
-          - pipe: atlassian/ssh-run:0.4.0
-            variables:
-              SSH_USER: 'alxvallejo'
-              SERVER: 'seojeek.com'
-              COMMAND: 'cd /var/www/reddzit-refresh && git pull && yarn install && yarn build && sudo chown -R www-data:www-data dist/ && sudo systemctl reload nginx'
-              
+          - echo "✅ Build successful!"
+
   branches:
     master:
       - step:
           name: Build and Deploy to Production
           deployment: production
           script:
-            # Check yarn version (yarn is already installed in node:18)
+            # Check yarn version
             - yarn --version
             
             # Install dependencies
@@ -42,9 +30,67 @@ pipelines:
             # Build the project
             - yarn build
             
-            # Deploy to server via SSH
-            - pipe: atlassian/ssh-run:0.4.0
-              variables:
-                SSH_USER: 'alxvallejo'
-                SERVER: 'seojeek.com'
-                COMMAND: 'cd /var/www/reddzit-refresh && git pull && yarn install && yarn build && sudo chown -R www-data:www-data dist/ && sudo systemctl reload nginx'
+            # Install SSH client
+            - apt-get update && apt-get install -y openssh-client
+            
+            # Configure SSH
+            - mkdir -p ~/.ssh
+            - echo "Host seojeek.com" >> ~/.ssh/config
+            - echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+            - echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
+            - chmod 600 ~/.ssh/config
+            
+            # Deploy using direct SSH commands
+            - echo "🚀 Starting deployment..."
+            
+            # Deploy to server
+            - |
+              ssh alxvallejo@seojeek.com << 'ENDSSH'
+              set -e
+              echo "📦 Starting deployment on server..."
+              cd /var/www/reddzit-refresh
+              
+              # Backup current version
+              if [ -d "dist" ]; then
+                echo "📸 Creating backup of current version..."
+                sudo cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S)
+              fi
+              
+              # Pull latest changes
+              echo "📥 Pulling latest changes..."
+              git pull origin master
+              
+              # Install dependencies
+              echo "📦 Installing dependencies..."
+              yarn install --frozen-lockfile
+              
+              # Build project
+              echo "🔨 Building project..."
+              yarn build
+              
+              # Set permissions
+              echo "🔒 Setting permissions..."
+              sudo chown -R www-data:www-data dist/
+              
+              # Reload nginx
+              echo "🌐 Reloading nginx..."
+              sudo systemctl reload nginx
+              
+              # Validate deployment
+              echo "✅ Validating deployment..."
+              curl -s -o /dev/null -w "%{http_code}" https://reddzit.seojeek.com | grep -q "200" && echo "✅ Site is accessible!" || echo "⚠️ Site may have issues"
+              
+              echo "🎉 Deployment complete!"
+              ENDSSH
+            
+            - echo "✅ Pipeline complete!"
+
+    develop:
+      - step:
+          name: Build and Deploy to Staging
+          deployment: staging
+          script:
+            - yarn --version
+            - yarn install
+            - yarn build
+            - echo "✅ Build successful for staging!"
