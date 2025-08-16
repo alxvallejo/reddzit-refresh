@@ -43,17 +43,27 @@ pipelines:
             # Deploy using direct SSH commands
             - echo "🚀 Starting deployment..."
             
-            # Deploy to server
+            # Deploy to server (handling sudo issues)
             - |
               ssh alxvallejo@seojeek.com << 'ENDSSH'
               set -e
               echo "📦 Starting deployment on server..."
+              
+              # Check if directory exists, create if needed
+              if [ ! -d "/var/www/reddzit-refresh" ]; then
+                echo "⚠️  Directory /var/www/reddzit-refresh doesn't exist"
+                echo "Please create it manually with:"
+                echo "  sudo mkdir -p /var/www/reddzit-refresh"
+                echo "  sudo chown alxvallejo:alxvallejo /var/www/reddzit-refresh"
+                exit 1
+              fi
+              
               cd /var/www/reddzit-refresh
               
-              # Backup current version
-              if [ -d "dist" ]; then
+              # Backup current version (without sudo)
+              if [ -d "dist" ] && [ -w "." ]; then
                 echo "📸 Creating backup of current version..."
-                sudo cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S)
+                cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || echo "Could not create backup (permission issue)"
               fi
               
               # Pull latest changes
@@ -68,19 +78,35 @@ pipelines:
               echo "🔨 Building project..."
               yarn build
               
-              # Set permissions
+              # Try to set permissions (will skip if no sudo access)
               echo "🔒 Setting permissions..."
-              sudo chown -R www-data:www-data dist/
+              if sudo -n true 2>/dev/null; then
+                sudo chown -R www-data:www-data dist/
+                echo "✅ Permissions set"
+              else
+                echo "⚠️  Cannot set permissions without sudo"
+                echo "Run manually: sudo chown -R www-data:www-data /var/www/reddzit-refresh/dist/"
+              fi
               
-              # Reload nginx
+              # Try to reload nginx (will skip if no sudo access)
               echo "🌐 Reloading nginx..."
-              sudo systemctl reload nginx
+              if sudo -n true 2>/dev/null; then
+                sudo systemctl reload nginx
+                echo "✅ Nginx reloaded"
+              else
+                echo "⚠️  Cannot reload nginx without sudo"
+                echo "Run manually: sudo systemctl reload nginx"
+                # Try alternate method
+                if [ -f /var/run/nginx.pid ]; then
+                  kill -HUP $(cat /var/run/nginx.pid) 2>/dev/null || echo "Could not reload nginx"
+                fi
+              fi
               
               # Validate deployment
               echo "✅ Validating deployment..."
-              curl -s -o /dev/null -w "%{http_code}" https://reddzit.seojeek.com | grep -q "200" && echo "✅ Site is accessible!" || echo "⚠️ Site may have issues"
+              curl -s -o /dev/null -w "%{http_code}" https://reddzit.seojeek.com | grep -q "200" && echo "✅ Site is accessible!" || echo "⚠️ Site returned non-200 status"
               
-              echo "🎉 Deployment complete!"
+              echo "🎉 Deployment complete (manual steps may be required for permissions)"
               ENDSSH
             
             - echo "✅ Pipeline complete!"
