@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { reddit_use_host, reddit_host } from './RedditAuth';
+import API_BASE_URL from '../config/api';
 
 import queryString from 'query-string';
 
@@ -21,7 +22,7 @@ class Reddit {
   };
 
   getMe = async () => {
-    let me = await fetch(reddit_use_host + '/api/v1/me', {
+    let me = await fetch(API_BASE_URL + '/api/reddit/me', {
       headers: this.apiGetHeaders,
     });
     me = await me.json();
@@ -32,7 +33,7 @@ class Reddit {
   };
 
   getSaved = async (params = {}) => {
-    let fetchUrl = reddit_use_host + '/user/' + this.me.name + '/saved';
+    let fetchUrl = API_BASE_URL + '/api/reddit/user/' + this.me.name + '/saved';
 
     if (params !== {}) {
       let stringified = queryString.stringify(params);
@@ -59,22 +60,25 @@ class Reddit {
   };
 
   unsave = async (postId) => {
-    let postUrl = reddit_use_host + '/api/unsave';
+    let postUrl = API_BASE_URL + '/api/reddit/unsave';
 
-    let data = queryString.stringify({
+    let data = JSON.stringify({
       id: postId,
     });
 
     let response = await fetch(postUrl, {
       method: 'POST',
-      headers: this.apiPostHeaders,
+      headers: {
+        ...this.apiGetHeaders,
+        'Content-Type': 'application/json',
+      },
       body: data,
     });
     return response;
   };
 
   getById = async (full_name) => {
-    let fetchUrl = reddit_use_host + '/by_id/' + full_name;
+    let fetchUrl = API_BASE_URL + '/api/reddit/by_id/' + full_name;
     let response = await fetch(fetchUrl, { headers: this.apiGetHeaders });
     let responseObj = await response.json();
     let post = responseObj.data.children[0].data;
@@ -82,15 +86,18 @@ class Reddit {
   };
 
   save = async (full_name) => {
-    let postUrl = reddit_use_host + '/api/save';
+    let postUrl = API_BASE_URL + '/api/reddit/save';
 
-    let data = queryString.stringify({
+    let data = JSON.stringify({
       id: full_name,
     });
 
     let response = await fetch(postUrl, {
       method: 'POST',
-      headers: this.apiPostHeaders,
+      headers: {
+        ...this.apiGetHeaders,
+        'Content-Type': 'application/json',
+      },
       body: data,
     });
 
