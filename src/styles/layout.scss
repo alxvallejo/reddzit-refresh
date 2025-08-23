@@ -4,6 +4,46 @@
     height: 100%;
 }
 
+// Reddit content specific styling
+.reddit-content {
+    // Fix for Reddit's HTML content
+    blockquote {
+        border-left: 3px solid #ccc;
+        margin-left: 0;
+        padding-left: 1em;
+        color: #666;
+    }
+    
+    pre {
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+    
+    code {
+        background: #f4f4f4;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    
+    // Ensure proper spacing
+    p {
+        margin-bottom: 1em;
+    }
+    
+    ul, ol {
+        margin-left: 1.5em;
+        margin-bottom: 1em;
+    }
+    
+    // Fix link styling
+    a {
+        color: #0066cc;
+        text-decoration: underline;
+    }
+}
+
 .header {
     display: flex;
     flex-direction: row;

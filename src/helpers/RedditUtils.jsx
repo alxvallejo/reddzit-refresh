@@ -90,11 +90,23 @@ export const getPostType = (post) => {
       type: 'image',
       url: imageUrl,
     };
-  } else if (post.is_self && post.selftext_html) {
+  } else if (post.is_self && (post.selftext_html || post.selftext)) {
     // Reddit self-post with text content
+    // Decode HTML entities from selftext_html
+    let content = post.selftext_html;
+    if (content) {
+      // Decode HTML entities that Reddit double-encodes
+      const textarea = document.createElement('textarea');
+      textarea.innerHTML = content;
+      content = textarea.value;
+    } else {
+      // Fallback to plain text if no HTML available
+      content = `<pre>${post.selftext}</pre>`;
+    }
+    
     postType = {
       type: 'reddit_self',
-      content: post.selftext_html,
+      content: content,
       title: post.title,
       post: post,
     };
@@ -228,7 +240,7 @@ export const getParsedContent = (
       });
 
       return (
-        <div className='read-content-inner' style={{ fontSize }}>
+        <div className='read-content-inner reddit-content' style={{ fontSize }}>
           {content}
         </div>
       );
