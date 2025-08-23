@@ -72,7 +72,7 @@ pipelines:
             
             # Transfer the built dist folder to the server
             - echo "📤 Transferring built files to server..."
-            - rsync -rltvz --delete --no-perms --no-owner --no-group dist/ alxvallejo@seojeek.com:/var/www/reddzit-refresh/dist/
+            - rsync -rlvz --delete --no-perms --no-owner --no-group --no-times dist/ alxvallejo@seojeek.com:/var/www/reddzit-refresh/dist/
             
             # Set permissions and reload nginx
             - |
