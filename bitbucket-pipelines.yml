@@ -27,11 +27,12 @@ pipelines:
             # Install dependencies
             - yarn install
             
-            # Build the project
+            # Build the project with environment variables from Bitbucket
+            - echo "🔨 Building project with environment variables..."
             - yarn build
             
-            # Install SSH client
-            - apt-get update && apt-get install -y openssh-client
+            # Install SSH client and rsync for deployment
+            - apt-get update && apt-get install -y openssh-client rsync
             
             # Configure SSH
             - mkdir -p ~/.ssh
@@ -40,14 +41,14 @@ pipelines:
             - echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
             - chmod 600 ~/.ssh/config
             
-            # Deploy using direct SSH commands
+            # Deploy using rsync
             - echo "🚀 Starting deployment..."
             
-            # Deploy to server (handling sudo issues)
+            # Create backup on server before deploying
             - |
               ssh alxvallejo@seojeek.com << 'ENDSSH'
               set -e
-              echo "📦 Starting deployment on server..."
+              echo "📦 Preparing deployment on server..."
               
               # Check if directory exists, create if needed
               if [ ! -d "/var/www/reddzit-refresh" ]; then
@@ -66,17 +67,18 @@ pipelines:
                 cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || echo "Could not create backup (permission issue)"
               fi
               
-              # Pull latest changes
-              echo "📥 Pulling latest changes..."
-              git pull origin master
-              
-              # Install dependencies
-              echo "📦 Installing dependencies..."
-              yarn install --frozen-lockfile
-              
-              # Build project
-              echo "🔨 Building project..."
-              yarn build
+              echo "✅ Server prepared for deployment"
+              ENDSSH
+            
+            # Transfer the built dist folder to the server
+            - echo "📤 Transferring built files to server..."
+            - rsync -avz --delete dist/ alxvallejo@seojeek.com:/var/www/reddzit-refresh/dist/
+            
+            # Set permissions and reload nginx
+            - |
+              ssh alxvallejo@seojeek.com << 'ENDSSH'
+              set -e
+              cd /var/www/reddzit-refresh
               
               # Try to set permissions (will skip if no sudo access)
               echo "🔒 Setting permissions..."
@@ -96,17 +98,13 @@ pipelines:
               else
                 echo "⚠️  Cannot reload nginx without sudo"
                 echo "Run manually: sudo systemctl reload nginx"
-                # Try alternate method
-                if [ -f /var/run/nginx.pid ]; then
-                  kill -HUP $(cat /var/run/nginx.pid) 2>/dev/null || echo "Could not reload nginx"
-                fi
               fi
               
               # Validate deployment
               echo "✅ Validating deployment..."
               curl -s -o /dev/null -w "%{http_code}" https://reddzit.seojeek.com | grep -q "200" && echo "✅ Site is accessible!" || echo "⚠️ Site returned non-200 status"
               
-              echo "🎉 Deployment complete (manual steps may be required for permissions)"
+              echo "🎉 Deployment complete!"
               ENDSSH
             
             - echo "✅ Pipeline complete!"
