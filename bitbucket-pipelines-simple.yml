@@ -1,0 +1,26 @@
+image: node:18
+
+pipelines:
+  default:
+    - step:
+        name: Build and Test
+        script:
+          - yarn --version
+          - yarn install
+          - yarn build
+          - echo "✅ Build successful! Files ready for deployment."
+
+  branches:
+    master:
+      - step:
+          name: Build and Deploy to Production
+          deployment: production
+          script:
+            - yarn --version
+            - yarn install
+            - yarn build
+            - pipe: atlassian/ssh-run:0.4.0
+              variables:
+                SSH_USER: 'alxvallejo'
+                SERVER: 'seojeek.com'
+                COMMAND: 'cd /var/www/reddzit-refresh && git pull && yarn install && yarn build && sudo chown -R www-data:www-data dist/ && sudo systemctl reload nginx'
