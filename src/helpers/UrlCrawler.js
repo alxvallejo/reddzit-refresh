@@ -36,9 +36,12 @@ export const getImageUrl = (url) => {
 
 export const crawlUrl = async (url) => {
   try {
-    let readApi = `${import.meta.env.VITE_READ_API}`;
+    // Use base URL and append the endpoint
+    const apiBase = import.meta.env.VITE_READ_API_BASE || import.meta.env.VITE_READ_API;
+    const endpoint = apiBase.includes('/getContent') ? apiBase : `${apiBase}/getContent`;
+    
     let httpsUrl = url.replace('http://', 'https://');
-    let article = await axios.post(readApi, {
+    let article = await axios.post(endpoint, {
       url: httpsUrl,
     });
     return article.data;
