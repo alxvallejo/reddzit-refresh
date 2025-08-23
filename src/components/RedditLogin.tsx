@@ -224,7 +224,24 @@ class RedditLogin extends Component {
         };
         break;
 
+      case 'reddit_self':
+        // Reddit self-post - use the content from the API
+        selectedContent = {
+          content: postType.content,
+          title: postType.title,
+        };
+        break;
+
+      case 'reddit_link':
+        // Reddit link to another Reddit post - show basic info
+        selectedContent = {
+          content: `<h2>${postType.title}</h2><p><a href="${postType.url}" target="_blank">View on Reddit</a></p>`,
+          title: postType.title,
+        };
+        break;
+
       default:
+        // External links - use crawlUrl
         let article = await crawlUrl(postType.url);
         // console.log('article retrieved', article);
         selectedContent = article;

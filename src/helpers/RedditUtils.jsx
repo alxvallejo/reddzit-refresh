@@ -90,6 +90,22 @@ export const getPostType = (post) => {
       type: 'image',
       url: imageUrl,
     };
+  } else if (post.is_self && post.selftext_html) {
+    // Reddit self-post with text content
+    postType = {
+      type: 'reddit_self',
+      content: post.selftext_html,
+      title: post.title,
+      post: post,
+    };
+  } else if (post.url && post.url.includes('reddit.com/r/') && post.url.includes('/comments/')) {
+    // Reddit comment thread link - use the post data we already have
+    postType = {
+      type: 'reddit_link',
+      url: post.url,
+      title: post.title,
+      post: post,
+    };
   } else {
     postType = {
       type: 'article',
@@ -112,7 +128,22 @@ export const handlePostType = async (postType) => {
         img: postType.url,
       };
 
+    case 'reddit_self':
+      // Reddit self-post - use the content from the API
+      return {
+        content: postType.content,
+        title: postType.title,
+      };
+
+    case 'reddit_link':
+      // Reddit link to another Reddit post - show basic info
+      return {
+        content: `<h2>${postType.title}</h2><p><a href="${postType.url}" target="_blank">View on Reddit</a></p>`,
+        title: postType.title,
+      };
+
     default:
+      // External links - use crawlUrl
       let article = await crawlUrl(postType.url);
       return article;
   }
