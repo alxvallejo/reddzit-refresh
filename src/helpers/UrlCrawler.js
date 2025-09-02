@@ -24,9 +24,15 @@ export const getVideoUrlExternal = (url) => {
 };
 
 export const getImageUrl = (url) => {
-  // Check for image extensions
-  let fileExt = url.split('.').pop();
-  let imgExt = ['png', 'jpg', 'jpeg', 'gif', 'mov'];
+  // Guard against undefined/null and non-string inputs
+  if (!url || typeof url !== 'string') return null;
+
+  // Ignore query params and hashes when checking the extension
+  const cleanUrl = url.split(/[?#]/)[0];
+
+  // Extract the lowercase file extension
+  const fileExt = cleanUrl.split('.').pop().toLowerCase();
+  const imgExt = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mov'];
 
   if (imgExt.indexOf(fileExt) !== -1) {
     return url;
