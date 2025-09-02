@@ -183,6 +183,25 @@ code {
                     text-decoration: none;
                 }
             }
+            .comment-snippet {
+                display: flex;
+                flex-direction: column;
+                background: #f8f9fb;
+                border-left: 3px solid #cfd6dd;
+                padding: 10px 12px;
+                margin-top: 6px;
+                border-radius: 2px;
+                color: #555;
+                .comment-text {
+                    line-height: 1.4;
+                }
+                .comment-author {
+                    margin-top: 6px;
+                    font-size: 12px;
+                    color: #888;
+                    align-self: flex-end;
+                }
+            }
             .button-wrapper {
                 display: inline-block;
                 padding: 0.5em;

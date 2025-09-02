@@ -80,6 +80,9 @@ export const getPostType = (post) => {
   let videoUrl = getVideoUrl(post),
     imageUrl = getImageUrl(post.url);
   let postType;
+  // Basic comment detection: Reddit comments are kind t1 and include a body
+  const isRedditComment =
+    (post && post.name && post.name.startsWith('t1_')) || !!post.body;
   if (videoUrl) {
     postType = {
       type: 'video',
@@ -89,6 +92,14 @@ export const getPostType = (post) => {
     postType = {
       type: 'image',
       url: imageUrl,
+    };
+  } else if (isRedditComment && post.permalink) {
+    // Reddit comment - treat as a link to the specific comment on Reddit
+    postType = {
+      type: 'reddit_link',
+      url: `https://www.reddit.com${post.permalink}`,
+      title: post.link_title || 'Reddit Comment',
+      post: post,
     };
   } else if (post.is_self && (post.selftext_html || post.selftext)) {
     // Reddit self-post with text content
@@ -125,6 +136,64 @@ export const getPostType = (post) => {
     };
   }
   return postType;
+};
+
+// Human-friendly title for posts and comments
+export const getDisplayTitle = (post) => {
+  if (!post) return '';
+  if (post.title) return post.title;
+  const isRedditComment =
+    (post && post.name && post.name.startsWith('t1_')) || !!post.body;
+  if (isRedditComment) {
+    return post.link_title || 'Reddit Comment';
+  }
+  return post.link_title || post.url || 'Untitled';
+};
+
+// Create a short, single-line snippet for a Reddit comment body
+export const getCommentSnippet = (post, maxLen = 400) => {
+  if (!post || !post.body) return '';
+  const cleaned = String(post.body).replace(/\s+/g, ' ').trim();
+  if (cleaned.length <= maxLen) return cleaned;
+  return cleaned.slice(0, maxLen - 1).trim() + '…';
+};
+
+// Detect whether a saved item is a Reddit comment
+export const isComment = (post) => {
+  return !!(
+    post && ((post.name && post.name.startsWith('t1_')) || post.body)
+  );
+};
+
+// Normalize a Reddit comment to the feed item shape for logging/UI mapping
+export const mapCommentToFeedItem = (post) => {
+  if (!post) return null;
+  const title = post.link_title
+    ? post.link_title
+    : 'Comment';
+  const subreddit = post.subreddit_name_prefixed
+    ? post.subreddit_name_prefixed
+    : post.subreddit
+    ? `r/${post.subreddit}`
+    : null;
+  const permalink = post.permalink
+    ? `https://www.reddit.com${post.permalink}`
+    : post.link_permalink || post.link_url || null;
+  const score = typeof post.score === 'number' ? post.score : post.ups;
+
+  return {
+    id: post.name || post.id,
+    type: 'comment',
+    title,
+    snippet: post.body || null,
+    author: post.author,
+    subreddit,
+    permalink,
+    parentPermalink: post.link_permalink || post.link_url || null,
+    createdUtc: post.created_utc,
+    score,
+    saved: post.saved === true,
+  };
 };
 
 export const handlePostType = async (postType) => {

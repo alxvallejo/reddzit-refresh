@@ -9,6 +9,7 @@ import {
   getPostType,
   getPreviewImage,
 } from '../helpers/RedditUtils';
+import { isComment, mapCommentToFeedItem, getDisplayTitle, getCommentSnippet } from '../helpers/RedditUtils';
 
 import RedditExternal from './RedditExternal';
 import NoContent from './NoContent';
@@ -131,6 +132,19 @@ class RedditLogin extends Component {
         loading: false,
       });
     } else {
+      // Log mapping for Reddit comments for debugging/verification
+      try {
+        saved
+          .filter((p) => isComment(p))
+          .forEach((p) => {
+            const mapped = mapCommentToFeedItem(p);
+            // eslint-disable-next-line no-console
+            console.log('Comment mapping → feed item', mapped);
+          });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Unable to log comment mappings', e);
+      }
       this.setState({
         loading: false,
         saved,
@@ -139,13 +153,21 @@ class RedditLogin extends Component {
   }
 
   redditLink(post, title = null, classes = null) {
-    if (!post.hasOwnProperty('permalink')) {
-      console.log('post', post);
+    const permalink =
+      (post && (post.permalink || post.link_permalink || post.link_url)) || '';
+    if (!permalink) {
+      // eslint-disable-next-line no-console
+      console.warn('No permalink available for post', post);
+      const linkTitle = title || getDisplayTitle(post);
+      return (
+        <span className={classes || undefined}>{linkTitle}</span>
+      );
     }
-
-    let permalink = post.permalink;
-    let href = reddit_host + permalink;
-    let linkTitle = title || post.title;
+    // If it's already an absolute URL, keep it; otherwise prefix host
+    const href = permalink.startsWith('http')
+      ? permalink
+      : reddit_host + permalink;
+    let linkTitle = title || getDisplayTitle(post);
     return (
       <a
         href={href}
@@ -192,8 +214,10 @@ class RedditLogin extends Component {
     }
 
     try {
-      if (!post.url) {
-        console.log('permalink does not have url', post);
+      // Allow comments and self-posts that may not have a direct url
+      if (!post.url && !isComment(post) && !(post.is_self && (post.selftext_html || post.selftext))) {
+        // eslint-disable-next-line no-console
+        console.log('Skipping item without content url', post);
         return;
       }
 
@@ -614,18 +638,30 @@ class RedditLogin extends Component {
             {saved.map((post, i) => (
               <div className='columns col-oneline' key={i}>
                 <div className='column col-2'>
-                  <img
-                    className='img-responsive img-fit-cover'
-                    src={getPreviewImage(post)}
-                    alt=''
-                  />
+                  {getPreviewImage(post) ? (
+                    <img
+                      className='img-responsive img-fit-cover'
+                      src={getPreviewImage(post)}
+                      alt=''
+                    />
+                  ) : null}
                 </div>
                 <div className='column col-9'>
                   <div className='chip'>{post.subreddit}</div>
-                  <h5 onClick={() => this.getArticle(post, i)}>{post.title}</h5>
+                  <h5 onClick={() => this.getArticle(post, i)}>
+                    {getDisplayTitle(post)}
+                  </h5>
+                  {isComment(post) && (
+                    <div className='comment-snippet'>
+                      <span className='comment-text'>
+                        {getCommentSnippet(post, 500)}
+                      </span>
+                      <span className='comment-author'>u/{post.author}</span>
+                    </div>
+                  )}
                   {/* <div role="button" className="button-wrapper" onClick={() => this.getArticle(post, i)}>
-                                    {this.getContentButton()}
-                                </div> */}
+                                     {this.getContentButton()}
+                                 </div> */}
                 </div>
               </div>
             ))}
