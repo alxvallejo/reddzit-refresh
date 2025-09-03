@@ -1,14 +1,144 @@
 name: Deploy to Production
+
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
+    environment: production
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: "16"
-    - run: yarn install
-    - run: yarn build
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Create .env.production for Vite
+        run: |
+          cat > .env.production <<'EOF'
+          VITE_REDDIT_CLIENT_ID=${{ secrets.VITE_REDDIT_CLIENT_ID }}
+          VITE_REDDIT_SECRET=${{ secrets.VITE_REDDIT_SECRET }}
+          VITE_REDDIT_REDIRECT_URI=${{ secrets.VITE_REDDIT_REDIRECT_URI }}
+          VITE_READ_API_BASE=${{ secrets.VITE_READ_API_BASE }}
+          EOF
+
+      - name: Install dependencies
+        run: |
+          yarn --version
+          yarn install --frozen-lockfile || yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Start SSH agent and add key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Prepare server (backup/space check)
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" << 'ENDSSH'
+          set -e
+          echo "📦 Preparing deployment on server..."
+
+          if [ ! -d "/var/www/reddzit-refresh" ]; then
+            echo "⚠️  Directory /var/www/reddzit-refresh doesn't exist"
+            echo "Please create it manually with:"
+            echo "  sudo mkdir -p /var/www/reddzit-refresh"
+            echo "  sudo chown $USER:$USER /var/www/reddzit-refresh"
+            exit 1
+          fi
+
+          echo "💾 Checking free space..."
+          avail_kb=$(df -Pk / | awk 'NR==2{print $4}')
+          if [ "$avail_kb" -lt 1048576 ]; then
+            echo "❌ Low disk space on /: $(df -h / | awk 'NR==2{print $4" free"}')"
+            echo "🧹 Attempting light cleanup (old backups, caches)..."
+            rm -rf /var/www/reddzit-refresh/dist.backup.* 2>/dev/null || true
+            yarn cache clean 2>/dev/null || true
+            rm -rf ~/.cache/yarn/* ~/.npm/* 2>/dev/null || true
+            avail_kb=$(df -Pk / | awk 'NR==2{print $4}')
+            if [ "$avail_kb" -lt 1048576 ]; then
+              echo "❌ Still low disk space after cleanup. Aborting deploy."
+              exit 1
+            fi
+            echo "✅ Space after cleanup: $(df -h / | awk 'NR==2{print $4" free"}')"
+          else
+            echo "✅ Free space ok: $(df -h / | awk 'NR==2{print $4" free"}')"
+          fi
+
+          cd /var/www/reddzit-refresh
+          if [ -d "dist" ] && [ -w "." ]; then
+            echo "📸 Creating backup of current version..."
+            cp -r dist dist.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || echo "Could not create backup (permission issue)"
+          fi
+          echo "✅ Server prepared for deployment"
+          ENDSSH
+
+      - name: Rsync dist to server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          rsync -rlvz --delete --no-perms --no-owner --no-group --no-times dist/ "$SSH_USER@$SSH_HOST:/var/www/reddzit-refresh/dist/"
+
+      - name: Post-deploy permissions and nginx reload
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" << 'ENDSSH'
+          set -e
+          cd /var/www/reddzit-refresh
+          echo "🔒 Setting permissions..."
+          if sudo -n true 2>/dev/null; then
+            sudo chown -R www-data:www-data dist/
+            echo "✅ Permissions set"
+          else
+            echo "⚠️  Cannot set permissions without sudo"
+            echo "Run manually: sudo chown -R www-data:www-data /var/www/reddzit-refresh/dist/"
+          fi
+
+          echo "🌐 Reloading nginx..."
+          if sudo -n true 2>/dev/null; then
+            sudo systemctl reload nginx
+            echo "✅ Nginx reloaded"
+          else
+            echo "⚠️  Cannot reload nginx without sudo"
+            echo "Run manually: sudo systemctl reload nginx"
+          fi
+
+          echo "✅ Validating deployment..."
+          curl -s -o /dev/null -w "%{http_code}" https://reddzit.seojeek.com | grep -q "200" && echo "✅ Site is accessible!" || echo "⚠️ Site returned non-200 status"
+          echo "🎉 Deployment complete!"
+          ENDSSH
+
+      - name: Validate deployed assets
+        run: |
+          js_asset=$(sed -n 's/.*src="\\/assets\\/\(index-[^"]*\.js\)".*/\1/p' dist/index.html | head -n1)
+          css_asset=$(sed -n 's/.*href="\\/assets\\/\(index-[^"]*\.css\)".*/\1/p' dist/index.html | head -n1)
+          if [ -z "$js_asset" ] || [ -z "$css_asset" ]; then
+            echo "❌ Could not parse asset names from dist/index.html"; exit 1; fi
+          js_ct=$(curl -skI https://reddzit.seojeek.com/assets/$js_asset | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tr -d '\r')
+          css_ct=$(curl -skI https://reddzit.seojeek.com/assets/$css_asset | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tr -d '\r')
+          echo "JS content-type: $js_ct"; echo "CSS content-type: $css_ct"
+          case "$js_ct" in application/javascript*|text/javascript*) : ;; *) echo "❌ JS asset has wrong MIME: $js_ct"; exit 1;; esac
+          case "$css_ct" in text/css*) : ;; *) echo "❌ CSS asset has wrong MIME: $css_ct"; exit 1;; esac
+          echo "✅ Asset validation passed"
