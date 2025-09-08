@@ -49,16 +49,6 @@ export default tseslint.config({
 })
 ```
 
-## CI/CD Variables
-
-- Where: Bitbucket → Repository Settings → Pipelines → Deployment variables → production.
-- Define the following for production builds (used by `bitbucket-pipelines.yml`):
-  - `VITE_REDDIT_CLIENT_ID`: Reddit OAuth client id
-  - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.seojeek.com/reddit`
-  - `VITE_READ_API_BASE`: e.g. `https://read-api.seojeek.com`
-- The pipeline writes a `.env.production` from these variables before running `vite build`.
-- Note: Any `VITE_*` variables are embedded in the client bundle. Do not place server-only secrets here; keep those on a backend service. The Reddit client secret must live only on the backend and be used by your token proxy.
-
 ## GitHub Actions Deployment
 
 This repo includes a GitHub Actions workflow at `.github/workflows/deploy-frontend.yml` that builds and deploys to the server over SSH.
