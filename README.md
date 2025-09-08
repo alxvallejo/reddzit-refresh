@@ -54,8 +54,34 @@ export default tseslint.config({
 - Where: Bitbucket → Repository Settings → Pipelines → Deployment variables → production.
 - Define the following for production builds (used by `bitbucket-pipelines.yml`):
   - `VITE_REDDIT_CLIENT_ID`: Reddit OAuth client id
-  - `VITE_REDDIT_SECRET`: Reddit OAuth client secret
-  - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.seojeek.com/reddit/`
+  - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.seojeek.com/reddit`
   - `VITE_READ_API_BASE`: e.g. `https://read-api.seojeek.com`
 - The pipeline writes a `.env.production` from these variables before running `vite build`.
-- Note: Any `VITE_*` variables are embedded in the client bundle. Do not place server-only secrets here; keep those on a backend service.
+- Note: Any `VITE_*` variables are embedded in the client bundle. Do not place server-only secrets here; keep those on a backend service. The Reddit client secret must live only on the backend and be used by your token proxy.
+
+## GitHub Actions Deployment
+
+This repo includes a GitHub Actions workflow at `.github/workflows/deploy-frontend.yml` that builds and deploys to the server over SSH.
+
+- Required repository secrets (Settings → Secrets and variables → Actions → New repository secret):
+  - `VITE_REDDIT_CLIENT_ID`: Reddit OAuth client id.
+  - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.seojeek.com/reddit`.
+  - `VITE_READ_API_BASE`: e.g. `https://read-api.seojeek.com`.
+  - `SSH_HOST`: e.g. `seojeek.com`.
+  - `SSH_USER`: e.g. `alxvallejo`.
+  - `SSH_KEY`: SSH private key used by Actions to connect to the server (see below).
+  - `SSH_PORT` (optional): e.g. `22`.
+
+- Generating and installing a deploy SSH key:
+  1. On your local machine, generate a key pair:
+     - `ssh-keygen -t ed25519 -C "github-actions@reddzit-refresh" -f ~/.ssh/reddzit_refresh_actions -N ''`
+  2. Copy the public key to the server user’s `authorized_keys`:
+     - `ssh-copy-id -i ~/.ssh/reddzit_refresh_actions.pub alxvallejo@seojeek.com`
+     - Or manually append the contents of `~/.ssh/reddzit_refresh_actions.pub` to `/home/alxvallejo/.ssh/authorized_keys` on the server.
+  3. Add the private key as the `SSH_KEY` secret (paste the full contents of `~/.ssh/reddzit_refresh_actions`).
+  4. (Optional) Add host key to known hosts to verify host fingerprints on first connect:
+     - `ssh-keyscan -H seojeek.com`
+
+- Deployment path and behavior:
+  - Target directory: `/var/www/reddzit-refresh/dist`.
+  - The action cleans the remote `dist` directory, uploads the new build, then (if sudo is available) sets ownership to `www-data` and reloads nginx.

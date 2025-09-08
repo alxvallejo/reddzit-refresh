@@ -1,0 +1,88 @@
+name: Deploy Frontend (Production)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Create .env.production
+        run: |
+          cat > .env.production <<EOF
+          VITE_REDDIT_CLIENT_ID=${{ secrets.VITE_REDDIT_CLIENT_ID }}
+          VITE_REDDIT_REDIRECT_URI=${{ secrets.VITE_REDDIT_REDIRECT_URI }}
+          VITE_READ_API_BASE=${{ secrets.VITE_READ_API_BASE }}
+          EOF
+
+      - name: Build
+        run: yarn build
+
+      - name: Prepare archive
+        run: |
+          tar -czf dist.tar.gz -C dist .
+
+      - name: Ensure target directory exists and clean
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            if [ ! -d "/var/www/reddzit-refresh" ]; then
+              echo "⚠️  Directory /var/www/reddzit-refresh doesn't exist"
+              if sudo -n true 2>/dev/null; then
+                sudo mkdir -p /var/www/reddzit-refresh/dist
+                sudo chown $USER:$USER /var/www/reddzit-refresh /var/www/reddzit-refresh/dist
+              else
+                echo "Please create it manually with:"
+                echo "  sudo mkdir -p /var/www/reddzit-refresh/dist"
+                echo "  sudo chown $USER:$USER /var/www/reddzit-refresh /var/www/reddzit-refresh/dist"
+                exit 1
+              fi
+            fi
+            mkdir -p /var/www/reddzit-refresh/dist
+            rm -rf /var/www/reddzit-refresh/dist/*
+
+      - name: Upload assets
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "dist.tar.gz"
+          target: "/tmp"
+
+      - name: Extract and finalize on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            tar -xzf /tmp/dist.tar.gz -C /var/www/reddzit-refresh/dist
+            rm -f /tmp/dist.tar.gz
+            if sudo -n true 2>/dev/null; then
+              sudo chown -R www-data:www-data /var/www/reddzit-refresh/dist
+              sudo systemctl reload nginx || true
+            else
+              echo "Skipping chown and nginx reload (no sudo)."
+            fi
+            echo "Deployment complete."
