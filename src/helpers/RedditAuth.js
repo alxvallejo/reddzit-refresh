@@ -1,39 +1,27 @@
 import _ from 'lodash';
+import queryString from 'query-string';
+import API_BASE_URL from '../config/api';
 
 export const client_id = import.meta.env.VITE_REDDIT_CLIENT_ID;
-console.log('client_id: ', client_id);
-export const secret = `${import.meta.env.VITE_REDDIT_SECRET}`;
 export const redirect_uri = `${import.meta.env.VITE_REDDIT_REDIRECT_URI}`;
 
 export const reddit_host = 'https://www.reddit.com';
 export const reddit_use_host = 'https://oauth.reddit.com';
+// Keep for reference, but the browser must NOT call this directly due to CORS
 export const accessTokenUrl = reddit_host + '/api/v1/access_token';
 
-import queryString from 'query-string';
-
 export class RedditAuth {
-  getAuthHeaders = async () => {
-    let encodedAuth = btoa(client_id + ':' + secret);
-    let authHeaders = {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      Authorization: 'Basic ' + encodedAuth,
-    };
-    return authHeaders;
-  };
-
+  // Exchange authorization code for tokens via backend proxy
   getAccessToken = async (code) => {
-    let postData = {
-      code: code,
+    const postData = {
       grant_type: 'authorization_code',
-      redirect_uri: redirect_uri,
+      code,
+      redirect_uri,
     };
-    let postDataString = queryString.stringify(postData);
-    let authHeaders = await this.getAuthHeaders();
-
-    let res = await fetch(accessTokenUrl, {
+    const res = await fetch(`${API_BASE_URL}/api/reddit/oauth/token`, {
       method: 'POST',
-      body: postDataString,
-      headers: authHeaders,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postData),
     });
     return res;
   };
@@ -43,7 +31,8 @@ export class RedditAuth {
       return true;
     }
 
-    return Date.now() - timestamp > 3600 ? true : false;
+    // timestamp is stored in ms; refresh about every hour
+    return Date.now() - timestamp > 3600 * 1000 ? true : false;
   };
 
   redirectForAuth = async () => {
@@ -98,7 +87,7 @@ export class RedditAuth {
       this.redirectForAuth();
     } else {
       const { access_token, refresh_token, scope } = res;
-      let lastReceived = Date.now() * 0.001;
+      let lastReceived = Date.now();
       localStorage.setItem(
         'redditCreds',
         JSON.stringify({
@@ -127,19 +116,17 @@ export class RedditAuth {
   };
 
   refreshToken = async (refresh_token) => {
-    let refreshRequest = {
+    const refreshRequest = {
       grant_type: 'refresh_token',
-      refresh_token: refresh_token,
+      refresh_token,
     };
-    let refreshRequestPostData = queryString.stringify(refreshRequest);
-    let authHeaders = await this.getAuthHeaders();
     try {
-      let refresh_token = await fetch(accessTokenUrl, {
+      const resp = await fetch(`${API_BASE_URL}/api/reddit/oauth/refresh`, {
         method: 'POST',
-        body: refreshRequestPostData,
-        headers: authHeaders,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(refreshRequest),
       });
-      let newToken = await this.handleTokenResponse(refresh_token);
+      const newToken = await this.handleTokenResponse(resp);
       return newToken;
     } catch (error) {
       debugger;

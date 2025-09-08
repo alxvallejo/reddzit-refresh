@@ -24,7 +24,7 @@ pipelines:
             # Validate required environment variables for Vite build
             - echo "🔎 Checking required env vars..."
             - |
-              req_vars=(VITE_REDDIT_CLIENT_ID VITE_REDDIT_SECRET VITE_REDDIT_REDIRECT_URI VITE_READ_API_BASE)
+              req_vars=(VITE_REDDIT_CLIENT_ID VITE_REDDIT_REDIRECT_URI VITE_READ_API_BASE)
               missing=()
               for v in "${req_vars[@]}"; do
                 if [ -z "${!v}" ]; then missing+=("$v"); fi
@@ -40,7 +40,6 @@ pipelines:
             - |
               cat > .env.production <<EOF
               VITE_REDDIT_CLIENT_ID=${VITE_REDDIT_CLIENT_ID}
-              VITE_REDDIT_SECRET=${VITE_REDDIT_SECRET}
               VITE_REDDIT_REDIRECT_URI=${VITE_REDDIT_REDIRECT_URI}
               VITE_READ_API_BASE=${VITE_READ_API_BASE}
               EOF
