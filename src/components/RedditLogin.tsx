@@ -302,13 +302,8 @@ class RedditLogin extends Component {
 
   copyButton(buttonClass = null) {
     let { selectedPost, saved, selectedIndex, showSavedOpacity } = this.state;
-    let pathname = window.location.pathname;
-    let copyUrl =
-      'https://' +
-      window.location.hostname +
-      pathname +
-      '?name=' +
-      selectedPost.name;
+    const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+    const copyUrl = `${origin}/p/${selectedPost.name}`;
     let btnClass = buttonClass ? buttonClass + ' btn' : 'btn';
 
     let newSaved = saved.map((s, i) => {
@@ -334,7 +329,7 @@ class RedditLogin extends Component {
             })
           }
         >
-          <button className={btnClass}>Copy Link</button>
+          <button className={btnClass}>Copy Share Link</button>
         </CopyToClipboard>
       </div>
     );

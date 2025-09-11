@@ -6,6 +6,7 @@ import ReactGA from 'react-ga';
 import RedditLogin from './components/RedditLogin';
 import Main from './components/Main';
 import About from './components/About';
+import PostView from './components/PostView';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -17,6 +18,7 @@ function App() {
           <Route index path='/' element={<Main />} />
           <Route path='/reddit' element={<RedditLogin />} />
           <Route path='/about' element={<About />} />
+          <Route path='/p/:fullname' element={<PostView />} />
         </Routes>
       </div>
     </BrowserRouter>
