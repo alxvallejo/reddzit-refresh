@@ -13,9 +13,9 @@ class ReadControlsFooter extends Component {
     copyButton() {
         const { selectedPost } = this.props;
         const { copied } = this.state;
-        let pathname = window.location.pathname;
-        let copyUrl = 'https://' + window.location.hostname + pathname + '?name=' + selectedPost.name;
-        const copyLabel = copied ? 'Copied' : 'Copy Link';
+        const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+        const copyUrl = `${origin}/p/${selectedPost.name}`;
+        const copyLabel = copied ? 'Copied' : 'Copy Share Link';
 
         return (
             <div className="copy-wrapper">

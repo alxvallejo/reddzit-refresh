@@ -86,10 +86,26 @@ How it works:
 - The server reads `dist/index.html` and injects `<title>`, `og:*`, and Twitter meta tags with the post’s title and image.
 - All other routes serve the SPA as usual.
 
-Build and run on your server:
+Build and run locally:
 - `npm run build`
 - `PUBLIC_BASE_URL="https://your-domain" node server/index.mjs`
 
 Notes:
 - Set `PUBLIC_BASE_URL` to your app’s origin so `og:url` and default image resolve correctly.
 - The client adds a `/p/:fullname` route (`PostView`) to render a basic post view for users.
+
+### Production (nginx + systemd)
+
+- Keep nginx serving static files from `/var/www/reddzit-refresh/dist`.
+- Proxy only `/p/` routes to the Node SSR server on localhost.
+
+1) nginx server block (example at `deploy/nginx-reddzit-refresh.conf.example`):
+- Set `server_name` and `root` to your values.
+- Ensure `location ~ ^/p/.*$` proxies to `http://127.0.0.1:5174`.
+
+2) systemd service (example at `deploy/reddzit-ssr.service.example`):
+- Copy to `/etc/systemd/system/reddzit-ssr.service` and adjust `PUBLIC_BASE_URL`.
+- Commands: `sudo systemctl daemon-reload && sudo systemctl enable --now reddzit-ssr && sudo systemctl status reddzit-ssr`.
+
+3) Optional CI post-deploy step:
+- Add `sudo systemctl restart reddzit-ssr` to your deploy workflow after uploading `dist`.
