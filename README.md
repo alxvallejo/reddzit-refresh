@@ -57,6 +57,7 @@ This repo includes a GitHub Actions workflow at `.github/workflows/deploy-fronte
   - `VITE_REDDIT_CLIENT_ID`: Reddit OAuth client id.
   - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.seojeek.com/reddit`.
   - `VITE_READ_API_BASE`: e.g. `https://read-api.seojeek.com`.
+  - `PUBLIC_BASE_URL`: e.g. `https://reddzit.seojeek.com` (used by the SSR meta tag server below).
   - `SSH_HOST`: e.g. `seojeek.com`.
   - `SSH_USER`: e.g. `alxvallejo`.
   - `SSH_KEY`: SSH private key used by Actions to connect to the server (see below).
@@ -75,3 +76,20 @@ This repo includes a GitHub Actions workflow at `.github/workflows/deploy-fronte
 - Deployment path and behavior:
   - Target directory: `/var/www/reddzit-refresh/dist`.
   - The action cleans the remote `dist` directory, uploads the new build, then (if sudo is available) sets ownership to `www-data` and reloads nginx.
+
+## Dynamic Share Previews (SSR injection)
+
+Link preview bots (Slack, Discord, Messages, Twitter/X, Facebook) do not execute JavaScript, so meta tags set client-side are ignored. This project includes a minimal Node server that injects dynamic Open Graph/Twitter tags for share URLs like `/p/:fullname`.
+
+How it works:
+- Route `GET /p/:fullname` fetches public Reddit JSON for the post (`https://www.reddit.com/by_id/:fullname.json`).
+- The server reads `dist/index.html` and injects `<title>`, `og:*`, and Twitter meta tags with the post’s title and image.
+- All other routes serve the SPA as usual.
+
+Build and run on your server:
+- `npm run build`
+- `PUBLIC_BASE_URL="https://your-domain" node server/index.mjs`
+
+Notes:
+- Set `PUBLIC_BASE_URL` to your app’s origin so `og:url` and default image resolve correctly.
+- The client adds a `/p/:fullname` route (`PostView`) to render a basic post view for users.
