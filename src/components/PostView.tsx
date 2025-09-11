@@ -39,7 +39,7 @@ export default function PostView() {
       };
     }
     return () => { cancelled = true; };
-  }, [fullname]);
+  }, [fullname, navigate]);
 
   if (error) return <div className="container"><p>{error}</p></div>;
   if (!post) return (
