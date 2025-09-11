@@ -91,3 +91,21 @@ jobs:
               echo "Skipping chown and nginx reload (no sudo)."
             fi
             echo "Deployment complete."
+
+      - name: Restart read-api (SSR injector)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            echo "Restarting read-api to pick up updated dist/index.html..."
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 restart read-api --update-env || pm2 start /var/www/read-api/server.js --name read-api -i 2
+              pm2 save || true
+            elif sudo -n true 2>/dev/null && systemctl status read-api >/dev/null 2>&1; then
+              sudo systemctl restart read-api
+            else
+              echo "read-api process manager not detected (PM2/systemd). Skipping restart."
+            fi
