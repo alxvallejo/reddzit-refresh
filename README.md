@@ -85,9 +85,16 @@ How it works:
 - Nginx proxies only `/p/` requests to read-api (port 3000 by default).
 - read-api injects `<title>`, `og:*`, and Twitter tags into `index.html` at request time using the built assets from this repo.
 
+Canonical share URL:
+- Use `/p/:fullname` (e.g., `https://reddzit.seojeek.com/p/t3_abcdef`).
+
 What the frontend must do:
 - Continue deploying the built `dist/` to the path configured in read-api (`FRONTEND_DIST_DIR`, e.g., `/var/www/reddzit-refresh/dist`).
 - Ensure “Copy Share Link” buttons generate URLs of the form `/p/<full_name>` (already implemented).
+- The `/p/:fullname` route auto-navigates to `/reddit?name=:fullname` for human users; bots see SSR’d tags.
+
+Backward compatibility suggestion (nginx):
+- Redirect old links `GET /reddit?name=<fullname>` → `301 /p/<fullname>` so social bots hit the canonical path.
 
 Server-side setup is documented in the read-api repo. In short:
 - Set `FRONTEND_DIST_DIR` and `PUBLIC_BASE_URL` in read-api.
