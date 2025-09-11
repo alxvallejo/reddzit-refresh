@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 type Post = any;
 
 export default function PostView() {
   const { fullname } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,12 +26,32 @@ export default function PostView() {
       if (!cancelled) setError('Unable to load post');
     }
 
-    if (fullname) load();
+    if (fullname) {
+      load();
+      // For human users, navigate to the app route that expects the `name` query.
+      // Bots won’t execute JS, so they will see SSR’d meta from the server for /p/:fullname.
+      const to = `/reddit?name=${fullname}`;
+      // Slight delay so the page renders something before navigation, in case of slow routers.
+      const t = setTimeout(() => navigate(to, { replace: true }), 150);
+      return () => {
+        cancelled = true;
+        clearTimeout(t);
+      };
+    }
     return () => { cancelled = true; };
   }, [fullname]);
 
   if (error) return <div className="container"><p>{error}</p></div>;
-  if (!post) return <div className="container"><p>Loading…</p></div>;
+  if (!post) return (
+    <div className="container">
+      <p>Loading…</p>
+      {fullname && (
+        <p>
+          If not redirected, open in app: <a href={`/reddit?name=${fullname}`}>/reddit?name={fullname}</a>
+        </p>
+      )}
+    </div>
+  );
 
   const image = post?.preview?.images?.[0]?.source?.url?.replace(/&amp;/g, '&');
 
