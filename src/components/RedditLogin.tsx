@@ -27,7 +27,6 @@ import {
   faCoffee,
 } from '@fortawesome/free-solid-svg-icons';
 
-import { Helmet } from 'react-helmet';
 import OffCanvas from './OffCanvas';
 import Modal from './Modal';
 import {
@@ -125,7 +124,7 @@ class RedditLogin extends Component {
     let { saved } = await this.reddit.getSaved(params);
     if (!saved) {
       history.push({
-        pathname: history.location.pathname,
+        pathname: '/reddit',
         search: null,
       });
       this.setState({
@@ -225,7 +224,9 @@ class RedditLogin extends Component {
       this.handlePostType(postType);
       this.handleIndex(i);
 
-      setHistory(post.name, after);
+      // Include a slug of the title for nicer, more informative share URLs
+      const titleForSlug = getDisplayTitle(post) || post.title || '';
+      setHistory(post.name, after, titleForSlug);
     } catch (error) {
       console.log('error at get content', error);
       return;
@@ -303,7 +304,16 @@ class RedditLogin extends Component {
   copyButton(buttonClass = null) {
     let { selectedPost, saved, selectedIndex, showSavedOpacity } = this.state;
     const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
-    const copyUrl = `${origin}/p/${selectedPost.name}`;
+    const title = getDisplayTitle(selectedPost) || selectedPost.title || '';
+    const slug = (title || '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    const copyUrl = slug ? `${origin}/p/${selectedPost.name}/${slug}` : `${origin}/p/${selectedPost.name}`;
     let btnClass = buttonClass ? buttonClass + ' btn' : 'btn';
 
     let newSaved = saved.map((s, i) => {
@@ -491,7 +501,7 @@ class RedditLogin extends Component {
     if (saved) {
       let lastSaved = saved.pop().name;
       history.push({
-        pathname: window.location.pathname,
+        pathname: '/reddit',
         search: '?after=' + lastSaved,
       });
       this.setState({
