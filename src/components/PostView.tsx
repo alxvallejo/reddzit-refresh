@@ -39,7 +39,14 @@ export default function PostView() {
       };
     }
     return () => { cancelled = true; };
-  }, [fullname]);
+  }, [fullname, navigate]);
+
+  // Update document title for human visitors once data is loaded
+  useEffect(() => {
+    if (post?.title) {
+      document.title = post.title;
+    }
+  }, [post?.title]);
 
   if (error) return <div className="container"><p>{error}</p></div>;
   if (!post) return (

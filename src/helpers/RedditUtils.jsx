@@ -10,6 +10,16 @@ import {
   badTags,
 } from './UrlCrawler';
 import history from '../history';
+
+const slugify = (text) =>
+  (text || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 import gandalf from '../gandalf.png';
 
 export const getContentParamUrl = (contentParam) => {
@@ -40,23 +50,28 @@ export const noContentTile = () => {
   );
 };
 
-export const setHistory = (name = null, after = null) => {
-  let nextSearch;
-  if (!name) {
-    nextSearch = after ? '&after=' + after : null;
+export const setHistory = (name = null, after = null, titleForSlug = null) => {
+  // Update the URL to be shareable via /p/:fullname
+  // without breaking in-app navigation.
+  const search = after ? `?after=${after}` : '';
+
+  if (name) {
+    // Point to shareable SSR route for the selected post
+    const slug = titleForSlug ? slugify(titleForSlug) : '';
     history.push({
-      pathname: window.location.pathname,
-      search: nextSearch,
+      pathname: slug ? `/p/${name}/${slug}` : `/p/${name}`,
+      search,
     });
   } else {
-    let nameSearch = '?name=' + name;
-    nextSearch = after ? nameSearch + '&after=' + after : nameSearch;
+    // Return to the main app route for list/pagination views
     history.push({
-      pathname: window.location.pathname,
-      search: nextSearch,
+      pathname: `/reddit`,
+      search,
     });
   }
 };
+
+export { slugify };
 
 export const getUrlContent = (parsed) => {
   if (parsed.url || parsed.img || parsed.vid) {

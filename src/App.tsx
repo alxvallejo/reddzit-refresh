@@ -19,6 +19,7 @@ function App() {
           <Route path='/reddit' element={<RedditLogin />} />
           <Route path='/about' element={<About />} />
           <Route path='/p/:fullname' element={<PostView />} />
+          <Route path='/p/:fullname/:slug' element={<PostView />} />
         </Routes>
       </div>
     </BrowserRouter>
