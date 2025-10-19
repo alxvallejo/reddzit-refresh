@@ -1,33 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { getPostType, handlePostType } from '../helpers/RedditUtils';
 
 type Post = any;
+type Content = any;
 
 export default function PostView() {
   const { fullname } = useParams();
-  const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
+  const [content, setContent] = useState<Content | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        // Try to fetch via public Reddit JSON for unauthenticated users
+        // Fetch post data from Reddit's public JSON API
         const r = await fetch(`https://www.reddit.com/by_id/${fullname}.json`);
         if (r.ok) {
           const json = await r.json();
           const p = json?.data?.children?.[0]?.data;
-          if (!cancelled) setPost(p || null);
+          if (!p) {
+            if (!cancelled) setError('Post not found');
+            return;
+          }
+          if (!cancelled) setPost(p);
+
+          // Extract full article content like the logged-in view
+          try {
+            const postType = getPostType(p);
+            const extractedContent = await handlePostType(postType);
+            if (!cancelled) setContent(extractedContent);
+          } catch (contentErr) {
+            console.warn('Failed to extract content:', contentErr);
+            // Still show basic post info even if content extraction fails
+          }
           return;
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error('Error loading post:', err);
+      }
       if (!cancelled) setError('Unable to load post');
     }
 
     if (fullname) {
-      load();
+      load().finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     }
     return () => { cancelled = true; };
   }, [fullname]);
@@ -47,13 +68,16 @@ export default function PostView() {
     </div>
   );
   
-  if (!post) return (
+  if (loading || !post) return (
     <div className="container">
       <p>Loading post…</p>
     </div>
   );
 
-  const image = post?.preview?.images?.[0]?.source?.url?.replace(/&amp;/g, '&');
+  const image = content?.img || post?.preview?.images?.[0]?.source?.url?.replace(/&amp;/g, '&');
+  const videoUrl = content?.video;
+  const articleContent = content?.content;
+  const articleTitle = content?.title || post.title;
 
   return (
     <div className="container">
@@ -74,16 +98,44 @@ export default function PostView() {
             u/{post.author}
           </a>
         </p>
+
+        {/* Video content */}
+        {videoUrl && (
+          <div style={{ maxWidth: 720, marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+            <iframe
+              width="100%"
+              height="400"
+              src={videoUrl}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ borderRadius: '4px' }}
+            />
+          </div>
+        )}
+
+        {/* Image content */}
         {image && (
           <div style={{ maxWidth: 720, marginTop: '1.5rem', marginBottom: '1.5rem' }}>
             <img src={image} style={{ width: '100%', borderRadius: '4px' }} alt={post.title} />
           </div>
         )}
-        {post.selftext && (
+
+        {/* Rich article content (extracted from external links) */}
+        {articleContent && (
+          <div 
+            style={{ lineHeight: '1.6', marginTop: '1.5rem', marginBottom: '1.5rem', fontSize: '16px' }}
+            dangerouslySetInnerHTML={{ __html: articleContent }}
+          />
+        )}
+
+        {/* Fallback to selftext if no extracted content */}
+        {!articleContent && post.selftext && (
           <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
             {post.selftext}
           </div>
         )}
+
         <p style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
           <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
             View on Reddit →
