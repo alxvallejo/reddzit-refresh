@@ -58,16 +58,18 @@
 .public-post .header .reddzit-nav a:hover { color: #f0ecff !important; }
 
 /* Dark mode variant */
-.public-post.darkMode .header { background: $dark-primary; }
-.public-post.darkMode .header .site-name h1,
-.public-post.darkMode .header .site-name .caption,
-.public-post.darkMode .header .reddzit-nav a,
-.public-post.darkMode .header .reddzit-nav svg { color: $darkModeFont !important; }
+/* Use the same dark purple across header and hero to avoid mismatched shades */
+.public-post.darkMode {
+  .header { background: $darkMode; }
+  .post-hero { background: $darkMode; }
+  .site-wrap { background: $darkMode; }
+  .header .site-name h1,
+  .header .site-name .caption,
+  .header .reddzit-nav a,
+  .header .reddzit-nav svg { color: $darkModeFont !important; }
+}
 
 /* Dark mode improvements for the hero area */
-.public-post.darkMode .post-hero {
-  background: $dark-primary;
-}
 .public-post.darkMode .read-content {
   background: $darkMode;
   color: $darkModeFont;
