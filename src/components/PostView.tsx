@@ -86,7 +86,7 @@ export default function PostView() {
   const readControlClass = 'read-controls-wrapper';
 
   if (error) return (
-    <div className="container">
+    <div className="container" style={{ padding: 0, margin: 0, maxWidth: 'none' }}>
       <div className="site-wrap">
         <div className="header">
           <div className="reddzit-nav">
@@ -105,7 +105,7 @@ export default function PostView() {
             </div>
           </div>
         </div>
-        <div className="content">
+        <div className="content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <h2>Unable to load post</h2>
           <p>{error}</p>
           <p><a href="/">← Back to Reddzit</a></p>
@@ -123,7 +123,7 @@ export default function PostView() {
   const containerClass = darkMode ? 'container darkMode' : 'container';
   
   return (
-    <div className={containerClass}>
+    <div className={containerClass} style={{ padding: 0, margin: 0, maxWidth: 'none' }}>
       <div className="site-wrap">
         <div className="header">
           <div className="reddzit-nav">
@@ -143,7 +143,7 @@ export default function PostView() {
           </div>
         </div>
 
-        <div className="content">
+        <div className="content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
           <div className={readContentClass}>
             <div className={readControlClass}>
               <ReadControls
