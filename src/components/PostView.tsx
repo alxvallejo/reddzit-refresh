@@ -86,7 +86,7 @@ export default function PostView() {
   const readControlClass = 'read-controls-wrapper';
 
   if (error) return (
-    <div className="container" style={{ padding: 0, margin: 0, maxWidth: 'none' }}>
+    <div className={`public-post ${darkMode ? 'darkMode' : ''}`}>
       <div className="site-wrap">
         <div className="header">
           <div className="reddzit-nav">
@@ -105,25 +105,29 @@ export default function PostView() {
             </div>
           </div>
         </div>
-        <div className="content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <h2>Unable to load post</h2>
+        <section className="post-hero full-bleed">
+          <div className="full-bleed__inner">
+            <div className="post-title">
+              <h2>Unable to load post</h2>
+            </div>
+          </div>
+        </section>
+        <main className="content">
           <p>{error}</p>
           <p><a href="/">← Back to Reddzit</a></p>
-        </div>
+        </main>
       </div>
     </div>
   );
   
   if (loading || !post) return (
-    <div className="container">
+    <div className="public-post">
       <div className="loading loading-lg" />
     </div>
   );
 
-  const containerClass = darkMode ? 'container darkMode' : 'container';
-  
   return (
-    <div className={containerClass} style={{ padding: 0, margin: 0, maxWidth: 'none' }}>
+    <div className={`public-post ${darkMode ? 'darkMode' : ''}`}>
       <div className="site-wrap">
         <div className="header">
           <div className="reddzit-nav">
@@ -143,8 +147,9 @@ export default function PostView() {
           </div>
         </div>
 
-        <div className="content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-          <div className={readContentClass}>
+        {/* Full-bleed purple hero */}
+        <section className="post-hero full-bleed">
+          <div className="full-bleed__inner">
             <div className={readControlClass}>
               <ReadControls
                 fontSize={fontSize}
@@ -165,10 +170,13 @@ export default function PostView() {
                 </div>
               )}
             </div>
+          </div>
+        </section>
 
-            {/* Use the same content renderer as OffCanvas/Modal */}
+        {/* Centered reading column */}
+        <main className="content">
+          <div className={readContentClass}>
             {getParsedContent(content, loading && !content, post, fontSize)}
-
             <div className="read-controls-footer" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
               <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
                 View on Reddit
@@ -178,7 +186,7 @@ export default function PostView() {
               </a>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
