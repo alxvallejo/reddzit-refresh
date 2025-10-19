@@ -42,6 +42,28 @@
   margin: 0 0 12px 0;
 }
 
+/* Top bar (logo + nav) adopts purple theme and full width */
+.public-post .header {
+  background: $primary-color;
+  padding: 12px 16px;
+  margin-bottom: 0; /* flows into hero */
+}
+.public-post .header .site-name h1,
+.public-post .header .site-name .caption,
+.public-post .header .reddzit-nav a,
+.public-post .header .reddzit-nav a:visited,
+.public-post .header .reddzit-nav svg {
+  color: #fff !important;
+}
+.public-post .header .reddzit-nav a:hover { color: #f0ecff !important; }
+
+/* Dark mode variant */
+.public-post.darkMode .header { background: $dark-primary; }
+.public-post.darkMode .header .site-name h1,
+.public-post.darkMode .header .site-name .caption,
+.public-post.darkMode .header .reddzit-nav a,
+.public-post.darkMode .header .reddzit-nav svg { color: $darkModeFont !important; }
+
 /* Dark mode improvements for the hero area */
 .public-post.darkMode .post-hero {
   background: $dark-primary;
