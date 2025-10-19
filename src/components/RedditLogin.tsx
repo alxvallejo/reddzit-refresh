@@ -346,7 +346,11 @@ class RedditLogin extends Component {
   }
 
   getContentButton() {
-    const width = this.props.windowWidth;
+    const widthProp = this.props.windowWidth;
+    const width =
+      typeof widthProp === 'number'
+        ? widthProp
+        : (typeof window !== 'undefined' ? window.innerWidth : midBreakPoint);
 
     if (width > 922) {
       return (
@@ -525,7 +529,11 @@ class RedditLogin extends Component {
   }
 
   isModalModal() {
-    const width = this.props.windowWidth;
+    const widthProp = this.props.windowWidth;
+    const width =
+      typeof widthProp === 'number'
+        ? widthProp
+        : (typeof window !== 'undefined' ? window.innerWidth : midBreakPoint);
     return !!(width <= midBreakPoint);
   }
 
