@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getPostType, handlePostType } from '../helpers/RedditUtils';
+import { getPostType, handlePostType, getParsedContent } from '../helpers/RedditUtils';
 
 type Post = any;
 type Content = any;
@@ -74,10 +74,7 @@ export default function PostView() {
     </div>
   );
 
-  const image = content?.img || post?.preview?.images?.[0]?.source?.url?.replace(/&amp;/g, '&');
-  const videoUrl = content?.video;
-  const articleContent = content?.content;
-  const articleTitle = content?.title || post.title;
+  const fontSize = 18; // Default font size from RedditLogin
 
   return (
     <div className="container">
@@ -88,62 +85,32 @@ export default function PostView() {
       </header>
       
       <article>
-        <h2>{post.title}</h2>
-        <p style={{ color: '#666' }}>
-          <a href={`https://www.reddit.com/r/${post.subreddit}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-            r/{post.subreddit}
-          </a>
-          {' • by '}
-          <a href={`https://www.reddit.com/u/${post.author}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-            u/{post.author}
-          </a>
-        </p>
-
-        {/* Video content */}
-        {videoUrl && (
-          <div style={{ maxWidth: 720, marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-            <iframe
-              width="100%"
-              height="400"
-              src={videoUrl}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{ borderRadius: '4px' }}
-            />
+        <div className="post-title">
+          <h2>
+            <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+              {post.title}
+            </a>
+          </h2>
+          <div className="subtitle">
+            <span className="subreddit">
+              r/{post.subreddit} • u/{post.author}
+            </span>
           </div>
-        )}
+        </div>
 
-        {/* Image content */}
-        {image && (
-          <div style={{ maxWidth: 720, marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-            <img src={image} style={{ width: '100%', borderRadius: '4px' }} alt={post.title} />
-          </div>
-        )}
+        {/* Use the same content renderer as OffCanvas */}
+        <div className="read-content">
+          {getParsedContent(content, loading && !content, post, fontSize)}
+        </div>
 
-        {/* Rich article content (extracted from external links) */}
-        {articleContent && (
-          <div 
-            style={{ lineHeight: '1.6', marginTop: '1.5rem', marginBottom: '1.5rem', fontSize: '16px' }}
-            dangerouslySetInnerHTML={{ __html: articleContent }}
-          />
-        )}
-
-        {/* Fallback to selftext if no extracted content */}
-        {!articleContent && post.selftext && (
-          <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-            {post.selftext}
-          </div>
-        )}
-
-        <p style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+        <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
           <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
             View on Reddit →
           </a>
           <a href="/" className="btn">
             Open Reddzit App
           </a>
-        </p>
+        </div>
       </article>
     </div>
   );
