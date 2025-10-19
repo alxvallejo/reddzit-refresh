@@ -25,6 +25,12 @@
   background: $primary-color; /* same purple as app */
 }
 
+/* Ensure hero title uses app font */
+.public-post .post-title h2,
+.public-post .post-title a {
+  font-family: 'Outfit', sans-serif;
+}
+
 /* Centered reading area */
 .public-post .content {
   max-width: 1000px;
@@ -80,3 +86,4 @@
   background: $darkMode !important;
   color: $darkModeFont;
 }
+
