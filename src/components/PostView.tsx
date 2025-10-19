@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getPostType, handlePostType, getParsedContent } from '../helpers/RedditUtils';
+import ReadControls from './ReadControls';
+import smeagol from '../smeagol.png';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faCoffee } from '@fortawesome/free-solid-svg-icons';
+import { getOptions, setOption } from '../helpers/Options';
 
 type Post = any;
 type Content = any;
@@ -11,6 +17,22 @@ export default function PostView() {
   const [content, setContent] = useState<Content | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Get saved options for font size and dark mode
+  const options = getOptions();
+  const [fontSize, setFontSize] = useState(options.fontSize || 18);
+  const [darkMode, setDarkMode] = useState(options.darkMode || false);
+  
+  const handleSetSize = (newSize: number) => {
+    setFontSize(newSize);
+    setOption({ fontSize: newSize });
+  };
+  
+  const handleToggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    setOption({ darkMode: newDarkMode });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -60,58 +82,102 @@ export default function PostView() {
     }
   }, [post?.title]);
 
+  const readContentClass = darkMode ? 'read-content content-modal darkMode' : 'read-content content-modal';
+  const readControlClass = 'read-controls-wrapper';
+
   if (error) return (
     <div className="container">
-      <h2>Unable to load post</h2>
-      <p>{error}</p>
-      <p><a href="/">← Back to Reddzit</a></p>
+      <div className="site-wrap">
+        <div className="header">
+          <div className="reddzit-nav">
+            <Link className="txt-primary" to="/">
+              <FontAwesomeIcon icon={faHome} />
+            </Link>
+            <a className="txt-primary" href="https://www.buymeacoffee.com/reddzit" target="_blank" rel="noreferrer">
+              <FontAwesomeIcon icon={faCoffee} /> Buy me a coffee
+            </a>
+          </div>
+          <div className="banner-img">
+            <img className="img-fit-contain" src={smeagol} alt="reddzit" />
+            <div className="site-name">
+              <h1>Reddzit</h1>
+              <div className="caption">Review your Saved Reddit Posts</div>
+            </div>
+          </div>
+        </div>
+        <div className="content">
+          <h2>Unable to load post</h2>
+          <p>{error}</p>
+          <p><a href="/">← Back to Reddzit</a></p>
+        </div>
+      </div>
     </div>
   );
   
   if (loading || !post) return (
     <div className="container">
-      <p>Loading post…</p>
+      <div className="loading loading-lg" />
     </div>
   );
 
-  const fontSize = 18; // Default font size from RedditLogin
-
   return (
     <div className="container">
-      <header style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
-        <a href="/" style={{ textDecoration: 'none', color: '#5755d9' }}>
-          <h1 style={{ margin: 0 }}>Reddzit</h1>
-        </a>
-      </header>
-      
-      <article>
-        <div className="post-title">
-          <h2>
-            <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
-              {post.title}
+      <div className="site-wrap">
+        <div className="header">
+          <div className="reddzit-nav">
+            <Link className="txt-primary" to="/">
+              <FontAwesomeIcon icon={faHome} />
+            </Link>
+            <a className="txt-primary" href="https://www.buymeacoffee.com/reddzit" target="_blank" rel="noreferrer">
+              <FontAwesomeIcon icon={faCoffee} /> Buy me a coffee
             </a>
-          </h2>
-          <div className="subtitle">
-            <span className="subreddit">
-              r/{post.subreddit} • u/{post.author}
-            </span>
+          </div>
+          <div className="banner-img">
+            <img className="img-fit-contain" src={smeagol} alt="reddzit" />
+            <div className="site-name">
+              <h1>Reddzit</h1>
+              <div className="caption">Review your Saved Reddit Posts</div>
+            </div>
           </div>
         </div>
 
-        {/* Use the same content renderer as OffCanvas */}
-        <div className="read-content">
-          {getParsedContent(content, loading && !content, post, fontSize)}
-        </div>
+        <div className="content">
+          <div className={readContentClass}>
+            <div className={readControlClass}>
+              <ReadControls
+                fontSize={fontSize}
+                setSize={handleSetSize}
+                darkMode={darkMode}
+                toggleDarkMode={handleToggleDarkMode}
+              />
+              {post && (
+                <div className="post-title">
+                  <h2>
+                    <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
+                      {post.title}
+                    </a>
+                  </h2>
+                  <div className="subtitle">
+                    <span className="subreddit">{post.subreddit}</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
-        <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
-          <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
-            View on Reddit →
-          </a>
-          <a href="/" className="btn">
-            Open Reddzit App
-          </a>
+            {/* Use the same content renderer as OffCanvas/Modal */}
+            {getParsedContent(content, loading && !content, post, fontSize)}
+
+            <div className="read-controls-footer" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+              <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
+                View on Reddit
+              </a>
+              <a href="/" className="btn">
+                Open Reddzit App
+              </a>
+            </div>
+          </div>
         </div>
-      </article>
+      </div>
     </div>
   );
 }
