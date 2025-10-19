@@ -120,8 +120,10 @@ export default function PostView() {
     </div>
   );
 
+  const containerClass = darkMode ? 'container darkMode' : 'container';
+  
   return (
-    <div className="container">
+    <div className={containerClass}>
       <div className="site-wrap">
         <div className="header">
           <div className="reddzit-nav">
@@ -142,40 +144,38 @@ export default function PostView() {
         </div>
 
         <div className="content">
-          <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 1rem' }}>
-            <div className={readContentClass}>
-              <div className={readControlClass}>
-                <ReadControls
-                  fontSize={fontSize}
-                  setSize={handleSetSize}
-                  darkMode={darkMode}
-                  toggleDarkMode={handleToggleDarkMode}
-                />
-                {post && (
-                  <div className="post-title">
-                    <h2>
-                      <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
-                        {post.title}
-                      </a>
-                    </h2>
-                    <div className="subtitle">
-                      <span className="subreddit">{post.subreddit}</span>
-                    </div>
+          <div className={readContentClass}>
+            <div className={readControlClass}>
+              <ReadControls
+                fontSize={fontSize}
+                setSize={handleSetSize}
+                darkMode={darkMode}
+                toggleDarkMode={handleToggleDarkMode}
+              />
+              {post && (
+                <div className="post-title">
+                  <h2>
+                    <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
+                      {post.title}
+                    </a>
+                  </h2>
+                  <div className="subtitle">
+                    <span className="subreddit">{post.subreddit}</span>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
 
-              {/* Use the same content renderer as OffCanvas/Modal */}
-              {getParsedContent(content, loading && !content, post, fontSize)}
+            {/* Use the same content renderer as OffCanvas/Modal */}
+            {getParsedContent(content, loading && !content, post, fontSize)}
 
-              <div className="read-controls-footer" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
-                <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
-                  View on Reddit
-                </a>
-                <a href="/" className="btn">
-                  Open Reddzit App
-                </a>
-              </div>
+            <div className="read-controls-footer" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+              <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
+                View on Reddit
+              </a>
+              <a href="/" className="btn">
+                Open Reddzit App
+              </a>
             </div>
           </div>
         </div>
