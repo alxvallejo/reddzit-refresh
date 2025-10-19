@@ -74,3 +74,9 @@
   background: $darkMode;
   color: $darkModeFont;
 }
+
+/* Ensure the title block inside the hero matches dark background */
+.public-post.darkMode .read-controls-wrapper {
+  background: $darkMode !important;
+  color: $darkModeFont;
+}
