@@ -28,18 +28,9 @@ export default function PostView() {
 
     if (fullname) {
       load();
-      // For human users, navigate to the app route that expects the `name` query.
-      // Bots won’t execute JS, so they will see SSR’d meta from the server for /p/:fullname.
-      const to = `/reddit?name=${fullname}`;
-      // Slight delay so the page renders something before navigation, in case of slow routers.
-      const t = setTimeout(() => navigate(to, { replace: true }), 150);
-      return () => {
-        cancelled = true;
-        clearTimeout(t);
-      };
     }
     return () => { cancelled = true; };
-  }, [fullname, navigate]);
+  }, [fullname]);
 
   // Update document title for human visitors once data is loaded
   useEffect(() => {
@@ -48,15 +39,17 @@ export default function PostView() {
     }
   }, [post?.title]);
 
-  if (error) return <div className="container"><p>{error}</p></div>;
+  if (error) return (
+    <div className="container">
+      <h2>Unable to load post</h2>
+      <p>{error}</p>
+      <p><a href="/">← Back to Reddzit</a></p>
+    </div>
+  );
+  
   if (!post) return (
     <div className="container">
-      <p>Loading…</p>
-      {fullname && (
-        <p>
-          If not redirected, open in app: <a href={`/reddit?name=${fullname}`}>/reddit?name={fullname}</a>
-        </p>
-      )}
+      <p>Loading post…</p>
     </div>
   );
 
@@ -64,17 +57,42 @@ export default function PostView() {
 
   return (
     <div className="container">
-      <h2>{post.title}</h2>
-      <p>r/{post.subreddit} • by u/{post.author}</p>
-      {image && (
-        <div style={{ maxWidth: 720 }}>
-          <img src={image} style={{ width: '100%' }} alt={post.title} />
-        </div>
-      )}
-      {post.selftext && <p style={{ whiteSpace: 'pre-wrap' }}>{post.selftext}</p>}
-      <p>
-        <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">View on Reddit</a>
-      </p>
+      <header style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+        <a href="/" style={{ textDecoration: 'none', color: '#5755d9' }}>
+          <h1 style={{ margin: 0 }}>Reddzit</h1>
+        </a>
+      </header>
+      
+      <article>
+        <h2>{post.title}</h2>
+        <p style={{ color: '#666' }}>
+          <a href={`https://www.reddit.com/r/${post.subreddit}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            r/{post.subreddit}
+          </a>
+          {' • by '}
+          <a href={`https://www.reddit.com/u/${post.author}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            u/{post.author}
+          </a>
+        </p>
+        {image && (
+          <div style={{ maxWidth: 720, marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+            <img src={image} style={{ width: '100%', borderRadius: '4px' }} alt={post.title} />
+          </div>
+        )}
+        {post.selftext && (
+          <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+            {post.selftext}
+          </div>
+        )}
+        <p style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+          <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
+            View on Reddit →
+          </a>
+          <a href="/" className="btn">
+            Open Reddzit App
+          </a>
+        </p>
+      </article>
     </div>
   );
 }
