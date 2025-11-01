@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { getPostType, handlePostType, getParsedContent } from '../helpers/RedditUtils';
+import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
 import smeagol from '../smeagol.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -53,7 +53,7 @@ export default function PostView() {
           // Extract full article content like the logged-in view
           try {
             const postType = getPostType(p);
-            const extractedContent = await handlePostType(postType);
+            const extractedContent = await handlePostType(p);
             if (!cancelled) setContent(extractedContent);
           } catch (contentErr) {
             console.warn('Failed to extract content:', contentErr);
@@ -176,6 +176,16 @@ export default function PostView() {
         {/* Centered reading column */}
         <main className="content">
           <div className={readContentClass}>
+            {post && getArticlePreviewImage(post) && (
+              <div className="article-preview-image" style={{ marginBottom: '1rem' }}>
+                <img 
+                  src={getArticlePreviewImage(post)} 
+                  alt="" 
+                  className="img-responsive"
+                  style={{ maxWidth: '100%', height: 'auto' }}
+                />
+              </div>
+            )}
             {getParsedContent(content, loading && !content, post, fontSize)}
             <div className="read-controls-footer" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
               <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
