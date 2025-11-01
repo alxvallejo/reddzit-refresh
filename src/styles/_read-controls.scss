@@ -49,6 +49,13 @@
 .read-content {
     .read-content-inner {
         padding: 2em;
+        
+        // Fix list alignment
+        ul, ol {
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+        
         .blocked-content {
             font-family: anironregular;
             display: flex;
