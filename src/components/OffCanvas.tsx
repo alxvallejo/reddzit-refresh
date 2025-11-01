@@ -40,12 +40,6 @@ class OffCanvas extends Component {
                     <div className={readContentClass}>
                         {showDrawer && (
                             <div className={readControlClass}>
-                                <ReadControls
-                                    fontSize={fontSize}
-                                    setSize={setSize}
-                                    darkMode={darkMode}
-                                    toggleDarkMode={toggleDarkMode}
-                                />
                                 {selectedContent && selectedPost && (
                                     <div className="post-title" style={{ fontSize: `${fontSize}px` }}>
                                         <h2>{redditLink(selectedPost)}</h2>
@@ -54,6 +48,12 @@ class OffCanvas extends Component {
                                         </div>
                                     </div>
                                 )}
+                                <ReadControls
+                                    fontSize={fontSize}
+                                    setSize={setSize}
+                                    darkMode={darkMode}
+                                    toggleDarkMode={toggleDarkMode}
+                                />
                             </div>
                         )}
 

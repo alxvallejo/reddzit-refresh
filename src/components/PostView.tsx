@@ -151,12 +151,6 @@ export default function PostView() {
         <section className="post-hero full-bleed">
           <div className="full-bleed__inner">
             <div className={readControlClass}>
-              <ReadControls
-                fontSize={fontSize}
-                setSize={handleSetSize}
-                darkMode={darkMode}
-                toggleDarkMode={handleToggleDarkMode}
-              />
               {post && (
                 <div className="post-title">
                   <h2>
@@ -169,6 +163,12 @@ export default function PostView() {
                   </div>
                 </div>
               )}
+              <ReadControls
+                fontSize={fontSize}
+                setSize={handleSetSize}
+                darkMode={darkMode}
+                toggleDarkMode={handleToggleDarkMode}
+              />
             </div>
           </div>
         </section>

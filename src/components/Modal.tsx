@@ -126,12 +126,6 @@ class Modal extends Component {
                 <div className="modal-background">
                     <div className={readContentClass}>
                         <div className={readControlClass}>
-                            <ReadControls
-                                fontSize={fontSize}
-                                setSize={setSize}
-                                darkMode={darkMode}
-                                toggleDarkMode={toggleDarkMode}
-                            />
                             {selectedPost && (
                                 <div className="post-title">
                                     <h2>{redditLink(selectedPost)}</h2>
@@ -140,6 +134,12 @@ class Modal extends Component {
                                     </div>
                                 </div>
                             )}
+                            <ReadControls
+                                fontSize={fontSize}
+                                setSize={setSize}
+                                darkMode={darkMode}
+                                toggleDarkMode={toggleDarkMode}
+                            />
                         </div>
 
                         {selectedPost && getArticlePreviewImage(selectedPost) && (
