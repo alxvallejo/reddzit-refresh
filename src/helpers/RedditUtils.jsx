@@ -254,7 +254,28 @@ export const handlePostType = async (postType) => {
       };
 
     case 'reddit_link':
-      // Reddit link to another Reddit post - show basic info
+      // Reddit comment or link - show the comment body if available
+      const post = postType.post;
+      if (post && post.body) {
+        // This is a comment with body text
+        // Decode HTML entities if body_html is available
+        let commentContent = post.body_html;
+        if (commentContent) {
+          const textarea = document.createElement('textarea');
+          textarea.innerHTML = commentContent;
+          commentContent = textarea.value;
+        } else {
+          // Fallback to plain text
+          commentContent = `<pre>${post.body}</pre>`;
+        }
+        
+        return {
+          content: `<div class="comment-body">${commentContent}</div><p style="margin-top: 2em;"><a href="${postType.url}" target="_blank">View full thread on Reddit</a></p>`,
+          title: postType.title,
+        };
+      }
+      
+      // Otherwise just show link
       return {
         content: `<h2>${postType.title}</h2><p><a href="${postType.url}" target="_blank">View on Reddit</a></p>`,
         title: postType.title,
