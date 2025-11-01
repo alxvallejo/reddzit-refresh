@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ReadControls from './ReadControls';
-import { getParsedContent } from '../helpers/RedditUtils';
+import { getParsedContent, getArticlePreviewImage } from '../helpers/RedditUtils';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import ReadControlsFooter from './ReadControlsFooter';
 
@@ -54,6 +54,17 @@ class OffCanvas extends Component {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {showDrawer && selectedPost && getArticlePreviewImage(selectedPost) && (
+                            <div className="article-preview-image">
+                                <img 
+                                    src={getArticlePreviewImage(selectedPost)} 
+                                    alt="" 
+                                    className="img-responsive"
+                                    style={{ maxWidth: '100%', height: 'auto', marginBottom: '1rem' }}
+                                />
                             </div>
                         )}
 

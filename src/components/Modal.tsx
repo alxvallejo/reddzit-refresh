@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import ReadControls from './ReadControls';
 import ReadControlsFooter from './ReadControlsFooter';
-import { getParsedContent } from '../helpers/RedditUtils';
+import { getParsedContent, getArticlePreviewImage } from '../helpers/RedditUtils';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 class Modal extends Component {
@@ -141,6 +141,17 @@ class Modal extends Component {
                                 </div>
                             )}
                         </div>
+
+                        {selectedPost && getArticlePreviewImage(selectedPost) && (
+                            <div className="article-preview-image">
+                                <img 
+                                    src={getArticlePreviewImage(selectedPost)} 
+                                    alt="" 
+                                    className="img-responsive"
+                                    style={{ maxWidth: '100%', height: 'auto', marginBottom: '1rem' }}
+                                />
+                            </div>
+                        )}
 
                         {getParsedContent(selectedContent, contentLoading, selectedPost, fontSize)}
                         {selectedContent && selectedPost && (

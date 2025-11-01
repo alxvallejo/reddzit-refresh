@@ -38,6 +38,28 @@ export const getPreviewImage = (post) => {
   return post.thumbnail ? post.thumbnail : '';
 };
 
+// Get the best quality preview image for article reader view
+export const getArticlePreviewImage = (post) => {
+  if (!post) return null;
+  
+  // Try to get high-quality image from preview object
+  try {
+    const preview = post.preview?.images?.[0];
+    if (preview?.source?.url) {
+      // Decode HTML entities in URL
+      return preview.source.url.replace(/&amp;/g, '&');
+    }
+  } catch (_) {}
+  
+  // Fallback to thumbnail if it's a valid URL
+  const thumb = post.thumbnail;
+  if (thumb && /^https?:\/\//.test(thumb) && !['self', 'default', 'nsfw', 'spoiler'].includes(thumb)) {
+    return thumb;
+  }
+  
+  return null;
+};
+
 export const noContentTile = () => {
   return (
     <div className='blocked-content'>
