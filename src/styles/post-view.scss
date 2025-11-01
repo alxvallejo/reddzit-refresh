@@ -63,6 +63,16 @@
 }
 .public-post .header .reddzit-nav a:hover { color: #f0ecff !important; }
 
+/* Fix title link visibility in hero */
+.public-post .post-title h2 a {
+  color: #fff !important;
+  text-decoration: none;
+}
+.public-post .post-title h2 a:hover {
+  color: #f0ecff !important;
+  text-decoration: underline;
+}
+
 /* Dark mode variant */
 /* Use the same dark purple across header and hero to avoid mismatched shades */
 .public-post.darkMode {

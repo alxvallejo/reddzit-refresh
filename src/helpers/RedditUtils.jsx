@@ -72,7 +72,7 @@ export const noContentTile = () => {
   );
 };
 
-export const setHistory = (name = null, after = null, titleForSlug = null) => {
+export const setHistory = (name = null, after = null, titleForSlug = null, state = null) => {
   // Update the URL to be shareable via /p/:fullname
   // without breaking in-app navigation.
   const search = after ? `?after=${after}` : '';
@@ -83,6 +83,7 @@ export const setHistory = (name = null, after = null, titleForSlug = null) => {
     history.push({
       pathname: slug ? `/p/${name}/${slug}` : `/p/${name}`,
       search,
+      state, // Pass post and content data to avoid refetch
     });
   } else {
     // Return to the main app route for list/pagination views

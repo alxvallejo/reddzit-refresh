@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage } from '../helpers/RedditUtils';
+import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
 import smeagol from '../smeagol.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,10 +13,11 @@ type Content = any;
 
 export default function PostView() {
   const { fullname } = useParams();
-  const [post, setPost] = useState<Post | null>(null);
-  const [content, setContent] = useState<Content | null>(null);
+  const location = useLocation();
+  const [post, setPost] = useState<Post | null>(location.state?.post || null);
+  const [content, setContent] = useState<Content | null>(location.state?.content || null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!location.state?.post);
   
   // Get saved options for font size and dark mode
   const options = getOptions();
@@ -35,32 +36,58 @@ export default function PostView() {
   };
 
   useEffect(() => {
+    // If we already have post data from router state, skip the fetch
+    if (location.state?.post) {
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
       try {
-        // Fetch post data from Reddit's public JSON API
-        const r = await fetch(`https://www.reddit.com/by_id/${fullname}.json`);
-        if (r.ok) {
-          const json = await r.json();
-          const p = json?.data?.children?.[0]?.data;
-          if (!p) {
-            if (!cancelled) setError('Post not found');
-            return;
+        // Check if this is a comment (t1_) or post (t3_)
+        const isComment = fullname?.startsWith('t1_');
+        
+        let p;
+        if (isComment) {
+          // For comments, use the info endpoint which works for individual comments
+          const r = await fetch(`https://www.reddit.com/api/info.json?id=${fullname}`);
+          if (r.ok) {
+            const json = await r.json();
+            p = json?.data?.children?.[0]?.data;
           }
-          if (!cancelled) setPost(p);
-
-          // Extract full article content like the logged-in view
-          try {
-            const postType = getPostType(p);
-            const extractedContent = await handlePostType(p);
-            if (!cancelled) setContent(extractedContent);
-          } catch (contentErr) {
-            console.warn('Failed to extract content:', contentErr);
-            // Still show basic post info even if content extraction fails
+        } else {
+          // For posts, use the by_id endpoint
+          const r = await fetch(`https://www.reddit.com/by_id/${fullname}.json`);
+          if (r.ok) {
+            const json = await r.json();
+            p = json?.data?.children?.[0]?.data;
           }
+        }
+        
+        if (!p) {
+          if (!cancelled) setError('Post not found');
           return;
         }
+        if (!cancelled) setPost(p);
+
+        // Debug: log the post data
+        console.log('Fetched post data:', p);
+        console.log('Has body?', !!p.body);
+        console.log('Has body_html?', !!p.body_html);
+
+        // Extract full article content like the logged-in view
+        try {
+          const postType = getPostType(p);
+          console.log('Post type:', postType);
+          const extractedContent = await handlePostType(postType);
+          console.log('Extracted content:', extractedContent);
+          if (!cancelled) setContent(extractedContent);
+        } catch (contentErr) {
+          console.warn('Failed to extract content:', contentErr);
+          // Still show basic post info even if content extraction fails
+        }
+        return;
       } catch (err) {
         console.error('Error loading post:', err);
       }
@@ -73,7 +100,7 @@ export default function PostView() {
       });
     }
     return () => { cancelled = true; };
-  }, [fullname]);
+  }, [fullname, location.state]);
 
   // Update document title for human visitors once data is loaded
   useEffect(() => {
@@ -155,7 +182,7 @@ export default function PostView() {
                 <div className="post-title">
                   <h2>
                     <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
-                      {post.title}
+                      {getDisplayTitle(post) || post.title || 'Reddit Post'}
                     </a>
                   </h2>
                   <div className="subtitle">

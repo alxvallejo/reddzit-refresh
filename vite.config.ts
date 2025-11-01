@@ -8,16 +8,10 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         quietDeps: true,
-        silenceDeprecations: ['slash-div']
-      }
-    }
-  },
-  server: {
-    proxy: {
-      '/p': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
+        silenceDeprecations: ['slash-div', 'color-functions']
       }
     }
   }
+  // Proxy not needed in dev - frontend handles /p/* routes
+  // In production, backend serves both frontend and SSR
 })

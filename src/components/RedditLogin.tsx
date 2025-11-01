@@ -221,19 +221,20 @@ class RedditLogin extends Component {
       }
 
       let postType = await getPostType(post);
-      this.handlePostType(postType);
+      const content = await this.handlePostTypeAndReturn(postType);
       this.handleIndex(i);
 
       // Include a slug of the title for nicer, more informative share URLs
       const titleForSlug = getDisplayTitle(post) || post.title || '';
-      setHistory(post.name, after, titleForSlug);
+      // Pass post and content to avoid redundant API call
+      setHistory(post.name, after, titleForSlug, { post, content });
     } catch (error) {
       console.log('error at get content', error);
       return;
     }
   }
 
-  async handlePostType(postType) {
+  async handlePostTypeAndReturn(postType) {
     let selectedContent;
     // Convert to something our parser can understand
     switch (postType.type) {
@@ -258,11 +259,32 @@ class RedditLogin extends Component {
         break;
 
       case 'reddit_link':
-        // Reddit link to another Reddit post - show basic info
-        selectedContent = {
-          content: `<h2>${postType.title}</h2><p><a href="${postType.url}" target="_blank">View on Reddit</a></p>`,
-          title: postType.title,
-        };
+        // Reddit comment or link - show the comment body if available
+        const post = postType.post;
+        if (post && post.body) {
+          // This is a comment with body text
+          // Decode HTML entities if body_html is available
+          let commentContent = post.body_html;
+          if (commentContent) {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = commentContent;
+            commentContent = textarea.value;
+          } else {
+            // Fallback to plain text
+            commentContent = `<pre>${post.body}</pre>`;
+          }
+          
+          selectedContent = {
+            content: `<div class="comment-body">${commentContent}</div><p style="margin-top: 2em;"><a href="${postType.url}" target="_blank">View full thread on Reddit</a></p>`,
+            title: postType.title,
+          };
+        } else {
+          // Otherwise just show link
+          selectedContent = {
+            content: `<h2>${postType.title}</h2><p><a href="${postType.url}" target="_blank">View on Reddit</a></p>`,
+            title: postType.title,
+          };
+        }
         break;
 
       default:
@@ -276,6 +298,12 @@ class RedditLogin extends Component {
       selectedContent,
       contentLoading: false,
     });
+    
+    return selectedContent;
+  }
+
+  async handlePostType(postType) {
+    await this.handlePostTypeAndReturn(postType);
   }
 
   handleIndex(i = null) {
