@@ -79,6 +79,17 @@
 .public-post.darkMode .read-content {
   background: $darkMode;
   color: $darkModeFont;
+  
+  // Better link colors for dark mode
+  a {
+    color: #8bb4ff; // Light blue for better contrast
+    &:visited {
+      color: #c4a7ff; // Light purple for visited links
+    }
+    &:hover {
+      color: #a8c9ff;
+    }
+  }
 }
 
 /* Ensure the title block inside the hero matches dark background */

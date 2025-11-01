@@ -39,6 +39,20 @@
     // .read-controls-wrapper.darkMode ~ .read-content-footer {
     //     background: $darkMode;
     // }
+    
+    // Better link colors for dark mode
+    &.darkMode {
+        a {
+            color: #8bb4ff; // Light blue for better contrast
+            &:visited {
+                color: #c4a7ff; // Light purple for visited links
+            }
+            &:hover {
+                color: #a8c9ff;
+            }
+        }
+    }
+    
     .read-content-inner {
         //max-width: 600px;
         margin: 0 auto;
