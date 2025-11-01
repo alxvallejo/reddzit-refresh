@@ -47,7 +47,7 @@ class OffCanvas extends Component {
                                     toggleDarkMode={toggleDarkMode}
                                 />
                                 {selectedContent && selectedPost && (
-                                    <div className="post-title">
+                                    <div className="post-title" style={{ fontSize: `${fontSize}px` }}>
                                         <h2>{redditLink(selectedPost)}</h2>
                                         <div className="subtitle">
                                             <span className="subreddit">{selectedPost.subreddit}</span>
