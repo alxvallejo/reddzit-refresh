@@ -35,7 +35,12 @@ export const getContentParamUrl = (contentParam) => {
 };
 
 export const getPreviewImage = (post) => {
-  return post.thumbnail ? post.thumbnail : '';
+  const thumb = post.thumbnail;
+  // Return null if thumbnail is missing or is a special Reddit placeholder
+  if (!thumb || ['self', 'default', 'nsfw', 'spoiler', 'image'].includes(thumb) || !/^https?:\/\//.test(thumb)) {
+    return null;
+  }
+  return thumb;
 };
 
 // Get the best quality preview image for article reader view
