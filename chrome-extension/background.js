@@ -1,7 +1,7 @@
 // Background service worker for Reddzit Chrome Extension
 
 // Replace this with your deployed app URL
-const REDDZIT_URL = 'https://reddzit.seojeek.com/reddit';
+const REDDZIT_URL = 'https://reddzit.com';
 
 // Handle extension icon click
 chrome.action.onClicked.addListener((tab) => {
