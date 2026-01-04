@@ -43,29 +43,30 @@ $screen-lg-min: 1200px;
         .header {
             display: flex;
             flex-direction: column;
-            .banner-img .site-name {
-                .caption {
-                    color: white;
-                    font-family: 'Outfit', sans-serif;
+            gap: 12px;
+            
+            .banner-img {
+                img {
+                    width: 50px;
+                    height: 50px;
                 }
-                h1 {
-                    font-size: 32px; // reduce heading size on small screens
-                    color: white;
+                
+                .site-name {
+                    .caption {
+                        color: white;
+                        font-family: 'Outfit', sans-serif;
+                        font-size: 12px;
+                    }
+                    h1 {
+                        font-size: 28px;
+                        color: white;
+                    }
                 }
             }
-            .reddzit-nav {
-                align-items: flex-end;
-                justify-content: space-between;
-                display: flex;
-                flex-direction: row;
-                text-align: right;
-
-                a {
-                    padding: 0;
-                    margin: 0 8px; // tighten margins to avoid overflow
-                    font-size: 14px; // smaller nav text on mobile
-                    // padding-top: 20px;
-                }
+            
+            .user-menu-wrapper {
+                margin-top: 0;
+                align-self: flex-start;
             }
         }
         a,

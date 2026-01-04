@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
 import smeagol from '../smeagol.png';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faCoffee } from '@fortawesome/free-solid-svg-icons';
 import { getOptions, setOption } from '../helpers/Options';
 
 type Post = any;
@@ -23,6 +21,8 @@ export default function PostView() {
   const options = getOptions();
   const [fontSize, setFontSize] = useState(options.fontSize || 18);
   const [darkMode, setDarkMode] = useState(options.darkMode !== false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollableRef = useRef<HTMLDivElement>(null);
   
   const handleSetSize = (newSize: number) => {
     setFontSize(newSize);
@@ -108,29 +108,46 @@ export default function PostView() {
       document.title = post.title;
     }
   }, [post?.title]);
+  
+  // Apply dark mode class to body for full-page background
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('postview-darkmode');
+    } else {
+      document.body.classList.remove('postview-darkmode');
+    }
+    return () => {
+      document.body.classList.remove('postview-darkmode');
+    };
+  }, [darkMode]);
+  
+  // Handle scroll for sticky header collapse
+  useEffect(() => {
+    const el = scrollableRef.current;
+    if (!el) return;
+    
+    const handleScroll = () => {
+      const scrolled = el.scrollTop > 50;
+      setIsScrolled(scrolled);
+    };
+    
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const readContentClass = darkMode ? 'read-content darkMode' : 'read-content';
-  const readControlClass = 'read-controls-wrapper';
+  const headerClass = `sticky-header ${isScrolled ? 'collapsed' : ''}`;
 
   if (error) return (
     <div className={`public-post ${darkMode ? 'darkMode' : ''}`}>
       <div className="site-wrap">
         <div className="header">
-          <div className="reddzit-nav">
-            <Link className="txt-primary" to="/">
-              <FontAwesomeIcon icon={faHome} />
-            </Link>
-            <a className="txt-primary" href="https://www.buymeacoffee.com/reddzit" target="_blank" rel="noreferrer">
-              <FontAwesomeIcon icon={faCoffee} /> Buy me a coffee
-            </a>
-          </div>
-          <div className="banner-img">
+          <Link to="/" className="banner-img">
             <img className="img-fit-contain" src={smeagol} alt="reddzit" />
             <div className="site-name">
               <h1>Reddzit</h1>
-              <div className="caption">Review your Saved Reddit Posts</div>
             </div>
-          </div>
+          </Link>
         </div>
         <section className="post-hero full-bleed">
           <div className="full-bleed__inner">
@@ -155,53 +172,47 @@ export default function PostView() {
 
   return (
     <div className={`public-post ${darkMode ? 'darkMode' : ''}`}>
-      <div className="site-wrap">
-        <div className="header">
-          <div className="reddzit-nav">
-            <Link className="txt-primary" to="/">
-              <FontAwesomeIcon icon={faHome} />
+      <div className="postview-layout">
+        {/* Sticky header */}
+        <div className={headerClass}>
+          <div className="header-inner">
+            <Link to="/" className="banner-img">
+              <img className="img-fit-contain" src={smeagol} alt="reddzit" />
+              {!isScrolled && (
+                <div className="site-name">
+                  <h1>Reddzit</h1>
+                </div>
+              )}
             </Link>
-            <a className="txt-primary" href="https://www.buymeacoffee.com/reddzit" target="_blank" rel="noreferrer">
-              <FontAwesomeIcon icon={faCoffee} /> Buy me a coffee
-            </a>
-          </div>
-          <div className="banner-img">
-            <img className="img-fit-contain" src={smeagol} alt="reddzit" />
-            <div className="site-name">
-              <h1>Reddzit</h1>
-              <div className="caption">Review your Saved Reddit Posts</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Full-bleed purple hero */}
-        <section className="post-hero full-bleed">
-          <div className="full-bleed__inner">
-            <div className={readControlClass}>
-              {post && (
-                <div className="post-title">
-                  <h2>
-                    <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
-                      {getDisplayTitle(post) || post.title || 'Reddit Post'}
-                    </a>
-                  </h2>
+            
+            {post && (
+              <div className="post-title">
+                <h2>
+                  <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
+                    {getDisplayTitle(post) || post.title || 'Reddit Post'}
+                  </a>
+                </h2>
+                {!isScrolled && (
                   <div className="subtitle">
                     <span className="subreddit">{post.subreddit}</span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
+            
+            {!isScrolled && (
               <ReadControls
                 fontSize={fontSize}
                 setSize={handleSetSize}
                 darkMode={darkMode}
                 toggleDarkMode={handleToggleDarkMode}
               />
-            </div>
+            )}
           </div>
-        </section>
+        </div>
 
-        {/* Centered reading column */}
-        <main className="content">
+        {/* Scrollable content */}
+        <div className="scrollable-content" ref={scrollableRef}>
           <div className={readContentClass}>
             {post && getArticlePreviewImage(post) && (
               <div className="article-preview-image" style={{ marginBottom: '1rem' }}>
@@ -214,16 +225,20 @@ export default function PostView() {
               </div>
             )}
             {getParsedContent(content, loading && !content, post, fontSize)}
-            <div className="read-controls-footer" style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
-              <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginRight: '0.5rem' }}>
-                View on Reddit
-              </a>
-              <a href="/" className="btn">
-                Open Reddzit App
-              </a>
-            </div>
           </div>
-        </main>
+        </div>
+        
+        {/* Sticky footer */}
+        <div className="sticky-footer">
+          <div className="read-controls-footer">
+            <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary">
+              View on Reddit
+            </a>
+            <a href="/" className="btn">
+              Get Reddzit
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

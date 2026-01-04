@@ -3,6 +3,7 @@ import ReadControls from './ReadControls';
 import { getParsedContent, getArticlePreviewImage } from '../helpers/RedditUtils';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import ReadControlsFooter from './ReadControlsFooter';
+import smeagol from '../smeagol.png';
 
 class OffCanvas extends Component {
     constructor(props) {
@@ -66,14 +67,22 @@ class OffCanvas extends Component {
                     <div className={readContentClass}>
                         {showDrawer && (
                             <div className={headerClass}>
-                                {selectedContent && selectedPost && (
-                                    <div className="post-title">
-                                        <h2>{redditLink(selectedPost)}</h2>
-                                        <div className="subtitle">
-                                            <span className="subreddit">{selectedPost.subreddit}</span>
-                                        </div>
+                                <div className="header-inner">
+                                    <div className="banner-img">
+                                        <img className="img-fit-contain" src={smeagol} alt="reddzit" />
                                     </div>
-                                )}
+                                    
+                                    {selectedContent && selectedPost && (
+                                        <div className="post-title">
+                                            <h2>{redditLink(selectedPost)}</h2>
+                                            {!isScrolled && (
+                                                <div className="subtitle">
+                                                    <span className="subreddit">{selectedPost.subreddit}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                                 {!isScrolled && (
                                     <ReadControls
                                         fontSize={fontSize}
