@@ -25,4 +25,4 @@ echo "🌐 Reloading nginx..."
 sudo systemctl reload nginx
 
 echo "✅ Deployment complete! 🎉"
-echo "🌍 Visit: https://reddzit.seojeek.com"
+echo "🌍 Visit: https://reddzit.com"

@@ -55,9 +55,9 @@ This repo includes a GitHub Actions workflow at `.github/workflows/deploy-fronte
 
 - Required repository secrets (Settings → Secrets and variables → Actions → New repository secret):
   - `VITE_REDDIT_CLIENT_ID`: Reddit OAuth client id.
-  - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.seojeek.com/reddit`.
-  - `VITE_READ_API_BASE`: e.g. `https://read-api.seojeek.com`.
-  - `SSH_HOST`: e.g. `seojeek.com`.
+  - `VITE_REDDIT_REDIRECT_URI`: e.g. `https://reddzit.com/reddit`.
+  - `VITE_READ_API_BASE`: e.g. `https://read-api.reddzit.com`.
+  - `SSH_HOST`: e.g. `reddzit.com`.
   - `SSH_USER`: e.g. `alxvallejo`.
   - `SSH_KEY`: SSH private key used by Actions to connect to the server (see below).
   - `SSH_PORT` (optional): e.g. `22`.
@@ -65,12 +65,12 @@ This repo includes a GitHub Actions workflow at `.github/workflows/deploy-fronte
 - Generating and installing a deploy SSH key:
   1. On your local machine, generate a key pair:
      - `ssh-keygen -t ed25519 -C "github-actions@reddzit-refresh" -f ~/.ssh/reddzit_refresh_actions -N ''`
-  2. Copy the public key to the server user’s `authorized_keys`:
-     - `ssh-copy-id -i ~/.ssh/reddzit_refresh_actions.pub alxvallejo@seojeek.com`
+  2. Copy the public key to the server user's `authorized_keys`:
+     - `ssh-copy-id -i ~/.ssh/reddzit_refresh_actions.pub alxvallejo@reddzit.com`
      - Or manually append the contents of `~/.ssh/reddzit_refresh_actions.pub` to `/home/alxvallejo/.ssh/authorized_keys` on the server.
   3. Add the private key as the `SSH_KEY` secret (paste the full contents of `~/.ssh/reddzit_refresh_actions`).
   4. (Optional) Add host key to known hosts to verify host fingerprints on first connect:
-     - `ssh-keyscan -H seojeek.com`
+     - `ssh-keyscan -H reddzit.com`
 
 - Deployment path and behavior:
   - Target directory: `/var/www/reddzit-refresh/dist`.
@@ -86,7 +86,7 @@ How it works:
 - read-api injects `<title>`, `og:*`, and Twitter tags into `index.html` at request time using the built assets from this repo.
 
 Canonical share URL:
-- Use `/p/:fullname` (e.g., `https://reddzit.seojeek.com/p/t3_abcdef`).
+- Use `/p/:fullname` (e.g., `https://reddzit.com/p/t3_abcdef`).
 
 What the frontend must do:
 - Continue deploying the built `dist/` to the path configured in read-api (`FRONTEND_DIST_DIR`, e.g., `/var/www/reddzit-refresh/dist`).
