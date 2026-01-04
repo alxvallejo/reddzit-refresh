@@ -22,7 +22,7 @@ export default function PostView() {
   // Get saved options for font size and dark mode
   const options = getOptions();
   const [fontSize, setFontSize] = useState(options.fontSize || 18);
-  const [darkMode, setDarkMode] = useState(options.darkMode || false);
+  const [darkMode, setDarkMode] = useState(options.darkMode !== false);
   
   const handleSetSize = (newSize: number) => {
     setFontSize(newSize);

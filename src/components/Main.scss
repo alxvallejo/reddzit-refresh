@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+  background: #b6aaf1;
   padding: 2rem;
 }
 
@@ -29,14 +29,14 @@
 .landing-title {
   font-family: 'Zilla Slab', serif;
   font-size: 3.5rem;
-  color: #51565c;
+  color: #fff;
   margin: 0;
   letter-spacing: -1px;
 }
 
 .landing-tagline {
   font-size: 1.25rem;
-  color: #666;
+  color: #fff;
   line-height: 1.6;
   margin-bottom: 2.5rem;
 }
@@ -53,10 +53,10 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.5);
   padding: 1.25rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
@@ -75,7 +75,7 @@
   p {
     margin: 0;
     font-size: 0.95rem;
-    color: #666;
+    color: #555;
   }
 }
 
@@ -101,7 +101,7 @@
 .privacy-note {
   margin-top: 1.5rem;
   font-size: 0.85rem;
-  color: #999;
+  color: #5a5a5a;
 }
 
 @media (max-width: 600px) {
