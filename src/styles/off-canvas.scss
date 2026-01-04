@@ -28,9 +28,80 @@
 
 .read-content {
     width: 51%;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 
     font-family: 'Outfit', sans-serif;
     font-size: 18px;
+    
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        
+        .post-title h2 {
+            transition: font-size 0.2s ease;
+        }
+        
+        &.collapsed {
+            padding: 15px 16px 20px 16px;
+            padding-right: 80px; // Space for close button
+            
+            .post-title {
+                margin: 0;
+                padding-top: 0 !important;
+                margin-bottom: 0 !important;
+                
+                h2 {
+                    font-size: 22px !important;
+                    margin: 0;
+                    padding: 0 !important;
+                    line-height: 1.4;
+                    
+                    a {
+                        display: -webkit-box;
+                        -webkit-line-clamp: 1;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                    }
+                }
+                
+                .subtitle {
+                    padding: 4px 0 0 0 !important;
+                    justify-content: flex-start;
+                    
+                    .subreddit {
+                        font-size: 13px;
+                        padding: 0 !important;
+                    }
+                }
+            }
+        }
+    }
+    
+    .scrollable-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 20px;
+    }
+    
+    .sticky-footer {
+        position: sticky;
+        bottom: 0;
+        background: inherit;
+        padding: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
+        z-index: 10;
+        
+        .read-controls-footer {
+            padding: 0;
+            margin: 0;
+        }
+    }
 
     // .read-controls-wrapper.darkMode ~ .read-content-inner {
     //     background: $darkMode;
@@ -68,19 +139,77 @@
         padding: 0;
         justify-content: center;
         margin-right: 0;
-        padding-bottom: 250px;
         .control {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            
             a,
             button {
-                border: 1px solid $primary-color;
-                border-radius: 3px;
-                color: $primary-color;
-                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 20px;
+                color: white;
+                background: rgba(255, 255, 255, 0.1);
+                font-family: 'Outfit', sans-serif;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 10px 18px;
+                height: auto !important;
+                line-height: 1.2;
+                cursor: pointer;
+                transition: all 0.2s;
+                
+                &:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    border-color: rgba(255, 255, 255, 0.5);
+                }
             }
 
             a {
                 margin-left: 0;
+                text-decoration: none;
             }
+        }
+    }
+}
+
+// Mobile styles for OffCanvas
+@media (max-width: 768px) {
+    .read-content {
+        width: 100%;
+        
+        .sticky-header {
+            padding: 12px;
+            
+            .post-title h2 {
+                font-size: 18px !important;
+            }
+            
+            &.collapsed .post-title h2 {
+                font-size: 14px !important;
+            }
+        }
+        
+        .scrollable-content {
+            padding: 0 12px;
+        }
+        
+        .sticky-footer {
+            padding: 10px 12px;
+            
+            .control {
+                gap: 6px;
+                
+                a, button {
+                    font-size: 12px;
+                    padding: 6px 12px;
+                }
+            }
+        }
+        
+        .read-content-inner {
+            padding-right: 0;
         }
     }
 }

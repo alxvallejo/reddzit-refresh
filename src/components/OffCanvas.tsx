@@ -8,8 +8,32 @@ class OffCanvas extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            copied: false
+            copied: false,
+            isScrolled: false
         };
+        this.scrollableRef = React.createRef();
+        this.handleScroll = this.handleScroll.bind(this);
+    }
+    
+    componentDidMount() {
+        if (this.scrollableRef.current) {
+            this.scrollableRef.current.addEventListener('scroll', this.handleScroll);
+        }
+    }
+    
+    componentWillUnmount() {
+        if (this.scrollableRef.current) {
+            this.scrollableRef.current.removeEventListener('scroll', this.handleScroll);
+        }
+    }
+    
+    handleScroll() {
+        if (this.scrollableRef.current) {
+            const scrolled = this.scrollableRef.current.scrollTop > 50;
+            if (scrolled !== this.state.isScrolled) {
+                this.setState({ isScrolled: scrolled });
+            }
+        }
     }
 
     render() {
@@ -27,10 +51,12 @@ class OffCanvas extends Component {
             resetSelected
         } = this.props;
 
+        const { isScrolled } = this.state;
         const wrapperClass = showDrawer ? 'nav-container showDrawer' : 'nav-container';
         let navClass = showDrawer ? 'navigation open' : 'navigation';
         const readControlClass = darkMode ? 'read-controls-wrapper' : 'read-controls-wrapper';
         const readContentClass = darkMode ? 'read-content darkMode' : 'read-content';
+        const headerClass = `${readControlClass} sticky-header ${isScrolled ? 'collapsed' : ''}`;
 
         navClass = darkMode ? navClass + ' darkMode' : navClass;
 
@@ -39,42 +65,49 @@ class OffCanvas extends Component {
                 <ul className={navClass}>
                     <div className={readContentClass}>
                         {showDrawer && (
-                            <div className={readControlClass}>
+                            <div className={headerClass}>
                                 {selectedContent && selectedPost && (
-                                    <div className="post-title" style={{ fontSize: `${fontSize}px` }}>
+                                    <div className="post-title">
                                         <h2>{redditLink(selectedPost)}</h2>
                                         <div className="subtitle">
                                             <span className="subreddit">{selectedPost.subreddit}</span>
                                         </div>
                                     </div>
                                 )}
-                                <ReadControls
-                                    fontSize={fontSize}
-                                    setSize={setSize}
-                                    darkMode={darkMode}
-                                    toggleDarkMode={toggleDarkMode}
-                                />
+                                {!isScrolled && (
+                                    <ReadControls
+                                        fontSize={fontSize}
+                                        setSize={setSize}
+                                        darkMode={darkMode}
+                                        toggleDarkMode={toggleDarkMode}
+                                    />
+                                )}
                             </div>
                         )}
 
-                        {showDrawer && selectedPost && getArticlePreviewImage(selectedPost) && (
-                            <div className="article-preview-image">
-                                <img 
-                                    src={getArticlePreviewImage(selectedPost)} 
-                                    alt="" 
-                                    className="img-responsive"
-                                    style={{ maxWidth: '100%', height: 'auto', marginBottom: '1rem' }}
-                                />
-                            </div>
-                        )}
+                        <div className="scrollable-content" ref={this.scrollableRef}>
+                            {showDrawer && selectedPost && getArticlePreviewImage(selectedPost) && (
+                                <div className="article-preview-image">
+                                    <img 
+                                        src={getArticlePreviewImage(selectedPost)} 
+                                        alt="" 
+                                        className="img-responsive"
+                                        style={{ maxWidth: '100%', height: 'auto', marginBottom: '1rem' }}
+                                    />
+                                </div>
+                            )}
 
-                        {showDrawer && getParsedContent(selectedContent, contentLoading, selectedPost, fontSize)}
+                            {showDrawer && getParsedContent(selectedContent, contentLoading, selectedPost, fontSize)}
+                        </div>
+                        
                         {selectedContent && selectedPost && (
-                            <ReadControlsFooter
-                                selectedPost={selectedPost}
-                                showDrawer={showDrawer}
-                                saveButton={saveButton}
-                            />
+                            <div className="sticky-footer">
+                                <ReadControlsFooter
+                                    selectedPost={selectedPost}
+                                    showDrawer={showDrawer}
+                                    saveButton={saveButton}
+                                />
+                            </div>
                         )}
                     </div>
                 </ul>
