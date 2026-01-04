@@ -21,10 +21,10 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { fadeOut } from 'react-animations';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faHome,
-  faAlignLeft,
-  faFeatherAlt,
+  faChevronDown,
   faCoffee,
+  faSignOutAlt,
+  faUser,
 } from '@fortawesome/free-solid-svg-icons';
 
 import OffCanvas from './OffCanvas';
@@ -60,6 +60,8 @@ class RedditLogin extends Component {
       showSavedOpacity: false,
       darkMode: options.darkMode || false,
       showEarliestLink: !!options.earliest,
+      username: null,
+      showUserMenu: false,
     };
 
     this.targetElement = null;
@@ -106,6 +108,7 @@ class RedditLogin extends Component {
 
       try {
         await this.reddit.getMe();
+        this.setState({ username: this.reddit.me?.name });
         if (parsed.name) {
           await this.handleUrlQuery(parsed);
         }
@@ -579,6 +582,8 @@ class RedditLogin extends Component {
       name,
       darkMode,
       showEarliestLink,
+      username,
+      showUserMenu,
     } = this.state;
 
     const modalMode = this.isModalModal();
@@ -638,21 +643,6 @@ class RedditLogin extends Component {
 
         <div className='site-wrap'>
           <div className='header'>
-            <div className='reddzit-nav'>
-              <Link className='txt-primary' to='/'>
-                <FontAwesomeIcon icon={faHome} />
-              </Link>
-              {/* <Link className="txt-primary" to="/about">
-                                <FontAwesomeIcon icon={faFeatherAlt} />
-                            </Link> */}
-              <a
-                className='txt-primary'
-                href='https://www.buymeacoffee.com/reddzit'
-                target='_blank'
-              >
-                <FontAwesomeIcon icon={faCoffee} /> Buy me a coffee
-              </a>
-            </div>
             <div className='banner-img'>
               <img className='img-fit-contain' src={smeagol} alt='reddzit' />
               <div className='site-name'>
@@ -660,6 +650,44 @@ class RedditLogin extends Component {
                 <div className='caption'>Review your Saved Reddit Posts</div>
               </div>
             </div>
+            {username && (
+              <div className='user-menu-wrapper'>
+                <button
+                  className='user-menu-trigger'
+                  onClick={() => this.setState({ showUserMenu: !showUserMenu })}
+                >
+                  <span>u/{username}</span>
+                  <FontAwesomeIcon icon={faChevronDown} className={showUserMenu ? 'rotated' : ''} />
+                </button>
+                {showUserMenu && (
+                  <div className='user-menu-dropdown'>
+                    <a
+                      href={`https://www.reddit.com/user/${username}`}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      <FontAwesomeIcon icon={faUser} /> View Reddit Profile
+                    </a>
+                    <a
+                      href='https://www.buymeacoffee.com/reddzit'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      <FontAwesomeIcon icon={faCoffee} /> Buy me a coffee
+                    </a>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('redditCreds');
+                        localStorage.removeItem('redditRefreshToken');
+                        window.location.href = '/';
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className='content'>
