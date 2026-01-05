@@ -109,7 +109,14 @@ export default function PostView() {
     }
   }, [post?.title]);
   
-  // Apply dark mode class to body for full-page background
+  // Apply body classes for PostView layout and dark mode
+  useEffect(() => {
+    document.body.classList.add('postview-active');
+    return () => {
+      document.body.classList.remove('postview-active');
+    };
+  }, []);
+  
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('postview-darkmode');
@@ -234,7 +241,7 @@ export default function PostView() {
             <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary">
               View on Reddit
             </a>
-            <a href="/" className="btn">
+            <a href="/" className="btn cta-button">
               Get Reddzit
             </a>
           </div>

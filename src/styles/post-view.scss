@@ -1,9 +1,12 @@
 /* Standalone PostView page (public share) */
 
-// Dark mode body background - applied via JS class toggle
+// PostView body styles - applied via JS class toggle
+body.postview-active {
+  overflow: hidden; // prevent body scroll, let .scrollable-content handle it
+}
+
 body.postview-darkmode {
   background: $darkMode !important;
-  overflow: hidden; // prevent body scroll, let .scrollable-content handle it
 }
 
 .public-post {
