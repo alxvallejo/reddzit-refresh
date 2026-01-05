@@ -34,6 +34,7 @@ body.postview-darkmode {
   flex-shrink: 0;
   background: $primary-color;
   transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
   
   .header-inner {
     max-width: 1000px;
@@ -122,6 +123,8 @@ body.postview-darkmode {
   }
   
   &.collapsed {
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+    
     .header-inner {
       flex-direction: row;
       align-items: flex-start;
@@ -182,6 +185,26 @@ body.postview-darkmode {
     justify-content: center;
     padding: 0;
     border: none;
+    
+    .cta-button {
+      background: #ff4500;
+      color: white !important;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 50px;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(255, 69, 0, 0.3);
+      height: auto;
+
+      &:hover {
+        background: #e03d00;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 69, 0, 0.4);
+      }
+    }
   }
 }
 

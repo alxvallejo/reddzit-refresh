@@ -140,7 +140,7 @@ export default function PostView() {
     
     el.addEventListener('scroll', handleScroll);
     return () => el.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [post]); // Re-run when post loads so ref is available
 
   const readContentClass = darkMode ? 'read-content darkMode' : 'read-content';
   const headerClass = `sticky-header ${isScrolled ? 'collapsed' : ''}`;
