@@ -231,7 +231,7 @@ export default function PostView() {
                 />
               </div>
             )}
-            {getParsedContent(content, loading && !content, post, fontSize)}
+            {getParsedContent(content, loading && !content, post, fontSize, !!getArticlePreviewImage(post))}
           </div>
         </div>
         

@@ -172,8 +172,8 @@ body.postview-darkmode {
   bottom: 0;
   flex-shrink: 0;
   z-index: 10;
-  background: #f3f6f8;
-  border-top: 1px solid #ddd;
+  background: $darkMode;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   padding: 16px;
   
   .read-controls-footer {
@@ -186,23 +186,42 @@ body.postview-darkmode {
     padding: 0;
     border: none;
     
+    .btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: $darkModeFont !important;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      font-size: 1rem;
+      font-weight: 400;
+      padding: 10px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      height: auto;
+      font-family: 'Outfit', sans-serif;
+      box-shadow: none;
+      transition: none;
+      transform: none;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff !important;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+    
+    .btn-primary {
+      background: $primary-color;
+      border-color: $primary-color;
+      color: #fff !important;
+    }
+    
     .cta-button {
       background: #ff4500;
+      border-color: #ff4500;
       color: white !important;
-      font-size: 1rem;
-      font-weight: 600;
-      padding: 10px 24px;
-      border-radius: 50px;
-      border: none;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 14px rgba(255, 69, 0, 0.3);
-      height: auto;
-
+      
       &:hover {
-        background: #e03d00;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 69, 0, 0.4);
+        background: #ff4500;
       }
     }
   }
@@ -268,36 +287,5 @@ body.postview-darkmode {
     }
   }
   
-  .sticky-footer {
-    background: $darkMode !important;
-    border-top-color: rgba(255, 255, 255, 0.15);
-    
-    .btn {
-      background: rgba(255, 255, 255, 0.1);
-      color: $darkModeFont !important;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 10px 20px;
-      height: auto;
-      border-radius: 6px;
-      font-family: 'Outfit', sans-serif;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: #fff !important;
-      }
-      
-      &.btn-primary {
-        background: $primary-color;
-        border-color: $primary-color;
-        color: #fff !important;
-        
-        &:hover {
-          background: lighten($primary-color, 10%);
-        }
-      }
-    }
-  }
 }
 

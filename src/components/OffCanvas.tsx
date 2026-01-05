@@ -106,7 +106,7 @@ class OffCanvas extends Component {
                                 </div>
                             )}
 
-                            {showDrawer && getParsedContent(selectedContent, contentLoading, selectedPost, fontSize)}
+                            {showDrawer && getParsedContent(selectedContent, contentLoading, selectedPost, fontSize, !!getArticlePreviewImage(selectedPost))}
                         </div>
                         
                         {selectedContent && selectedPost && (

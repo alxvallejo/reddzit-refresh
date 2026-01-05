@@ -298,8 +298,11 @@ export const getParsedContent = (
   selectedContent,
   contentLoading,
   selectedPost,
-  fontSize
+  fontSize,
+  hasPreviewImage = false
 ) => {
+  // Track if we've seen the first image (to skip it when preview image is shown)
+  let firstImageSkipped = false;
   //const selectedPost = saved[selectedIndex]
 
   let content;
@@ -363,6 +366,11 @@ export const getParsedContent = (
           }
           if (domNode.name === 'img') {
             let { src, alt } = domNode.attribs;
+            // Skip first image if we're showing a preview image (likely duplicate lead image)
+            if (hasPreviewImage && !firstImageSkipped) {
+              firstImageSkipped = true;
+              return React.createElement('span', {}, '');
+            }
             return (
               <div className='read-content-inner' style={{ fontSize }}>
                 <img className='fix-image' src={src} alt={alt} />
@@ -401,6 +409,11 @@ export const getParsedContent = (
           }
           if (domNode.name === 'img') {
             let { src, alt } = domNode.attribs;
+            // Skip first image if we're showing a preview image (likely duplicate lead image)
+            if (hasPreviewImage && !firstImageSkipped) {
+              firstImageSkipped = true;
+              return React.createElement('span', {}, '');
+            }
             return (
               <div className='read-content-inner' style={{ fontSize }}>
                 <img className='fix-image' src={src} alt={alt} />

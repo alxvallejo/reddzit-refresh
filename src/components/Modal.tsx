@@ -153,7 +153,7 @@ class Modal extends Component {
                             </div>
                         )}
 
-                        {getParsedContent(selectedContent, contentLoading, selectedPost, fontSize)}
+                        {getParsedContent(selectedContent, contentLoading, selectedPost, fontSize, !!getArticlePreviewImage(selectedPost))}
                         {selectedContent && selectedPost && (
                             <ReadControlsFooter
                                 selectedPost={selectedPost}
