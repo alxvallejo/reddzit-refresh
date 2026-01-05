@@ -5,7 +5,6 @@ import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, 
 import ReadControls from './ReadControls';
 import smeagol from '../smeagol.png';
 import { getOptions, setOption } from '../helpers/Options';
-import API_BASE_URL from '../config/api';
 
 type Post = any;
 type Content = any;
@@ -46,12 +45,24 @@ export default function PostView() {
 
     async function load() {
       try {
-        // Fetch post data through our backend proxy to avoid CORS issues on Safari
-        const r = await fetch(`${API_BASE_URL}/api/reddit/public/by_id/${fullname}`);
+        // Check if this is a comment (t1_) or post (t3_)
+        const isComment = fullname?.startsWith('t1_');
+        
         let p;
-        if (r.ok) {
-          const json = await r.json();
-          p = json?.data?.children?.[0]?.data;
+        if (isComment) {
+          // For comments, use the info endpoint which works for individual comments
+          const r = await fetch(`https://www.reddit.com/api/info.json?id=${fullname}`);
+          if (r.ok) {
+            const json = await r.json();
+            p = json?.data?.children?.[0]?.data;
+          }
+        } else {
+          // For posts, use the by_id endpoint
+          const r = await fetch(`https://www.reddit.com/by_id/${fullname}.json`);
+          if (r.ok) {
+            const json = await r.json();
+            p = json?.data?.children?.[0]?.data;
+          }
         }
         
         if (!p) {
