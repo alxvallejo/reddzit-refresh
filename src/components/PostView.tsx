@@ -131,15 +131,25 @@ export default function PostView() {
   // Handle scroll for sticky header collapse
   useEffect(() => {
     const el = scrollableRef.current;
-    if (!el) return;
     
     const handleScroll = () => {
-      const scrolled = el.scrollTop > 50;
-      setIsScrolled(scrolled);
+      // Check scrollable element first, then fallback to window
+      const scrollTop = el?.scrollTop || window.scrollY || document.documentElement.scrollTop;
+      setIsScrolled(scrollTop > 50);
     };
     
-    el.addEventListener('scroll', handleScroll);
-    return () => el.removeEventListener('scroll', handleScroll);
+    // Listen to both the scrollable element and window
+    if (el) {
+      el.addEventListener('scroll', handleScroll);
+    }
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      if (el) {
+        el.removeEventListener('scroll', handleScroll);
+      }
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [post]); // Re-run when post loads so ref is available
 
   const readContentClass = darkMode ? 'read-content darkMode' : 'read-content';

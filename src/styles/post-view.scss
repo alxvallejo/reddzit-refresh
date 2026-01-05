@@ -2,7 +2,13 @@
 
 // PostView body styles - applied via JS class toggle
 body.postview-active {
-  overflow: hidden; // prevent body scroll, let .scrollable-content handle it
+  overflow: hidden !important; // prevent body scroll, let .scrollable-content handle it
+  height: 100vh;
+}
+
+html:has(body.postview-active) {
+  overflow: hidden;
+  height: 100vh;
 }
 
 body.postview-darkmode {
@@ -10,7 +16,8 @@ body.postview-darkmode {
 }
 
 .public-post {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: #f3f6f8; // light mode default
 }
 
@@ -127,7 +134,7 @@ body.postview-darkmode {
     
     .header-inner {
       flex-direction: row;
-      align-items: flex-start;
+      align-items: center;
       padding: 12px 16px;
     }
     
