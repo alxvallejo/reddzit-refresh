@@ -115,7 +115,7 @@ export default function PostView() {
   );
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${bgColor} overflow-x-hidden w-full`}>
+    <div className={`min-h-screen transition-colors duration-300 ${bgColor} w-full`}>
         {/* Sticky Header */}
         <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
             <div className="flex items-center gap-4 flex-1 min-w-0">
