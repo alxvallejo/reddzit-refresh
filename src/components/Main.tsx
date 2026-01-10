@@ -1,49 +1,60 @@
 import { Link } from 'react-router-dom';
-import './Main.scss';
+import { useReddit } from '../context/RedditContext';
 
 const Main = () => {
+  const { redirectForAuth } = useReddit();
+
   return (
-    <div className="landing-page">
-      <div className="landing-content">
-        <div className="logo-section">
-          <img src="/favicon.png" alt="Reddzit" className="landing-logo" />
-          <h1 className="landing-title">Reddzit</h1>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-primary)] p-8">
+      <div className="max-w-[600px] text-center w-full">
+        <div className="flex flex-col items-center mb-6">
+          <img 
+            src="/favicon.png" 
+            alt="Reddzit" 
+            className="w-[120px] h-[120px] mb-4 drop-shadow-md max-sm:w-[100px] max-sm:h-[100px]" 
+          />
+          <h1 className="font-serif text-[3.5rem] text-white m-0 tracking-tight max-sm:text-[2.5rem]">
+            Reddzit
+          </h1>
         </div>
 
-        <p className="landing-tagline">
+        <p className="text-xl text-white leading-relaxed mb-10 max-sm:text-lg">
           Reddzit pulls your saved posts into a distraction-free reading queue,
           so you can finally find and finish the good stuff you saved.
         </p>
 
-        <div className="features">
-          <div className="feature">
-            <span className="feature-icon">📚</span>
-            <div className="feature-text">
-              <h3>Review Your Saved Posts</h3>
-              <p>Access all your saved Reddit content in one clean interface</p>
+        <div className="flex flex-col gap-5 mb-10 text-left">
+          <div className="flex items-start gap-4 bg-white/50 p-5 rounded-xl shadow-md">
+            <span className="text-3xl leading-none">📚</span>
+            <div>
+              <h3 className="m-0 mb-1 text-lg font-semibold text-gray-800">Review Your Saved Posts</h3>
+              <p className="m-0 text-[0.95rem] text-gray-700">Access all your saved Reddit content in one clean interface</p>
             </div>
           </div>
-          <div className="feature">
-            <span className="feature-icon">🚫</span>
-            <div className="feature-text">
-              <h3>Ad-Free Reading</h3>
-              <p>Enjoy distraction-free content without the clutter</p>
+          <div className="flex items-start gap-4 bg-white/50 p-5 rounded-xl shadow-md">
+            <span className="text-3xl leading-none">🚫</span>
+            <div>
+              <h3 className="m-0 mb-1 text-lg font-semibold text-gray-800">Ad-Free Reading</h3>
+              <p className="m-0 text-[0.95rem] text-gray-700">Enjoy distraction-free content without the clutter</p>
             </div>
           </div>
-          <div className="feature">
-            <span className="feature-icon">🔖</span>
-            <div className="feature-text">
-              <h3>Organize & Unsave</h3>
-              <p>Easily manage your saved posts and clear the backlog</p>
+          <div className="flex items-start gap-4 bg-white/50 p-5 rounded-xl shadow-md">
+            <span className="text-3xl leading-none">🔖</span>
+            <div>
+              <h3 className="m-0 mb-1 text-lg font-semibold text-gray-800">Organize & Unsave</h3>
+              <p className="m-0 text-[0.95rem] text-gray-700">Easily manage your saved posts and clear the backlog</p>
             </div>
           </div>
         </div>
 
-        <Link to="/reddit" className="cta-button">
+        <button 
+          onClick={redirectForAuth}
+          className="inline-block bg-[#ff4500] text-white text-lg font-semibold py-4 px-10 rounded-full no-underline shadow-[0_4px_14px_rgba(255,69,0,0.3)] transition-all hover:bg-[#e03d00] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,69,0,0.4)] border-none cursor-pointer"
+        >
           Connect with Reddit
-        </Link>
+        </button>
 
-        <p className="privacy-note">
+        <p className="mt-6 text-sm text-gray-600">
           We only access your saved posts. Your data stays yours.
         </p>
       </div>

@@ -9,7 +9,6 @@ import {
   getImageUrl,
   badTags,
 } from './UrlCrawler';
-import history from '../history';
 
 const slugify = (text) =>
   (text || '')
@@ -67,36 +66,14 @@ export const getArticlePreviewImage = (post) => {
 
 export const noContentTile = () => {
   return (
-    <div className='blocked-content'>
-      <img className='img-fit-contain' src={gandalf} alt='reddzit' />
+    <div className='flex flex-col items-center justify-center p-8 text-center bg-gray-100 rounded-lg my-4'>
+      <img className='w-32 h-32 object-contain mb-4' src={gandalf} alt='reddzit' />
       <div>
-        <h3>You shall not pass!</h3>
-        <p>Unable to retrieve content.</p>
+        <h3 className='text-xl font-bold mb-2'>You shall not pass!</h3>
+        <p className='text-gray-600'>Unable to retrieve content.</p>
       </div>
     </div>
   );
-};
-
-export const setHistory = (name = null, after = null, titleForSlug = null, state = null) => {
-  // Update the URL to be shareable via /p/:fullname
-  // without breaking in-app navigation.
-  const search = after ? `?after=${after}` : '';
-
-  if (name) {
-    // Point to shareable SSR route for the selected post
-    const slug = titleForSlug ? slugify(titleForSlug) : '';
-    history.push({
-      pathname: slug ? `/p/${name}/${slug}` : `/p/${name}`,
-      search,
-      state, // Pass post and content data to avoid refetch
-    });
-  } else {
-    // Return to the main app route for list/pagination views
-    history.push({
-      pathname: `/reddit`,
-      search,
-    });
-  }
 };
 
 export { slugify };
@@ -276,14 +253,14 @@ export const handlePostType = async (postType) => {
         }
         
         return {
-          content: `<div class="comment-body">${commentContent}</div><p style="margin-top: 2em;"><a href="${postType.url}" target="_blank">View full thread on Reddit</a></p>`,
+          content: `<div class="comment-body p-4 bg-gray-50 rounded mb-4">${commentContent}</div><p style="margin-top: 1em;"><a href="${postType.url}" target="_blank" class="text-[#ff4500] hover:underline">View full thread on Reddit</a></p>`,
           title: postType.title,
         };
       }
       
       // Otherwise just show link
       return {
-        content: `<h2>${postType.title}</h2><p><a href="${postType.url}" target="_blank">View on Reddit</a></p>`,
+        content: `<h2 class="text-xl font-bold mb-2">${postType.title}</h2><p><a href="${postType.url}" target="_blank" class="text-[#ff4500] hover:underline">View on Reddit</a></p>`,
         title: postType.title,
       };
 
@@ -309,8 +286,8 @@ export const getParsedContent = (
 
   if (!selectedContent || contentLoading) {
     return (
-      <div className='container'>
-        <div className='loading loading-lg' />
+      <div className='flex items-center justify-center p-8'>
+        <div className='w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin' />
       </div>
     );
   }
@@ -320,14 +297,14 @@ export const getParsedContent = (
     if (selectedContent.img) {
       let src = selectedContent.img;
       return (
-        <div className='read-content-inner media' style={{ fontSize }}>
-          <img className='fix-image' src={src} alt={src} />
+        <div className='my-4' style={{ fontSize }}>
+          <img className='w-full h-auto rounded' src={src} alt={src} />
         </div>
       );
     } else if (selectedContent.video) {
       console.log('trying to set video ', selectedContent.video);
       return (
-        <div className='read-content-inner media' style={{ fontSize }}>
+        <div className='my-4' style={{ fontSize }}>
           <Video url={selectedContent.video} />
         </div>
       );
@@ -336,14 +313,14 @@ export const getParsedContent = (
     }
   } else if (selectedContent.img && selectedPost) {
     return (
-      <div className='read-content-inner media' style={{ fontSize }}>
-        <figure className='figure'>
+      <div className='my-4' style={{ fontSize }}>
+        <figure className='my-4'>
           <img
-            className='img-responsive'
+            className='w-full h-auto rounded'
             src={selectedContent.img}
             alt={selectedPost.title}
           />
-          <figcaption className='figure-caption text-center'>
+          <figcaption className='text-center text-sm text-gray-500 mt-2'>
             {selectedPost.title}
           </figcaption>
         </figure>
@@ -352,7 +329,7 @@ export const getParsedContent = (
   } else if (selectedContent.video) {
     console.log('trying to set video ', selectedContent.video);
     return (
-      <div className='read-content-inner media' style={{ fontSize }}>
+      <div className='my-4' style={{ fontSize }}>
         <Video url={selectedContent.video} />
       </div>
     );
@@ -372,8 +349,8 @@ export const getParsedContent = (
               return React.createElement('span', {}, '');
             }
             return (
-              <div className='read-content-inner' style={{ fontSize }}>
-                <img className='fix-image' src={src} alt={alt} />
+              <div className='my-4' style={{ fontSize }}>
+                <img className='w-full h-auto rounded' src={src} alt={alt} />
               </div>
             );
           }
@@ -381,13 +358,13 @@ export const getParsedContent = (
       });
 
       return (
-        <div className='read-content-inner reddit-content' style={{ fontSize }}>
+        <div className='prose prose-lg max-w-none' style={{ fontSize }}>
           {content}
         </div>
       );
     } catch (err) {
       return (
-        <div className='read-content-inner' style={{ fontSize }}>
+        <div className='my-4' style={{ fontSize }}>
           {noContentTile()}
         </div>
       );
@@ -395,7 +372,7 @@ export const getParsedContent = (
   } else if (!selectedContent.data) {
     console.log('selectedContent', selectedContent);
     return (
-      <div className='read-content-inner' style={{ fontSize }}>
+      <div className='my-4' style={{ fontSize }}>
         {noContentTile()}
       </div>
     );
@@ -415,8 +392,8 @@ export const getParsedContent = (
               return React.createElement('span', {}, '');
             }
             return (
-              <div className='read-content-inner' style={{ fontSize }}>
-                <img className='fix-image' src={src} alt={alt} />
+              <div className='my-4' style={{ fontSize }}>
+                <img className='w-full h-auto rounded' src={src} alt={alt} />
               </div>
             );
           }
@@ -424,13 +401,13 @@ export const getParsedContent = (
       });
 
       return (
-        <div className='read-content-inner' style={{ fontSize }}>
+        <div className='prose prose-lg max-w-none' style={{ fontSize }}>
           {content}
         </div>
       );
     } catch (err) {
       return (
-        <div className='read-content-inner' style={{ fontSize }}>
+        <div className='my-4' style={{ fontSize }}>
           {noContentTile()}
         </div>
       );
