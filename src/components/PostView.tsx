@@ -12,7 +12,8 @@ export default function PostView() {
   const { 
     fontSize, setFontSize, 
     darkMode, toggleDarkMode,
-    savePost, unsavePost 
+    savePost, unsavePost,
+    signedIn, redirectForAuth 
   } = useReddit();
 
   const [post, setPost] = useState<any>(location.state?.post || null);
@@ -111,7 +112,7 @@ export default function PostView() {
         {/* Sticky Header */}
         <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
             <div className="flex items-center gap-4 flex-1 min-w-0">
-                <Link to="/feed" className="flex-shrink-0">
+                <Link to={signedIn ? "/feed" : "/"} className="flex-shrink-0">
                     <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
                 </Link>
                 
@@ -123,7 +124,7 @@ export default function PostView() {
                 
                 {!isScrolled && (
                      <div className="text-white">
-                        <Link to="/feed" className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
+                        <Link to={signedIn ? "/feed" : "/"} className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
                      </div>
                 )}
             </div>
@@ -170,13 +171,22 @@ export default function PostView() {
         
         {/* Sticky Footer Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
-            <div className="pointer-events-auto flex gap-4 bg-black/80 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl">
-                 <button 
-                    onClick={() => post.saved ? unsavePost(post.name) : savePost(post.name)}
-                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer"
-                 >
-                     {post.saved ? 'Unsave' : 'Save'}
-                 </button>
+            <div className="pointer-events-auto flex gap-4 bg-black/80 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl items-center">
+                 {signedIn ? (
+                     <button 
+                        onClick={() => post.saved ? unsavePost(post.name) : savePost(post.name)}
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                     >
+                         {post.saved ? 'Unsave' : 'Save'}
+                     </button>
+                 ) : (
+                     <button 
+                        onClick={redirectForAuth}
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                     >
+                         Login to Save
+                     </button>
+                 )}
                  <span className="opacity-30">|</span>
                  <a 
                     href={`https://www.reddit.com${post.permalink}`} 
