@@ -115,7 +115,7 @@ export default function PostView() {
   );
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${bgColor}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${bgColor} overflow-x-hidden w-full`}>
         {/* Sticky Header */}
         <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
             <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -171,7 +171,7 @@ export default function PostView() {
              </div>
              
              {/* Article Content */}
-             <article className={`prose prose-lg max-w-none ${articleClass}`} style={{ fontSize: `${fontSize}px` }}>
+             <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }}>
                  {getParsedContent(content, false, post, fontSize, !!getArticlePreviewImage(post))}
              </article>
         </main>
