@@ -1,262 +1,203 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
+import { useReddit } from '../context/RedditContext';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
-import smeagol from '../smeagol.png';
-import { getOptions, setOption } from '../helpers/Options';
-
-type Post = any;
-type Content = any;
 
 export default function PostView() {
   const { fullname } = useParams();
   const location = useLocation();
-  const [post, setPost] = useState<Post | null>(location.state?.post || null);
-  const [content, setContent] = useState<Content | null>(location.state?.content || null);
-  const [error, setError] = useState<string | null>(null);
+  
+  // Use context for preferences.
+  const { 
+    fontSize, setFontSize, 
+    darkMode, toggleDarkMode,
+    savePost, unsavePost,
+    signedIn, redirectForAuth 
+  } = useReddit();
+
+  const [post, setPost] = useState<any>(location.state?.post || null);
+  const [content, setContent] = useState<any>(location.state?.content || null);
   const [loading, setLoading] = useState(!location.state?.post);
-  
-  // Get saved options for font size and dark mode
-  const options = getOptions();
-  const [fontSize, setFontSize] = useState(options.fontSize || 18);
-  const [darkMode, setDarkMode] = useState(options.darkMode !== false);
+  const [error, setError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const scrollableRef = useRef<HTMLDivElement>(null);
-  
-  const handleSetSize = (newSize: number) => {
-    setFontSize(newSize);
-    setOption({ fontSize: newSize });
-  };
-  
-  const handleToggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    setOption({ darkMode: newDarkMode });
-  };
 
+  // Update document title
   useEffect(() => {
-    // If we already have post data from router state, skip the fetch
-    if (location.state?.post) {
-      return;
+    if (post?.title) {
+      document.title = post.title;
     }
+  }, [post?.title]);
 
+  // Handle scroll for sticky header
+  useEffect(() => {
+      const handleScroll = () => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          setIsScrolled(scrollTop > 50);
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch Logic
+  useEffect(() => {
+    if (location.state?.post && location.state?.content) {
+        return;
+    }
+    
     let cancelled = false;
 
     async function load() {
       try {
-        // Check if this is a comment (t1_) or post (t3_)
-        const isComment = fullname?.startsWith('t1_');
+        let p = post;
         
-        let p;
-        if (isComment) {
-          // For comments, use the info endpoint which works for individual comments
-          const r = await fetch(`https://www.reddit.com/api/info.json?id=${fullname}`);
-          if (r.ok) {
-            const json = await r.json();
-            p = json?.data?.children?.[0]?.data;
-          }
-        } else {
-          // For posts, use the by_id endpoint
-          const r = await fetch(`https://www.reddit.com/by_id/${fullname}.json`);
-          if (r.ok) {
-            const json = await r.json();
-            p = json?.data?.children?.[0]?.data;
-          }
+        // If we don't have the post object, fetch it
+        if (!p) {
+             const isComment = fullname?.startsWith('t1_');
+             const url = isComment 
+                ? `https://www.reddit.com/api/info.json?id=${fullname}`
+                : `https://www.reddit.com/by_id/${fullname}.json`;
+             
+             const r = await fetch(url);
+             if (r.ok) {
+                 const json = await r.json();
+                 p = json?.data?.children?.[0]?.data;
+             }
         }
-        
+
         if (!p) {
           if (!cancelled) setError('Post not found');
           return;
         }
         if (!cancelled) setPost(p);
 
-        // Debug: log the post data
-        console.log('Fetched post data:', p);
-        console.log('Has body?', !!p.body);
-        console.log('Has body_html?', !!p.body_html);
-
-        // Extract full article content like the logged-in view
-        try {
-          const postType = getPostType(p);
-          console.log('Post type:', postType);
-          const extractedContent = await handlePostType(postType);
-          console.log('Extracted content:', extractedContent);
-          if (!cancelled) setContent(extractedContent);
-        } catch (contentErr) {
-          console.warn('Failed to extract content:', contentErr);
-          // Still show basic post info even if content extraction fails
+        // Extract content if not already present
+        if (!content) {
+             const postType = getPostType(p);
+             const extractedContent = await handlePostType(postType);
+             if (!cancelled) setContent(extractedContent);
         }
-        return;
       } catch (err) {
         console.error('Error loading post:', err);
+        if (!cancelled) setError('Unable to load post');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      if (!cancelled) setError('Unable to load post');
     }
 
-    if (fullname) {
-      load().finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    }
+    load();
     return () => { cancelled = true; };
   }, [fullname, location.state]);
 
-  // Update document title for human visitors once data is loaded
-  useEffect(() => {
-    if (post?.title) {
-      document.title = post.title;
-    }
-  }, [post?.title]);
+  const bgColor = darkMode ? 'bg-[#322a5a] text-gray-200' : 'bg-white text-gray-900';
+  const headerBg = darkMode ? 'bg-[#322a5a]/95' : 'bg-[#b6aaf1]/95';
+  const articleClass = darkMode ? 'prose-invert prose-p:text-gray-300 prose-headings:text-gray-100 prose-strong:text-white prose-li:text-gray-300 prose-ul:text-gray-300 prose-ol:text-gray-300 prose-a:text-[#b6aaf1] hover:prose-a:text-white' : 'prose-gray';
   
-  // Apply body classes for PostView layout and dark mode
-  useEffect(() => {
-    document.body.classList.add('postview-active');
-    return () => {
-      document.body.classList.remove('postview-active');
-    };
-  }, []);
-  
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('postview-darkmode');
-    } else {
-      document.body.classList.remove('postview-darkmode');
-    }
-    return () => {
-      document.body.classList.remove('postview-darkmode');
-    };
-  }, [darkMode]);
-  
-  // Handle scroll for sticky header collapse
-  useEffect(() => {
-    const el = scrollableRef.current;
-    
-    const handleScroll = () => {
-      // Check scrollable element first, then fallback to window
-      const scrollTop = el?.scrollTop || window.scrollY || document.documentElement.scrollTop;
-      setIsScrolled(scrollTop > 50);
-    };
-    
-    // Listen to both the scrollable element and window
-    if (el) {
-      el.addEventListener('scroll', handleScroll);
-    }
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      if (el) {
-        el.removeEventListener('scroll', handleScroll);
-      }
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [post]); // Re-run when post loads so ref is available
-
-  const readContentClass = darkMode ? 'read-content darkMode' : 'read-content';
-  const headerClass = `sticky-header ${isScrolled ? 'collapsed' : ''}`;
-
-  if (error) return (
-    <div className={`public-post ${darkMode ? 'darkMode' : ''}`}>
-      <div className="site-wrap">
-        <div className="header">
-          <Link to="/" className="banner-img">
-            <img className="img-fit-contain" src={smeagol} alt="reddzit" />
-            <div className="site-name">
-              <h1>Reddzit</h1>
-            </div>
-          </Link>
-        </div>
-        <section className="post-hero full-bleed">
-          <div className="full-bleed__inner">
-            <div className="post-title">
-              <h2>Unable to load post</h2>
-            </div>
-          </div>
-        </section>
-        <main className="content">
-          <p>{error}</p>
-          <p><a href="/">← Back to Reddzit</a></p>
-        </main>
-      </div>
+  if (loading) return (
+    <div className={`min-h-screen flex items-center justify-center ${bgColor}`}>
+      <div className="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
-  
-  if (loading || !post) return (
-    <div className="public-post">
-      <div className="loading loading-lg" />
+
+  if (error || !post) return (
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bgColor}`}>
+        <h2 className="text-2xl font-bold mb-4">Unable to load post</h2>
+        <p className="mb-6">{error}</p>
+        <Link to="/feed" className="bg-[#ff4500] text-white px-6 py-3 rounded-full font-bold shadow-lg no-underline">Back to Feed</Link>
     </div>
   );
 
   return (
-    <div className={`public-post ${darkMode ? 'darkMode' : ''}`}>
-      <div className="postview-layout">
-        {/* Sticky header */}
-        <div className={headerClass}>
-          <div className="header-inner">
-            <Link to="/" className="banner-img">
-              <img className="img-fit-contain" src={smeagol} alt="reddzit" />
-              {!isScrolled && (
-                <div className="site-name">
-                  <h1>Reddzit</h1>
+    <div className={`min-h-screen transition-colors duration-300 ${bgColor}`}>
+        {/* Sticky Header */}
+        <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+                <Link to={signedIn ? "/feed" : "/"} className="flex-shrink-0">
+                    <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
+                </Link>
+                
+                <div className={`transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 hidden sm:block'}`}>
+                     <h2 className="text-sm font-bold truncate max-w-[200px] sm:max-w-md text-white">
+                        {getDisplayTitle(post)}
+                     </h2>
                 </div>
-              )}
-            </Link>
-            
-            {post && (
-              <div className="post-title">
-                <h2>
-                  <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer">
-                    {getDisplayTitle(post) || post.title || 'Reddit Post'}
-                  </a>
-                </h2>
+                
                 {!isScrolled && (
-                  <div className="subtitle">
-                    <span className="subreddit">{post.subreddit}</span>
-                  </div>
+                     <div className="text-white">
+                        <Link to={signedIn ? "/feed" : "/"} className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
+                     </div>
                 )}
-              </div>
-            )}
+            </div>
             
-            {!isScrolled && (
-              <ReadControls
-                fontSize={fontSize}
-                setSize={handleSetSize}
-                darkMode={darkMode}
-                toggleDarkMode={handleToggleDarkMode}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Scrollable content */}
-        <div className="scrollable-content" ref={scrollableRef}>
-          <div className={readContentClass}>
-            {post && getArticlePreviewImage(post) && (
-              <div className="article-preview-image" style={{ marginBottom: '1rem' }}>
-                <img 
-                  src={getArticlePreviewImage(post)} 
-                  alt="" 
-                  className="img-responsive"
-                  style={{ maxWidth: '100%', height: 'auto' }}
+            <div className="flex-shrink-0">
+                <ReadControls 
+                    fontSize={fontSize} 
+                    setSize={setFontSize} 
+                    darkMode={darkMode} 
+                    toggleDarkMode={toggleDarkMode} 
                 />
-              </div>
-            )}
-            {getParsedContent(content, loading && !content, post, fontSize, !!getArticlePreviewImage(post))}
-          </div>
-        </div>
+            </div>
+        </header>
         
-        {/* Sticky footer */}
-        <div className="sticky-footer">
-          <div className="read-controls-footer">
-            <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="btn btn-primary">
-              View on Reddit
-            </a>
-            <a href="/" className="btn cta-button">
-              Get Reddzit
-            </a>
-          </div>
+        {/* Content */}
+        <main className="max-w-3xl mx-auto px-4 py-8 pb-32">
+             <div className="mb-8">
+                 <div className="text-[#ff4500] font-bold text-sm uppercase tracking-wide mb-2">
+                     {post.subreddit}
+                 </div>
+                 <h1 className="text-3xl sm:text-4xl font-serif font-bold leading-tight mb-4">
+                     <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="hover:text-[#ff4500] transition-colors text-inherit no-underline">
+                        {getDisplayTitle(post)}
+                     </a>
+                 </h1>
+                 
+                 {/* Preview Image */}
+                 {getArticlePreviewImage(post) && (
+                     <div className="rounded-xl overflow-hidden my-6 shadow-md">
+                         <img 
+                            src={getArticlePreviewImage(post)} 
+                            alt="" 
+                            className="w-full h-auto object-cover"
+                         />
+                     </div>
+                 )}
+             </div>
+             
+             {/* Article Content */}
+             <article className={`prose prose-lg max-w-none ${articleClass}`} style={{ fontSize: `${fontSize}px` }}>
+                 {getParsedContent(content, false, post, fontSize, !!getArticlePreviewImage(post))}
+             </article>
+        </main>
+        
+        {/* Sticky Footer Actions */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
+            <div className="pointer-events-auto flex gap-4 bg-black/80 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl items-center">
+                 {signedIn ? (
+                     <button 
+                        onClick={() => post.saved ? unsavePost(post.name) : savePost(post.name)}
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                     >
+                         {post.saved ? 'Unsave' : 'Save'}
+                     </button>
+                 ) : (
+                     <button 
+                        onClick={redirectForAuth}
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                     >
+                         Login to Save
+                     </button>
+                 )}
+                 <span className="opacity-30">|</span>
+                 <a 
+                    href={`https://www.reddit.com${post.permalink}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="font-bold hover:text-[#ff4500] transition-colors text-white no-underline"
+                 >
+                     View on Reddit
+                 </a>
+            </div>
         </div>
-      </div>
     </div>
   );
 }

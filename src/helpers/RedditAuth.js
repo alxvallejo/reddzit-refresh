@@ -163,7 +163,8 @@ export class RedditAuth {
       } else {
         // No Code, No Creds, go get the code
         localStorage.removeItem('redditCreds');
-        this.redirectForAuth();
+        // Do NOT auto redirect. Let context handle unauthenticated state.
+        return null;
       }
     } else if (redditCreds.lastReceived) {
       let needsRefresh = await this.needsRefresh(redditCreds.lastReceived);
