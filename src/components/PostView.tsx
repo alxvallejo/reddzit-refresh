@@ -3,6 +3,7 @@ import { useParams, useLocation, Link } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
+import API_BASE_URL from '../config/api';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -21,6 +22,7 @@ export default function PostView() {
   const [loading, setLoading] = useState(!location.state?.post);
   const [error, setError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Update document title
   useEffect(() => {
@@ -51,14 +53,9 @@ export default function PostView() {
       try {
         let p = post;
         
-        // If we don't have the post object, fetch it
+        // If we don't have the post object, fetch it via backend proxy to avoid CORS
         if (!p) {
-             const isComment = fullname?.startsWith('t1_');
-             const url = isComment 
-                ? `https://www.reddit.com/api/info.json?id=${fullname}`
-                : `https://www.reddit.com/by_id/${fullname}.json`;
-             
-             const r = await fetch(url);
+             const r = await fetch(`${API_BASE_URL}/api/reddit/public/by_id/${fullname}`);
              if (r.ok) {
                  const json = await r.json();
                  p = json?.data?.children?.[0]?.data;
@@ -93,6 +90,16 @@ export default function PostView() {
   const headerBg = darkMode ? 'bg-[#322a5a]/95' : 'bg-[#b6aaf1]/95';
   const articleClass = darkMode ? 'prose-invert prose-p:text-gray-300 prose-headings:text-gray-100 prose-strong:text-white prose-li:text-gray-300 prose-ul:text-gray-300 prose-ol:text-gray-300 prose-a:text-[#b6aaf1] hover:prose-a:text-white' : 'prose-gray';
   
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   if (loading) return (
     <div className={`min-h-screen flex items-center justify-center ${bgColor}`}>
       <div className="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -188,8 +195,15 @@ export default function PostView() {
                      </button>
                  )}
                  <span className="opacity-30">|</span>
+                 <button 
+                    onClick={handleShare}
+                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                 >
+                     {copied ? 'Copied!' : 'Share'}
+                 </button>
+                 <span className="opacity-30">|</span>
                  <a 
-                    href={`https://www.reddit.com${post.permalink}`} 
+                    href={`https://www.reddit.com${post.permalink}`}
                     target="_blank" 
                     rel="noreferrer"
                     className="font-bold hover:text-[#ff4500] transition-colors text-white no-underline"
