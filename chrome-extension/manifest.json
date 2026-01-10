@@ -2,11 +2,12 @@
   "manifest_version": 3,
   "name": "Reddzit - Reddit Saved Posts Viewer",
   "description": "Easily access and read your saved Reddit posts in a clean, organized interface",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Reddzit Team",
   
   "action": {
     "default_title": "Open Reddzit",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

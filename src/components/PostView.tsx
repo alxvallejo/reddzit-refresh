@@ -24,6 +24,11 @@ export default function PostView() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Scroll to top on mount/navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [fullname]);
+
   // Update document title
   useEffect(() => {
     if (post?.title) {
