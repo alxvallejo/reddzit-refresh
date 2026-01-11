@@ -1,25 +1,20 @@
-import { useState } from 'react';
-
 // import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ReactGA from 'react-ga';
 import { RedditProvider } from './context/RedditContext';
-import Feed from './components/Feed';
-import Main from './components/Main';
+import AppShell from './components/AppShell';
 import About from './components/About';
 import PostView from './components/PostView';
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <BrowserRouter>
       <RedditProvider>
         <div className='App'>
           <Routes>
-            <Route index path='/' element={<Main />} />
-            <Route path='/feed' element={<Feed />} />
-            <Route path='/reddit' element={<Feed />} />
+            <Route index path='/' element={<AppShell />} />
+            <Route path='/feed' element={<AppShell defaultTab="saved" />} />
+            <Route path='/reddit' element={<AppShell defaultTab="saved" />} />
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />
             <Route path='/p/:fullname/:slug' element={<PostView />} />

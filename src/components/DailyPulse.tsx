@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 import DailyService, { DailyReport } from '../helpers/DailyService';
 import { useReddit } from '../context/RedditContext';
 
-const DailyPulse = () => {
+interface DailyPulseProps {
+  embedded?: boolean;
+}
+
+const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [loading, setLoading] = useState(true);
   const { redirectForAuth } = useReddit();
@@ -61,47 +65,49 @@ const DailyPulse = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fcfcfc] text-gray-900 font-sans">
-      {/* Header / Hero */}
-      <header className="bg-white border-b border-gray-200 py-12 px-4 text-center">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/favicon.png" alt="Logo" className="w-10 h-10" />
-            <span className="font-serif text-2xl font-bold tracking-tight text-orange-600">Reddzit Daily</span>
-          </div>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-            {report.title || 'Today on Reddit'}
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            The most important conversations happening on Reddit today, curated and summarized.
-          </p>
-
-          {!subscribed ? (
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
-              <button type="submit" className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition">
-                Subscribe
-              </button>
-            </form>
-          ) : (
-            <div className="text-green-600 font-medium bg-green-50 inline-block px-4 py-2 rounded-full">
-              ✓ Subscribed! See you tomorrow.
+    <div className={`${embedded ? '' : 'min-h-screen'} bg-[#fcfcfc] text-gray-900 font-sans`}>
+      {/* Header / Hero - only show when not embedded */}
+      {!embedded && (
+        <header className="bg-white border-b border-gray-200 py-12 px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <img src="/favicon.png" alt="Logo" className="w-10 h-10" />
+              <span className="font-serif text-2xl font-bold tracking-tight text-orange-600">Reddzit Daily</span>
             </div>
-          )}
-          
-          <div className="mt-6 text-sm text-gray-500">
-            <button onClick={redirectForAuth} className="underline hover:text-orange-600">
-              Already have an account? Log in
-            </button>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              {report.title || 'Today on Reddit'}
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              The most important conversations happening on Reddit today, curated and summarized.
+            </p>
+
+            {!subscribed ? (
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
+                <button type="submit" className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition">
+                  Subscribe
+                </button>
+              </form>
+            ) : (
+              <div className="text-green-600 font-medium bg-green-50 inline-block px-4 py-2 rounded-full">
+                ✓ Subscribed! See you tomorrow.
+              </div>
+            )}
+            
+            <div className="mt-6 text-sm text-gray-500">
+              <button onClick={redirectForAuth} className="underline hover:text-orange-600">
+                Already have an account? Log in
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Stories List */}
       <main className="max-w-3xl mx-auto px-4 py-12 space-y-12">
@@ -183,9 +189,11 @@ const DailyPulse = () => {
         ))}
       </main>
 
-      <footer className="py-12 text-center text-gray-400 text-sm">
-        <p>© {new Date().getFullYear()} Reddzit. Not affiliated with Reddit Inc.</p>
-      </footer>
+      {!embedded && (
+        <footer className="py-12 text-center text-gray-400 text-sm">
+          <p>© {new Date().getFullYear()} Reddzit. Not affiliated with Reddit Inc.</p>
+        </footer>
+      )}
     </div>
   );
 };

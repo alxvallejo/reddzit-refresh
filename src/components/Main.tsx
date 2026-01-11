@@ -1,7 +1,7 @@
-import DailyPulse from './DailyPulse';
+import AppShell from './AppShell';
 
 const Main = () => {
-  return <DailyPulse />;
+  return <AppShell />;
 };
 
 export default Main;
