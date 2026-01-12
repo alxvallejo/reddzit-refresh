@@ -13,6 +13,8 @@ export interface ReportStory {
   takeaways: string[];
   topicTags: string[];
   redditPermalink: string;
+  redditPostId: string;
+  postUrl?: string;
   comments: StoryComment[];
 }
 

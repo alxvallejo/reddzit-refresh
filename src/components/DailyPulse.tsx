@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import DailyService, { DailyReport } from '../helpers/DailyService';
+import { Link, useNavigate } from 'react-router-dom';
+import DailyService, { DailyReport, ReportStory } from '../helpers/DailyService';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -15,6 +15,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   const { themeName } = useTheme();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     DailyService.getLatestReport().then(data => {
@@ -35,8 +36,16 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
     }
   };
 
-  const handleStoryClick = (storyId: string) => {
+  const handleStoryClick = (storyId: string, story: ReportStory) => {
     DailyService.trackEngagement('STORY_CLICK', {}, report?.id, storyId);
+    // Navigate to reader view with the Reddit post ID
+    const fullname = `t3_${story.redditPostId}`;
+    const slug = story.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .slice(0, 60);
+    navigate(`/p/${fullname}/${slug}`);
   };
 
   const handleInterest = (storyId: string) => {
@@ -149,14 +158,12 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
                 ? 'text-gray-900 group-hover:text-orange-600' 
                 : 'group-hover:text-[var(--theme-primary)]'
             }`}>
-              <a 
-                href={`https://www.reddit.com${story.redditPermalink}`} 
-                target="_blank" 
-                rel="noreferrer"
-                onClick={() => handleStoryClick(story.id)}
+              <button 
+                className="text-left w-full bg-transparent border-none cursor-pointer p-0 m-0 font-inherit text-inherit"
+                onClick={() => handleStoryClick(story.id, story)}
               >
                 {story.title}
-              </a>
+              </button>
             </h2>
 
             {/* AI Summary */}
