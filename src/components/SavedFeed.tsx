@@ -1,10 +1,12 @@
 import { useReddit } from '../context/RedditContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { getPreviewImage, getDisplayTitle, isComment, getCommentSnippet } from '../helpers/RedditUtils';
 import NoContent from './NoContent';
 
 const SavedFeed = () => {
   const { loading, saved, after, fetchSaved } = useReddit();
+  const { themeName } = useTheme();
   const navigate = useNavigate();
 
   const handlePostClick = (post: any) => {
@@ -39,7 +41,9 @@ const SavedFeed = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className={`w-10 h-10 border-4 border-t-transparent rounded-full animate-spin ${
+          themeName === 'light' ? 'border-orange-500' : 'border-[var(--theme-primary)]'
+        }`}></div>
       </div>
     );
   }
@@ -58,10 +62,20 @@ const SavedFeed = () => {
         <div
           key={post.id}
           onClick={() => handlePostClick(post)}
-          className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex gap-4 overflow-hidden border border-gray-100"
+          className={`rounded-xl p-4 transition cursor-pointer flex gap-4 overflow-hidden border ${
+            themeName === 'light'
+              ? 'bg-white shadow-sm hover:shadow-md border-gray-100'
+              : 'backdrop-blur-md hover:bg-white/[0.12]'
+          }`}
+          style={themeName === 'light' ? undefined : ({
+            backgroundColor: 'var(--theme-cardBg)',
+            borderColor: 'var(--theme-border)'
+          } as React.CSSProperties)}
         >
           {/* Thumbnail */}
-          <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+          <div className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden flex items-center justify-center ${
+            themeName === 'light' ? 'bg-gray-100' : 'bg-white/10'
+          }`}>
             {getPreviewImage(post) ? (
               <img
                 src={getPreviewImage(post)}
@@ -79,14 +93,20 @@ const SavedFeed = () => {
 
           {/* Text */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <div className="text-xs font-bold text-orange-600 uppercase tracking-wide mb-1">
+            <div className={`text-xs font-bold uppercase tracking-wide mb-1 ${
+              themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+            }`}>
               {post.subreddit}
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-2 line-clamp-2">
+            <h3 className={`text-lg font-semibold leading-tight mb-2 line-clamp-2 ${
+              themeName === 'light' ? 'text-gray-900' : ''
+            }`}>
               {getDisplayTitle(post)}
             </h3>
             {isComment(post) && (
-              <div className="text-sm text-gray-500 line-clamp-2 italic bg-gray-50 p-2 rounded">
+              <div className={`text-sm line-clamp-2 italic p-2 rounded ${
+                themeName === 'light' ? 'text-gray-500 bg-gray-50' : 'text-[var(--theme-textMuted)] bg-white/5'
+              }`}>
                 "{getCommentSnippet(post, 100)}"
               </div>
             )}
@@ -98,14 +118,22 @@ const SavedFeed = () => {
       <div className="flex justify-center gap-4 pt-6 pb-6">
         <button
           onClick={handlePageDown}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-full font-medium transition-colors cursor-pointer border-none"
+          className={`px-6 py-3 rounded-full font-medium transition-colors cursor-pointer border-none ${
+            themeName === 'light'
+              ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              : 'bg-white/10 hover:bg-white/20 text-[var(--theme-text)]'
+          }`}
         >
           Previous
         </button>
         <button
           onClick={handlePageUp}
           disabled={!after}
-          className="bg-orange-600 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-none"
+          className={`px-6 py-3 rounded-full font-medium shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-none ${
+            themeName === 'light'
+              ? 'bg-orange-600 text-white hover:bg-orange-700'
+              : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+          }`}
         >
           Next
         </button>
