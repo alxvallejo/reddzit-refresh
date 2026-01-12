@@ -48,8 +48,8 @@ const DailyService = {
         }
       }
 
-      // Now using hourly reports for fresher content
-      const response = await axios.get(`${API_BASE_URL}/api/hourly/latest`);
+      // Using hourly pulse reports (top posts from r/all with comments)
+      const response = await axios.get(`${API_BASE_URL}/api/hourly-pulse/latest`);
       
       // Update cache
       localStorage.setItem(CACHE_KEY, JSON.stringify({
