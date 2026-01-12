@@ -186,12 +186,10 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
       {/* Subscribe Banner */}
       {showBanner && subscribeStatus !== 'success' && (
         <div
-          className={`${themeName === 'light' ? 'text-white' : ''}`}
-          style={themeName === 'light' ? {
-            background: 'linear-gradient(to right, #f97316, #ea580c)'
-          } : ({
-            backgroundColor: 'var(--theme-cardBg)'
-          } as React.CSSProperties)}
+          style={{
+            background: 'var(--theme-bannerBg)',
+            color: 'var(--theme-bannerText)'
+          }}
         >
           <div className="max-w-4xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -205,20 +203,29 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 px-3 py-1.5 rounded-lg text-gray-900 text-sm border-none focus:outline-none focus:ring-2 focus:ring-white/50 min-w-0"
+                    className="flex-1 px-3 py-1.5 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-white/50 min-w-0 placeholder:text-[var(--theme-bannerInputPlaceholder)]"
+                    style={{
+                      backgroundColor: 'var(--theme-bannerInputBg)',
+                      color: 'var(--theme-bannerInputText)'
+                    }}
                     disabled={subscribeStatus === 'loading'}
                   />
                   <button
                     type="submit"
                     disabled={subscribeStatus === 'loading'}
-                    className="bg-white text-orange-600 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-orange-50 transition-colors border-none cursor-pointer disabled:opacity-70 whitespace-nowrap"
+                    className="px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-colors border-none cursor-pointer disabled:opacity-70 whitespace-nowrap"
+                    style={{
+                      backgroundColor: 'var(--theme-bannerButtonBg)',
+                      color: 'var(--theme-bannerButtonText)'
+                    }}
                   >
                     {subscribeStatus === 'loading' ? '...' : 'Subscribe'}
                   </button>
                 </form>
                 <button
                   onClick={dismissBanner}
-                  className="text-white/80 hover:text-white p-1 border-none bg-transparent cursor-pointer"
+                  className="opacity-80 hover:opacity-100 p-1 border-none bg-transparent cursor-pointer"
+                  style={{ color: 'var(--theme-bannerText)' }}
                   aria-label="Dismiss"
                 >
                   <FontAwesomeIcon icon={faTimes} />
@@ -226,7 +233,7 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
               </div>
             </div>
             {subscribeStatus === 'error' && (
-              <p className="text-xs text-orange-100 mt-1">Something went wrong. Please try again.</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--theme-bannerErrorText)' }}>Something went wrong. Please try again.</p>
             )}
           </div>
         </div>

@@ -16,6 +16,14 @@ interface Theme {
     border: string;
     cardBg: string;
     headerBg: string;
+    bannerBg: string;
+    bannerText: string;
+    bannerButtonBg: string;
+    bannerButtonText: string;
+    bannerErrorText: string;
+    bannerInputBg: string;
+    bannerInputText: string;
+    bannerInputPlaceholder: string;
   };
 }
 
@@ -34,6 +42,14 @@ export const themes: Record<ThemeName, Theme> = {
       border: 'rgba(182, 170, 241, 0.3)',
       cardBg: 'rgba(255, 255, 255, 0.08)',
       headerBg: 'rgba(38, 33, 41, 0.85)',
+      bannerBg: '#3d3466',
+      bannerText: '#f0eef5',
+      bannerButtonBg: '#b6aaf1',
+      bannerButtonText: '#262129',
+      bannerErrorText: '#e8b4b4',
+      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
+      bannerInputText: '#f0eef5',
+      bannerInputPlaceholder: '#a89cc4',
     },
   },
   light: {
@@ -50,6 +66,14 @@ export const themes: Record<ThemeName, Theme> = {
       border: '#e5e7eb',
       cardBg: '#ffffff',
       headerBg: '#ffffff',
+      bannerBg: 'linear-gradient(to right, #f97316, #ea580c)',
+      bannerText: '#ffffff',
+      bannerButtonBg: '#ffffff',
+      bannerButtonText: '#ea580c',
+      bannerErrorText: '#fed7aa',
+      bannerInputBg: '#ffffff',
+      bannerInputText: '#1f2937',
+      bannerInputPlaceholder: '#9ca3af',
     },
   },
 };
