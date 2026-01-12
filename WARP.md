@@ -54,6 +54,16 @@ Cronjob → Reddit API → LLM Analysis → Database → API → Frontend
 2. **Discover**: Hourly rotating AI-analyzed posts
 3. **Saved Posts**: User's saved Reddit posts (requires auth)
 
+## Deployment & Environment
+
+### Environment Variables
+- **Do NOT use `.env` files** — environment variables are managed via PM2's `ecosystem.config.js`
+- When running jobs manually, extract env from PM2: `eval $(pm2 env 0 | sed 's/: /=/g') && node jobs/generateHourlyReport.js`
+
+### Cronjobs
+- Cronjobs must source PM2 env before running jobs
+- Schedule aligned with US timezones (skip 2-5 AM ET dead hours)
+
 ## Cost Considerations
 
 - LLM calls are batched via cronjobs to amortize cost
