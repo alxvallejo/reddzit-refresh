@@ -15,7 +15,7 @@ function App() {
           <div className='App'>
           <Routes>
             <Route index path='/' element={<AppShell />} />
-            <Route path='/feed' element={<AppShell defaultTab="saved" />} />
+            <Route path='/feed' element={<AppShell defaultTab="daily" />} />
             <Route path='/reddit' element={<AppShell defaultTab="saved" />} />
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />

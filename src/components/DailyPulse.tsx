@@ -86,58 +86,36 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
     }`}>
       {/* Header / Hero - only show when not embedded */}
       {!embedded && (
-        <header className="bg-white border-b border-gray-200 py-12 px-4 text-center">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative flex items-center justify-center mb-4">
-              <div className="flex items-center gap-3">
-                <img src="/favicon.png" alt="Logo" className="w-10 h-10" />
-                <span className="font-serif text-2xl font-bold tracking-tight text-orange-600">Reddzit Hourly</span>
-              </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500 hidden sm:block">
+        <header className="px-4 pb-2">
+          <div className={`max-w-7xl mx-auto border-b-2 ${
+            themeName === 'light' ? 'border-gray-900' : 'border-white/20'
+          }`}>
+            {/* Masthead */}
+            <div className="flex items-center justify-between py-4 sm:py-4 text-left">
+              {/* Date (Left) */}
+              <div className={`text-xs sm:text-sm font-bold uppercase tracking-wider ${
+                themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
+              }`}>
                 {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
-            </div>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Top articles for {new Date(report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              The most important conversations happening on Reddit today, curated and summarized.
-            </p>
 
-            {!subscribed ? (
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-                <button type="submit" className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition">
-                  Subscribe
-                </button>
-              </form>
-            ) : (
-              <div className="text-green-600 font-medium bg-green-50 inline-block px-4 py-2 rounded-full">
-                ✓ Subscribed! See you tomorrow.
+              {/* Updated Time (Right) */}
+              <div className={`text-xs sm:text-sm font-bold uppercase tracking-wider text-right ${
+                themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
+              }`}>
+                Updated {new Date(report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
               </div>
-            )}
-            
-            <div className="mt-6 text-sm text-gray-500">
-              <button onClick={redirectForAuth} className="underline hover:text-orange-600">
-                Already have an account? Log in
-              </button>
             </div>
           </div>
         </header>
       )}
 
       {/* Stories List */}
-      <main className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-7xl mx-auto px-4 pt-8 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {report.stories.map((story, index) => (
           <article 
             key={story.id} 
-            className={`group relative p-0 sm:p-6 sm:rounded-2xl transition ${
+            className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition ${
               themeName === 'light' 
                 ? 'bg-white sm:shadow-sm sm:border sm:border-gray-100 hover:shadow-md' 
                 : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'

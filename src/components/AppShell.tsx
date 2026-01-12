@@ -71,18 +71,18 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-              <span className={`font-serif text-xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+              <span className={`font-serif text-xl font-bold hidden sm:block ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 Reddzit
               </span>
             </div>
 
             {/* Tabs */}
-            <nav className="flex gap-1">
+            <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
               <button
                 onClick={() => setActiveTab('daily')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'daily'
                       ? 'bg-orange-100 text-orange-700'
@@ -92,11 +92,12 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
                       : 'text-gray-300 hover:bg-white/10 bg-transparent'
                 }`}
               >
-                Hourly Pulse
+                <span className="sm:hidden">Pulse</span>
+                <span className="hidden sm:inline">Hourly Pulse</span>
               </button>
               <button
                 onClick={() => setActiveTab('discover')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'discover'
                       ? 'bg-orange-100 text-orange-700'
@@ -110,7 +111,7 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
               </button>
               <button
                 onClick={() => setActiveTab('saved')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'saved'
                       ? 'bg-orange-100 text-orange-700'
@@ -120,7 +121,8 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
                       : 'text-gray-300 hover:bg-white/10 bg-transparent'
                 }`}
               >
-                Saved Posts
+                <span className="sm:hidden">Saved</span>
+                <span className="hidden sm:inline">Saved Posts</span>
               </button>
             </nav>
 
@@ -136,7 +138,8 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
                     themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
                   }`}
                 >
-                  <span className="font-medium text-sm max-w-[120px] truncate">u/{user.name}</span>
+                  <span className="font-medium text-sm max-w-[120px] truncate hidden sm:block">u/{user.name}</span>
+                  <span className="font-medium text-sm sm:hidden"><FontAwesomeIcon icon={faUser} /></span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
                     className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
@@ -201,6 +204,7 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
       {/* Subscribe Banner */}
       {showBanner && subscribeStatus !== 'success' && (
         <div
+          className="sticky top-16 z-40"
           style={{
             background: 'var(--theme-bannerBg)',
             color: 'var(--theme-bannerText)'
@@ -279,9 +283,9 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
   );
 };
 
-// Simplified Daily Pulse (without its own header)
+// Daily Pulse with its own header
 const DailyPulseContent = () => {
-  return <DailyPulse embedded />;
+  return <DailyPulse embedded={false} />;
 };
 
 // Saved Posts content (requires login)
