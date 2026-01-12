@@ -9,6 +9,7 @@ const LiveFeed = () => {
   const [report, setReport] = useState<HourlyReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reportHour, setReportHour] = useState<string | null>(null);
 
   const fetchReport = useCallback(async () => {
     setLoading(true);
@@ -17,6 +18,7 @@ const LiveFeed = () => {
       const data = await LiveFeedService.getLatestHourlyReport();
       if (data) {
         setReport(data);
+        setReportHour(data.reportHour);
       } else {
         setError('No hourly report available yet.');
       }
@@ -28,18 +30,21 @@ const LiveFeed = () => {
     }
   }, []);
 
+  // Initial fetch
   useEffect(() => {
     fetchReport();
-    
-    // Check every minute if we need to refresh (new hour)
+  }, [fetchReport]);
+
+  // Hourly refresh check (separate effect to avoid loop)
+  useEffect(() => {
     const interval = setInterval(() => {
-      if (report && !LiveFeedService.isReportCurrent(report.reportHour)) {
+      if (reportHour && !LiveFeedService.isReportCurrent(reportHour)) {
         fetchReport();
       }
     }, 60000);
     
     return () => clearInterval(interval);
-  }, [fetchReport, report]);
+  }, [reportHour, fetchReport]);
 
   const handleStoryClick = (story: HourlyStory) => {
     const fullname = `t3_${story.redditPostId}`;
