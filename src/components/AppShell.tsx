@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import DailyPulse from './DailyPulse';
 import SavedFeed from './SavedFeed';
-import DailyService from '../helpers/DailyService';
+import LiveFeed from './LiveFeed';
+import DailyService, { DailyReport } from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'daily' | 'saved';
+type Tab = 'daily' | 'discover' | 'saved';
 
 interface AppShellProps {
   defaultTab?: Tab;
@@ -24,6 +25,17 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
   const [showBanner, setShowBanner] = useState(() => {
     return localStorage.getItem('hideDailyBanner') !== 'true';
   });
+  const [dailyPostIds, setDailyPostIds] = useState<string[]>([]);
+
+  // Fetch Daily Pulse post IDs for deduplication
+  useEffect(() => {
+    DailyService.getLatestReport().then((report: DailyReport | null) => {
+      if (report?.stories) {
+        const ids = report.stories.map(s => s.redditPostId).filter(Boolean);
+        setDailyPostIds(ids);
+      }
+    });
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +104,20 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
                 }`}
               >
                 Daily Pulse
+              </button>
+              <button
+                onClick={() => setActiveTab('discover')}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer ${
+                  themeName === 'light'
+                    ? activeTab === 'discover'
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                    : activeTab === 'discover'
+                      ? 'bg-white/20 text-white'
+                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                }`}
+              >
+                Discover
               </button>
               <button
                 onClick={() => setActiveTab('saved')}
@@ -256,11 +282,9 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
 
       {/* Content */}
       <main>
-        {activeTab === 'daily' ? (
-          <DailyPulseContent />
-        ) : (
-          <SavedContent />
-        )}
+        {activeTab === 'daily' && <DailyPulseContent />}
+        {activeTab === 'discover' && <LiveFeed excludePostIds={dailyPostIds} />}
+        {activeTab === 'saved' && <SavedContent />}
       </main>
     </div>
   );
