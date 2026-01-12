@@ -33,14 +33,38 @@ export interface DailyReport {
   stories: ReportStory[];
 }
 
+const CACHE_KEY = 'rdz_latest_report';
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+
 const DailyService = {
   async getLatestReport(): Promise<DailyReport | null> {
     try {
+      // Check cache first
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          return data;
+        }
+      }
+
       // Now using hourly reports for fresher content
       const response = await axios.get(`${API_BASE_URL}/api/hourly/latest`);
+      
+      // Update cache
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: response.data,
+        timestamp: Date.now()
+      }));
+      
       return response.data;
     } catch (error) {
       console.error('Failed to fetch report', error);
+      // Try to return stale cache on error
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        return JSON.parse(cached).data;
+      }
       return null;
     }
   },
