@@ -64,9 +64,9 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [themeName, setThemeName] = useState<ThemeName>(() => {
+const [themeName, setThemeName] = useState<ThemeName>(() => {
     const saved = localStorage.getItem('reddzit_theme') as ThemeName | null;
-    return saved && themes[saved] ? saved : 'light';
+    return saved && themes[saved] ? saved : 'classic';
   });
 
   const theme = themes[themeName];

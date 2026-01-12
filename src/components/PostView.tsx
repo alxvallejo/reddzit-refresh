@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
+import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
@@ -8,6 +8,7 @@ import API_BASE_URL from '../config/api';
 export default function PostView() {
   const { fullname } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Use context for preferences.
   const { 
@@ -184,6 +185,13 @@ export default function PostView() {
         {/* Sticky Footer Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
             <div className="pointer-events-auto flex gap-4 bg-black/80 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl items-center">
+                 <button 
+                    onClick={() => navigate(-1)}
+                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                 >
+                     ← Back
+                 </button>
+                 <span className="opacity-30">|</span>
                  {signedIn ? (
                      <button 
                         onClick={() => post.saved ? unsavePost(post.name) : savePost(post.name)}
