@@ -42,7 +42,7 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [redditHelper, setRedditHelper] = useState<any>(null); // Type as any for now due to JS helper
   
   const options = getOptions();
-  const [darkMode, setDarkMode] = useState(options.darkMode || false);
+  const [darkMode, setDarkMode] = useState(options.darkMode ?? true);
   const [fontSize, setFontSizeState] = useState(options.fontSize || 18);
 
   // Initialize Auth
