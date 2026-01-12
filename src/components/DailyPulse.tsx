@@ -11,7 +11,7 @@ interface DailyPulseProps {
 const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [loading, setLoading] = useState(true);
-  const { redirectForAuth } = useReddit();
+  const { redirectForAuth, signedIn } = useReddit();
   const { themeName } = useTheme();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -195,42 +195,43 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
               )}
             </div>
 
-            {/* Highlight Comments */}
-            {story.comments && story.comments.length > 0 && (
-              <div className={`space-y-3 pl-4 border-l-2 ${
-                themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
+            {/* Top Comment - support both comments array and topComment fields */}
+            {(() => {
+              const comments = story.comments && story.comments.length > 0 
+                ? story.comments 
+                : (story as any).topCommentBody 
+                  ? [{ id: 'top', body: (story as any).topCommentBody, author: (story as any).topCommentAuthor, score: (story as any).topCommentScore }]
+                  : [];
+              return comments.length > 0 && (
+                <div className={`space-y-3 pl-4 border-l-2 ${
+                  themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
+                }`}>
+                  {comments.slice(0, index === 0 ? 3 : 1).map((comment: any) => (
+                    <div key={comment.id}>
+                      <p className={`text-sm italic mb-1 ${
+                        themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
+                      }`}>"{comment.body.slice(0, 140)}{comment.body.length > 140 ? '...' : ''}"</p>
+                      <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>— u/{comment.author}</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+            
+            {signedIn && (
+              <div className={`mt-4 flex gap-4 pt-4 border-t ${
+                themeName === 'light' ? 'border-gray-50' : 'border-white/10'
               }`}>
-                {story.comments.slice(0, index === 0 ? 3 : 1).map(comment => (
-                  <div key={comment.id}>
-                    <p className={`text-sm italic mb-1 ${
-                      themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
-                    }`}>"{comment.body.slice(0, 140)}{comment.body.length > 140 ? '...' : ''}"</p>
-                    <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>— u/{comment.author}</div>
-                  </div>
-                ))}
+                 <button 
+                  onClick={() => handleInterest(story.id)}
+                  className={`text-sm font-medium flex items-center gap-1 ${
+                    themeName === 'light' ? 'text-gray-500 hover:text-orange-600' : 'text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)]'
+                  }`}
+                 >
+                   🔖 Save
+                 </button>
               </div>
             )}
-            
-            <div className={`mt-4 flex gap-4 pt-4 border-t ${
-              themeName === 'light' ? 'border-gray-50' : 'border-white/10'
-            }`}>
-               <button 
-                onClick={() => handleInterest(story.id)}
-                className={`text-sm font-medium flex items-center gap-1 ${
-                  themeName === 'light' ? 'text-gray-500 hover:text-orange-600' : 'text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)]'
-                }`}
-               >
-                 👍 Interesting
-               </button>
-               <button 
-                onClick={() => handleInterest(story.id)} // Reuse for MVP
-                className={`text-sm font-medium flex items-center gap-1 ${
-                  themeName === 'light' ? 'text-gray-500 hover:text-orange-600' : 'text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)]'
-                }`}
-               >
-                 🔖 Save
-               </button>
-            </div>
 
           </article>
         ))}
