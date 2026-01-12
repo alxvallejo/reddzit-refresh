@@ -1,29 +1,34 @@
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
 
-export interface LivePost {
+// Hourly Report types (from database)
+export interface HourlyStory {
   id: string;
-  fullname: string;
-  title: string;
+  rank: number;
   subreddit: string;
-  author: string;
+  redditPostId: string;
+  redditPermalink: string;
+  title: string;
+  postUrl: string | null;
+  imageUrl: string | null;
+  author: string | null;
   score: number;
-  num_comments: number;
-  url: string;
-  permalink: string;
-  created_utc: number;
-  thumbnail: string | null;
-  selftext: string | null;
-  is_self: boolean;
-  domain: string;
+  numComments: number;
+  createdUtc: string | null;
+  summary: string | null;
+  sentimentLabel: string | null;
+  topicTags: string[] | null;
 }
 
-export interface RotatingFeedResponse {
-  posts: LivePost[];
-  subreddits: string[];
-  rotated: boolean;
-  generated_at: string;
-  message?: string;
+export interface HourlyReport {
+  id: string;
+  reportHour: string;
+  status: string;
+  title: string | null;
+  generatedAt: string;
+  publishedAt: string | null;
+  sourceSubreddits: string[] | null;
+  stories: HourlyStory[];
 }
 
 export interface Subreddit {
@@ -42,45 +47,18 @@ export interface SubredditsResponse {
 
 const LiveFeedService = {
   /**
-   * Fetch rotating feed from random popular subreddits
-   * @param options.rotate - Enable rotation (default true)
-   * @param options.count - Number of subreddits to sample
-   * @param options.limit - Posts per subreddit
-   * @param options.subreddits - Specific subs to use (overrides random)
-   * @param options.excludeIds - Post IDs to exclude (for deduplication)
+   * Fetch the latest hourly report (AI-analyzed, pre-generated)
    */
-  async getRotatingFeed(options: {
-    rotate?: boolean;
-    count?: number;
-    limit?: number;
-    subreddits?: string[];
-    excludeIds?: string[];
-  } = {}): Promise<RotatingFeedResponse> {
-    const { rotate = true, count = 5, limit = 10, subreddits, excludeIds = [] } = options;
-    
-    const params = new URLSearchParams({
-      rotate: String(rotate),
-      count: String(count),
-      limit: String(limit),
-    });
-    
-    if (subreddits && subreddits.length > 0) {
-      params.set('subreddits', subreddits.join(','));
-    }
-    
-    const response = await axios.get<RotatingFeedResponse>(
-      `${API_BASE_URL}/api/reddit/feed/rotating?${params}`
-    );
-    
-    // Client-side deduplication
-    if (excludeIds.length > 0) {
-      const excludeSet = new Set(excludeIds);
-      response.data.posts = response.data.posts.filter(
-        post => !excludeSet.has(post.id) && !excludeSet.has(post.fullname)
+  async getLatestHourlyReport(): Promise<HourlyReport | null> {
+    try {
+      const response = await axios.get<HourlyReport>(
+        `${API_BASE_URL}/api/hourly/latest`
       );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch hourly report', error);
+      return null;
     }
-    
-    return response.data;
   },
 
   /**
@@ -109,18 +87,17 @@ const LiveFeedService = {
   },
 
   /**
-   * Get cache key for hourly rotation
+   * Check if report is from current hour
    */
-  getCacheKey(): string {
+  isReportCurrent(reportHour: string): boolean {
+    const reportDate = new Date(reportHour);
     const now = new Date();
-    return `livefeed_${now.getUTCFullYear()}_${now.getUTCMonth()}_${now.getUTCDate()}_${now.getUTCHours()}`;
-  },
-
-  /**
-   * Check if cached feed is still valid (same hour)
-   */
-  isCacheValid(cachedKey: string): boolean {
-    return cachedKey === this.getCacheKey();
+    return (
+      reportDate.getUTCFullYear() === now.getUTCFullYear() &&
+      reportDate.getUTCMonth() === now.getUTCMonth() &&
+      reportDate.getUTCDate() === now.getUTCDate() &&
+      reportDate.getUTCHours() === now.getUTCHours()
+    );
   }
 };
 

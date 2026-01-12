@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import DailyPulse from './DailyPulse';
 import SavedFeed from './SavedFeed';
 import LiveFeed from './LiveFeed';
-import DailyService, { DailyReport } from '../helpers/DailyService';
+import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -25,17 +25,6 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
   const [showBanner, setShowBanner] = useState(() => {
     return localStorage.getItem('hideDailyBanner') !== 'true';
   });
-  const [dailyPostIds, setDailyPostIds] = useState<string[]>([]);
-
-  // Fetch Daily Pulse post IDs for deduplication
-  useEffect(() => {
-    DailyService.getLatestReport().then((report: DailyReport | null) => {
-      if (report?.stories) {
-        const ids = report.stories.map(s => s.redditPostId).filter(Boolean);
-        setDailyPostIds(ids);
-      }
-    });
-  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,7 +272,7 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
       {/* Content */}
       <main>
         {activeTab === 'daily' && <DailyPulseContent />}
-        {activeTab === 'discover' && <LiveFeed excludePostIds={dailyPostIds} />}
+        {activeTab === 'discover' && <LiveFeed />}
         {activeTab === 'saved' && <SavedContent />}
       </main>
     </div>

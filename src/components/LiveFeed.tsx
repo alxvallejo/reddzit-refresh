@@ -1,71 +1,59 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import LiveFeedService, { LivePost, RotatingFeedResponse } from '../helpers/LiveFeedService';
+import LiveFeedService, { HourlyReport, HourlyStory } from '../helpers/LiveFeedService';
 
-interface LiveFeedProps {
-  excludePostIds?: string[];
-}
-
-const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
+const LiveFeed = () => {
   const { themeName } = useTheme();
   const navigate = useNavigate();
-  const [feed, setFeed] = useState<RotatingFeedResponse | null>(null);
+  const [report, setReport] = useState<HourlyReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cacheKey, setCacheKey] = useState<string>('');
-  const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
 
-  const fetchFeed = useCallback(async () => {
+  const fetchReport = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await LiveFeedService.getRotatingFeed({
-        rotate: true,
-        count: 6,
-        limit: 8,
-        excludeIds: excludePostIds,
-      });
-      setFeed(data);
-      setCacheKey(LiveFeedService.getCacheKey());
-      
-      // Calculate next hour refresh
-      const now = new Date();
-      const nextHour = new Date(now);
-      nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-      setNextRefresh(nextHour);
+      const data = await LiveFeedService.getLatestHourlyReport();
+      if (data) {
+        setReport(data);
+      } else {
+        setError('No hourly report available yet.');
+      }
     } catch (err) {
       setError('Failed to load feed. Please try again.');
       console.error('LiveFeed error:', err);
     } finally {
       setLoading(false);
     }
-  }, [excludePostIds]);
+  }, []);
 
   useEffect(() => {
-    fetchFeed();
+    fetchReport();
     
     // Check every minute if we need to refresh (new hour)
     const interval = setInterval(() => {
-      if (!LiveFeedService.isCacheValid(cacheKey)) {
-        fetchFeed();
+      if (report && !LiveFeedService.isReportCurrent(report.reportHour)) {
+        fetchReport();
       }
     }, 60000);
     
     return () => clearInterval(interval);
-  }, [fetchFeed, cacheKey]);
+  }, [fetchReport, report]);
 
-  const handlePostClick = (post: LivePost) => {
-    const slug = post.title
+  const handleStoryClick = (story: HourlyStory) => {
+    const fullname = `t3_${story.redditPostId}`;
+    const slug = story.title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .slice(0, 60);
-    navigate(`/p/${post.fullname}/${slug}`);
+    navigate(`/p/${fullname}/${slug}`);
   };
 
-  const formatTimeAgo = (utc: number) => {
-    const seconds = Math.floor(Date.now() / 1000 - utc);
+  const formatTimeAgo = (utcString: string | null) => {
+    if (!utcString) return '';
+    const seconds = Math.floor((Date.now() - new Date(utcString).getTime()) / 1000);
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     return `${Math.floor(seconds / 86400)}d ago`;
@@ -79,17 +67,19 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
   if (loading) {
     return (
       <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
-        <div className="animate-pulse text-xl">Discovering fresh content...</div>
+        <div className="animate-pulse text-xl">Loading Discover feed...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !report) {
     return (
       <div className="py-24 text-center">
-        <p className="text-red-500 mb-4">{error}</p>
+        <p className={`mb-4 ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+          {error || 'No report available'}
+        </p>
         <button
-          onClick={fetchFeed}
+          onClick={fetchReport}
           className={`px-4 py-2 rounded-lg font-medium ${
             themeName === 'light' 
               ? 'bg-orange-600 text-white' 
@@ -102,14 +92,7 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
     );
   }
 
-  if (!feed || feed.posts.length === 0) {
-    return (
-      <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
-        <p className="text-xl mb-2">No posts found</p>
-        <p className="text-sm">Check back soon for fresh content.</p>
-      </div>
-    );
-  }
+  const subreddits = report.sourceSubreddits || [];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -120,12 +103,12 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
             Discover
           </h2>
           <p className={`text-sm ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
-            Trending from {feed.subreddits.length} subreddits
+            AI-curated from {subreddits.length} trending subreddits
           </p>
         </div>
         <div className="text-right">
           <button
-            onClick={fetchFeed}
+            onClick={fetchReport}
             className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
               themeName === 'light'
                 ? 'text-orange-600 hover:bg-orange-50'
@@ -134,35 +117,35 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
           >
             ↻ Refresh
           </button>
-          {nextRefresh && (
-            <p className={`text-xs mt-1 ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
-              Auto-refreshes hourly
-            </p>
-          )}
+          <p className={`text-xs mt-1 ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+            Refreshes hourly
+          </p>
         </div>
       </div>
 
       {/* Subreddit chips */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {feed.subreddits.map(sub => (
-          <span
-            key={sub}
-            className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-              themeName === 'light'
-                ? 'bg-orange-100 text-orange-700'
-                : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)]'
-            }`}
-          >
-            r/{sub}
-          </span>
-        ))}
-      </div>
+      {subreddits.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {subreddits.map(sub => (
+            <span
+              key={sub}
+              className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                themeName === 'light'
+                  ? 'bg-orange-100 text-orange-700'
+                  : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)]'
+              }`}
+            >
+              r/{sub}
+            </span>
+          ))}
+        </div>
+      )}
 
-      {/* Posts grid */}
+      {/* Stories */}
       <div className="space-y-4">
-        {feed.posts.map((post) => (
+        {report.stories.map((story) => (
           <article
-            key={post.fullname}
+            key={story.id}
             className={`group p-4 rounded-xl cursor-pointer transition ${
               themeName === 'light'
                 ? 'bg-white border border-gray-100 hover:shadow-md hover:border-gray-200'
@@ -172,14 +155,14 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
               backgroundColor: 'var(--theme-cardBg)',
               borderColor: 'var(--theme-border)'
             }}
-            onClick={() => handlePostClick(post)}
+            onClick={() => handleStoryClick(story)}
           >
             <div className="flex items-start gap-4">
               {/* Thumbnail */}
-              {post.thumbnail && post.thumbnail.startsWith('http') && (
+              {story.imageUrl && (
                 <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
                   <img
-                    src={post.thumbnail}
+                    src={story.imageUrl}
                     alt=""
                     className="w-full h-full object-cover"
                     onError={(e) => (e.currentTarget.style.display = 'none')}
@@ -193,14 +176,16 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
                   <span className={`text-xs font-bold ${
                     themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
                   }`}>
-                    r/{post.subreddit}
+                    r/{story.subreddit}
                   </span>
                   <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
-                    • {formatTimeAgo(post.created_utc)}
+                    • {formatTimeAgo(story.createdUtc)}
                   </span>
-                  {!post.is_self && (
-                    <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
-                      • {post.domain}
+                  {story.sentimentLabel && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                      themeName === 'light' ? 'bg-gray-100 text-gray-600' : 'bg-white/10 text-gray-300'
+                    }`}>
+                      {story.sentimentLabel}
                     </span>
                   )}
                 </div>
@@ -209,15 +194,15 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
                 <h3 className={`font-semibold leading-snug mb-2 line-clamp-2 group-hover:underline ${
                   themeName === 'light' ? 'text-gray-900' : ''
                 }`}>
-                  {post.title}
+                  {story.title}
                 </h3>
 
-                {/* Preview text */}
-                {post.selftext && (
-                  <p className={`text-sm line-clamp-2 mb-2 ${
+                {/* AI Summary */}
+                {story.summary && (
+                  <p className={`text-sm line-clamp-3 mb-2 ${
                     themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
                   }`}>
-                    {post.selftext}
+                    {story.summary}
                   </p>
                 )}
 
@@ -225,9 +210,9 @@ const LiveFeed = ({ excludePostIds = [] }: LiveFeedProps) => {
                 <div className={`flex items-center gap-4 text-xs ${
                   themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
                 }`}>
-                  <span>↑ {formatScore(post.score)}</span>
-                  <span>💬 {post.num_comments}</span>
-                  <span>u/{post.author}</span>
+                  <span>↑ {formatScore(story.score)}</span>
+                  <span>💬 {story.numComments}</span>
+                  {story.author && <span>u/{story.author}</span>}
                 </div>
               </div>
             </div>
