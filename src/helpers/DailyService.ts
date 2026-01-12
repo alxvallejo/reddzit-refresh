@@ -36,10 +36,11 @@ export interface DailyReport {
 const DailyService = {
   async getLatestReport(): Promise<DailyReport | null> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/daily/latest`);
+      // Now using hourly reports for fresher content
+      const response = await axios.get(`${API_BASE_URL}/api/hourly/latest`);
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch daily report', error);
+      console.error('Failed to fetch report', error);
       return null;
     }
   },

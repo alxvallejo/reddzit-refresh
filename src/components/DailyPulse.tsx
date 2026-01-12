@@ -103,7 +103,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
               <div className={`text-xs sm:text-sm font-bold uppercase tracking-wider text-right ${
                 themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
               }`}>
-                Updated {new Date(report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                Updated {new Date((report as any).reportHour || report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
               </div>
             </div>
           </div>
