@@ -92,7 +92,7 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
                       : 'text-gray-300 hover:bg-white/10 bg-transparent'
                 }`}
               >
-                Daily Pulse
+                Hourly Pulse
               </button>
               <button
                 onClick={() => setActiveTab('discover')}
@@ -209,7 +209,7 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
           <div className="max-w-4xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <p className="text-sm font-medium">
-                Get the Daily Pulse in your inbox every morning
+                Get a daily pulse delivered to you every morning
               </p>
               <div className="flex items-center gap-2 flex-1 max-w-md">
                 <form onSubmit={handleSubscribe} className="flex gap-2 flex-1">

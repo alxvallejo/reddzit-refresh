@@ -57,7 +57,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${themeName === 'light' ? 'bg-gray-50' : ''}`}>
-        <div className={`animate-pulse text-xl ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>Loading Daily Pulse...</div>
+        <div className={`animate-pulse text-xl ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>Loading Hourly Pulse...</div>
       </div>
     );
   }
@@ -66,9 +66,9 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
     // Fallback if no report available
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${themeName === 'light' ? 'bg-gray-50' : ''}`}>
-        <h1 className="text-3xl font-serif mb-4">Daily Pulse</h1>
+        <h1 className="text-3xl font-serif mb-4">Hourly Pulse</h1>
         <p className={`mb-8 ${themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'}`}>No report available for today yet.</p>
-        <button 
+        <button  
           onClick={redirectForAuth} 
           className={`px-6 py-3 rounded-full font-bold ${
             themeName === 'light' ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
@@ -88,12 +88,17 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
       {!embedded && (
         <header className="bg-white border-b border-gray-200 py-12 px-4 text-center">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <img src="/favicon.png" alt="Logo" className="w-10 h-10" />
-              <span className="font-serif text-2xl font-bold tracking-tight text-orange-600">Reddzit Daily</span>
+            <div className="relative flex items-center justify-center mb-4">
+              <div className="flex items-center gap-3">
+                <img src="/favicon.png" alt="Logo" className="w-10 h-10" />
+                <span className="font-serif text-2xl font-bold tracking-tight text-orange-600">Reddzit Hourly</span>
+              </div>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500 hidden sm:block">
+                {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              </div>
             </div>
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              {report.title || 'Today on Reddit'}
+              Top articles for {new Date(report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               The most important conversations happening on Reddit today, curated and summarized.
