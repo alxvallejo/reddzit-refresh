@@ -128,15 +128,15 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
       )}
 
       {/* Stories List */}
-      <main className="max-w-3xl mx-auto px-4 py-12 space-y-12">
-        {report.stories.map((story) => (
+      <main className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {report.stories.map((story, index) => (
           <article 
             key={story.id} 
             className={`group relative p-0 sm:p-6 sm:rounded-2xl transition ${
               themeName === 'light' 
                 ? 'bg-white sm:shadow-sm sm:border sm:border-gray-100 hover:shadow-md' 
                 : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
-            }`}
+            } ${index === 0 ? 'lg:col-span-2' : ''}`}
             style={themeName === 'light' ? undefined : ({
               backgroundColor: 'var(--theme-cardBg)',
               borderColor: 'var(--theme-border)'
@@ -153,7 +153,9 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
               </div>
             </div>
 
-            <h2 className={`text-2xl font-bold mb-3 leading-tight transition-colors ${
+            <h2 className={`font-bold mb-3 leading-tight transition-colors ${
+              index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
+            } ${
               themeName === 'light' 
                 ? 'text-gray-900 group-hover:text-orange-600' 
                 : 'group-hover:text-[var(--theme-primary)]'
@@ -199,7 +201,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
               }`}>
                 {story.summary}
               </p>
-              {story.takeaways && Array.isArray(story.takeaways) && (
+              {index === 0 && story.takeaways && Array.isArray(story.takeaways) && (
                 <ul className={`list-disc list-inside text-xs space-y-1 pl-1 ${
                   themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
                 }`}>
@@ -215,7 +217,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
               <div className={`space-y-3 pl-4 border-l-2 ${
                 themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
               }`}>
-                {story.comments.map(comment => (
+                {story.comments.slice(0, index === 0 ? 3 : 1).map(comment => (
                   <div key={comment.id}>
                     <p className={`text-sm italic mb-1 ${
                       themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
