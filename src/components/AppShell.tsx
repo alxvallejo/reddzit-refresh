@@ -3,6 +3,7 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
 import LiveFeed from './LiveFeed';
+import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,7 +15,7 @@ interface AppShellProps {
   defaultTab?: Tab;
 }
 
-const AppShell = ({ defaultTab = 'discover' }: AppShellProps) => {
+const AppShell = ({ defaultTab = 'saved' }: AppShellProps) => {
   const { signedIn, user, loading, logout, redirectForAuth } = useReddit();
   const { themeName } = useTheme();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
@@ -80,20 +81,6 @@ const AppShell = ({ defaultTab = 'discover' }: AppShellProps) => {
             {/* Tabs */}
             <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
               <button
-                onClick={() => setActiveTab('discover')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
-                  themeName === 'light'
-                    ? activeTab === 'discover'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
-                    : activeTab === 'discover'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
-                }`}
-              >
-                Discover
-              </button>
-              <button
                 onClick={() => setActiveTab('saved')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
@@ -107,6 +94,20 @@ const AppShell = ({ defaultTab = 'discover' }: AppShellProps) => {
               >
                 <span className="sm:hidden">Saved</span>
                 <span className="hidden sm:inline">Saved Posts</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('discover')}
+                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                  themeName === 'light'
+                    ? activeTab === 'discover'
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                    : activeTab === 'discover'
+                      ? 'bg-white/20 text-white'
+                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                }`}
+              >
+                Discover
               </button>
             </nav>
 
@@ -273,27 +274,35 @@ const SavedContent = () => {
 
   if (!signedIn) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-        <div className="text-6xl mb-6">🔖</div>
-        <h2 className={`text-2xl font-bold mb-3 ${themeName === 'light' ? 'text-gray-900' : ''}`}>Your Saved Posts</h2>
-        <p className={`mb-8 max-w-md ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-          Connect your Reddit account to view and manage your saved posts in a clean, distraction-free interface.
-        </p>
-        <button
-          onClick={redirectForAuth}
-          className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg ${
-            themeName === 'light'
-              ? 'bg-orange-600 text-white hover:bg-orange-700'
-              : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
-          }`}
-        >
-          Connect with Reddit
-        </button>
-      </div>
+      <>
+        <TrendingMarquee />
+        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+          <div className="text-6xl mb-6">🔖</div>
+          <h2 className={`text-2xl font-bold mb-3 ${themeName === 'light' ? 'text-gray-900' : ''}`}>Your Saved Posts</h2>
+          <p className={`mb-8 max-w-md ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+            Connect your Reddit account to view and manage your saved posts in a clean, distraction-free interface.
+          </p>
+          <button
+            onClick={redirectForAuth}
+            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg ${
+              themeName === 'light'
+                ? 'bg-orange-600 text-white hover:bg-orange-700'
+                : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+            }`}
+          >
+            Connect with Reddit
+          </button>
+        </div>
+      </>
     );
   }
 
-  return <SavedFeed />;
+  return (
+    <>
+      <TrendingMarquee />
+      <SavedFeed />
+    </>
+  );
 };
 
 export default AppShell;

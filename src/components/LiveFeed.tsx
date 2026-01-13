@@ -2,66 +2,16 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
-import DiscoverService, { 
-  Category, 
-  DiscoverReport, 
-  DiscoverStory, 
+import DiscoverService, {
+  Category,
+  DiscoverReport,
+  DiscoverStory,
   GlobalBriefing,
-  GlobalBriefingStory 
+  GlobalBriefingStory
 } from '../helpers/DiscoverService';
-import DailyService, { ReportStory } from '../helpers/DailyService';
+import TrendingMarquee from './TrendingMarquee';
 
 const MAX_CATEGORIES = 3;
-
-// Trending Headlines Marquee Component
-const TrendingMarquee = ({ stories, onStoryClick, themeName }: {
-  stories: ReportStory[];
-  onStoryClick: (story: ReportStory) => void;
-  themeName: string;
-}) => {
-  if (stories.length === 0) return null;
-
-  // Duplicate stories for seamless loop
-  const duplicatedStories = [...stories, ...stories];
-
-  return (
-    <div className={`overflow-hidden border-b ${
-      themeName === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-white/5 border-white/10'
-    }`}>
-      <div className="flex items-center">
-        <div className={`flex-shrink-0 px-4 py-2 font-bold text-xs uppercase tracking-wider ${
-          themeName === 'light' ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
-        }`}>
-          Trending
-        </div>
-        <div className="overflow-hidden flex-1">
-          <div className="animate-marquee flex whitespace-nowrap py-2">
-            {duplicatedStories.map((story, index) => (
-              <button
-                key={`${story.id}-${index}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onStoryClick(story);
-                }}
-                className={`inline-flex items-center px-4 text-sm hover:underline cursor-pointer bg-transparent border-none ${
-                  themeName === 'light' ? 'text-gray-700 hover:text-orange-600' : 'text-gray-300 hover:text-[var(--theme-primary)]'
-                }`}
-              >
-                <span className={`mr-2 text-xs font-bold ${
-                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                }`}>
-                  r/{story.subreddit}
-                </span>
-                <span className="truncate max-w-md">{story.title}</span>
-                <span className={`mx-4 ${themeName === 'light' ? 'text-gray-300' : 'text-gray-600'}`}>•</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 type ViewState = 'briefing' | 'setup' | 'report';
 
@@ -81,7 +31,6 @@ const LiveFeed = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [trendingStories, setTrendingStories] = useState<ReportStory[]>([]);
 
   const userId = user?.name || DiscoverService.getAnonymousUserId();
   const isLoggedIn = !!user;
@@ -91,12 +40,6 @@ const LiveFeed = () => {
     setLoading(true);
     setError(null);
     try {
-      // Load trending stories for marquee (from hourly pulse)
-      const trendingReport = await DailyService.getLatestReport();
-      if (trendingReport?.stories) {
-        setTrendingStories(trendingReport.stories);
-      }
-
       // Always load global briefing first (available to all users)
       const briefing = await DiscoverService.getLatestBriefing();
       if (briefing) {
@@ -218,16 +161,6 @@ const LiveFeed = () => {
     navigate(`/p/${fullname}/${slug}`);
   };
 
-  const handleTrendingClick = (story: ReportStory) => {
-    const fullname = `t3_${story.redditPostId}`;
-    const slug = story.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .slice(0, 60);
-    navigate(`/p/${fullname}/${slug}`);
-  };
-
   const formatTimeAgo = (utcString: string | null) => {
     if (!utcString) return '';
     const seconds = Math.floor((Date.now() - new Date(utcString).getTime()) / 1000);
@@ -257,11 +190,7 @@ const LiveFeed = () => {
     return (
       <div className="font-sans">
         {/* Trending Marquee */}
-        <TrendingMarquee 
-          stories={trendingStories} 
-          onStoryClick={handleTrendingClick} 
-          themeName={themeName} 
-        />
+        <TrendingMarquee />
 
         {/* Header */}
         <header className="px-4 pb-2">
@@ -476,11 +405,7 @@ const LiveFeed = () => {
     return (
       <div>
         {/* Trending Marquee */}
-        <TrendingMarquee 
-          stories={trendingStories} 
-          onStoryClick={handleTrendingClick} 
-          themeName={themeName} 
-        />
+        <TrendingMarquee />
         
         <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
@@ -661,11 +586,7 @@ const LiveFeed = () => {
   return (
     <div className="font-sans">
       {/* Trending Marquee */}
-      <TrendingMarquee 
-        stories={trendingStories} 
-        onStoryClick={handleTrendingClick} 
-        themeName={themeName} 
-      />
+      <TrendingMarquee />
 
       {/* Header */}
       <header className="px-4 pb-2">

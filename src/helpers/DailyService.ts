@@ -35,6 +35,17 @@ export interface DailyReport {
 
 const CACHE_KEY = 'rdz_latest_report';
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+const RSS_CACHE_KEY = 'rdz_trending_rss';
+const RSS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+export interface TrendingPost {
+  id: string;
+  title: string;
+  subreddit: string;
+  link: string;
+  author?: string;
+  pubDate?: string;
+}
 
 const DailyService = {
   async getLatestReport(): Promise<DailyReport | null> {
@@ -88,6 +99,38 @@ const DailyService = {
       story_id: storyId,
       metadata
     });
+  },
+
+  async getTrendingRSS(): Promise<TrendingPost[]> {
+    try {
+      // Check cache first
+      const cached = localStorage.getItem(RSS_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < RSS_CACHE_DURATION) {
+          return data;
+        }
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/api/trending/rss`);
+      const posts = response.data.posts || [];
+
+      // Update cache
+      localStorage.setItem(RSS_CACHE_KEY, JSON.stringify({
+        data: posts,
+        timestamp: Date.now()
+      }));
+
+      return posts;
+    } catch (error) {
+      console.error('Failed to fetch trending RSS', error);
+      // Try to return stale cache on error
+      const cached = localStorage.getItem(RSS_CACHE_KEY);
+      if (cached) {
+        return JSON.parse(cached).data;
+      }
+      return [];
+    }
   }
 };
 
