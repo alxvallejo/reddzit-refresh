@@ -53,6 +53,47 @@ export interface DiscoverReport {
   stories: DiscoverStory[];
 }
 
+// Global Briefing types (Free tier)
+export interface GlobalBriefingStory {
+  id: number;
+  rank: number;
+  subreddit: string;
+  redditPostId: string;
+  redditPermalink: string;
+  title: string;
+  postUrl: string | null;
+  imageUrl: string | null;
+  author: string | null;
+  score: number;
+  numComments: number;
+  createdUtc: string | null;
+  summary: string | null;
+  sentimentLabel: string | null;
+  topicTags: string[] | null;
+  topCommentAuthor: string | null;
+  topCommentBody: string | null;
+  topCommentScore: number | null;
+  category: { id: number; name: string; slug: string } | null;
+}
+
+export interface GlobalBriefing {
+  id: number;
+  briefingTime: string;
+  status: string;
+  title: string;
+  executiveSummary: string;
+  generatedAt: string;
+  publishedAt: string | null;
+  stories: GlobalBriefingStory[];
+}
+
+export interface UserSubscription {
+  isPro: boolean;
+  proExpiresAt: string | null;
+  hasStripe: boolean;
+  hasAccount: boolean;
+}
+
 export interface UserPreferences {
   selectedCategories: Category[];
   categoryCount: number;
@@ -148,6 +189,68 @@ const DiscoverService = {
       localStorage.setItem(key, id);
     }
     return id;
+  },
+
+  // Global Briefing API (Free tier)
+
+  /**
+   * Get the latest global briefing
+   */
+  async getLatestBriefing(): Promise<GlobalBriefing | null> {
+    try {
+      const response = await axios.get<GlobalBriefing>(
+        `${API_BASE_URL}/api/briefing/latest`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get a specific briefing by ID
+   */
+  async getBriefingById(id: number): Promise<GlobalBriefing | null> {
+    try {
+      const response = await axios.get<GlobalBriefing>(
+        `${API_BASE_URL}/api/briefing/${id}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  // User API
+
+  /**
+   * Sync user from Reddit OAuth to backend
+   */
+  async syncUser(redditId: string, redditUsername: string): Promise<void> {
+    await axios.post(`${API_BASE_URL}/api/user/sync`, {
+      redditId,
+      redditUsername,
+    });
+  },
+
+  /**
+   * Check user subscription status
+   */
+  async getSubscriptionStatus(redditId: string): Promise<UserSubscription> {
+    try {
+      const response = await axios.get<UserSubscription>(
+        `${API_BASE_URL}/api/user/${redditId}/subscription`
+      );
+      return response.data;
+    } catch {
+      return { isPro: false, proExpiresAt: null, hasStripe: false, hasAccount: false };
+    }
   },
 };
 

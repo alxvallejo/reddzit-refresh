@@ -131,6 +131,10 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const logout = () => {
     localStorage.removeItem('redditCreds');
     localStorage.removeItem('redditRefreshToken');
+    localStorage.removeItem('redditScope');
+    localStorage.removeItem('rdz_anon_id');
+    localStorage.removeItem('rdz_latest_report');
+    localStorage.removeItem('reddzit_discover_anon_id');
     window.location.href = '/';
   };
   

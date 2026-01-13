@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AppShell from './components/AppShell';
 import About from './components/About';
 import PostView from './components/PostView';
+import Admin from './components/Admin';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />
             <Route path='/p/:fullname/:slug' element={<PostView />} />
+            <Route path='/admin' element={<Admin />} />
             </Routes>
           </div>
         </RedditProvider>

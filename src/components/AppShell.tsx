@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
-import DailyPulse from './DailyPulse';
 import SavedFeed from './SavedFeed';
 import LiveFeed from './LiveFeed';
 import DailyService from '../helpers/DailyService';
@@ -9,13 +8,13 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'daily' | 'discover' | 'saved';
+type Tab = 'discover' | 'saved';
 
 interface AppShellProps {
   defaultTab?: Tab;
 }
 
-const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
+const AppShell = ({ defaultTab = 'discover' }: AppShellProps) => {
   const { signedIn, user, loading, logout, redirectForAuth } = useReddit();
   const { themeName } = useTheme();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
@@ -80,21 +79,6 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
 
             {/* Tabs */}
             <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
-              <button
-                onClick={() => setActiveTab('daily')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
-                  themeName === 'light'
-                    ? activeTab === 'daily'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
-                    : activeTab === 'daily'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
-                }`}
-              >
-                <span className="sm:hidden">Pulse</span>
-                <span className="hidden sm:inline">Hourly Pulse</span>
-              </button>
               <button
                 onClick={() => setActiveTab('discover')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
@@ -275,17 +259,11 @@ const AppShell = ({ defaultTab = 'daily' }: AppShellProps) => {
 
       {/* Content */}
       <main>
-        {activeTab === 'daily' && <DailyPulseContent />}
         {activeTab === 'discover' && <LiveFeed />}
         {activeTab === 'saved' && <SavedContent />}
       </main>
     </div>
   );
-};
-
-// Daily Pulse with its own header
-const DailyPulseContent = () => {
-  return <DailyPulse embedded={false} />;
 };
 
 // Saved Posts content (requires login)

@@ -2,11 +2,68 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
-import DiscoverService, { Category, DiscoverReport, DiscoverStory } from '../helpers/DiscoverService';
+import DiscoverService, { 
+  Category, 
+  DiscoverReport, 
+  DiscoverStory, 
+  GlobalBriefing,
+  GlobalBriefingStory 
+} from '../helpers/DiscoverService';
+import DailyService, { ReportStory } from '../helpers/DailyService';
 
 const MAX_CATEGORIES = 3;
 
-type ViewState = 'setup' | 'report';
+// Trending Headlines Marquee Component
+const TrendingMarquee = ({ stories, onStoryClick, themeName }: {
+  stories: ReportStory[];
+  onStoryClick: (story: ReportStory) => void;
+  themeName: string;
+}) => {
+  if (stories.length === 0) return null;
+
+  // Duplicate stories for seamless loop
+  const duplicatedStories = [...stories, ...stories];
+
+  return (
+    <div className={`overflow-hidden border-b ${
+      themeName === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-white/5 border-white/10'
+    }`}>
+      <div className="flex items-center">
+        <div className={`flex-shrink-0 px-4 py-2 font-bold text-xs uppercase tracking-wider ${
+          themeName === 'light' ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
+        }`}>
+          Trending
+        </div>
+        <div className="overflow-hidden flex-1">
+          <div className="animate-marquee flex whitespace-nowrap py-2">
+            {duplicatedStories.map((story, index) => (
+              <button
+                key={`${story.id}-${index}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStoryClick(story);
+                }}
+                className={`inline-flex items-center px-4 text-sm hover:underline cursor-pointer bg-transparent border-none ${
+                  themeName === 'light' ? 'text-gray-700 hover:text-orange-600' : 'text-gray-300 hover:text-[var(--theme-primary)]'
+                }`}
+              >
+                <span className={`mr-2 text-xs font-bold ${
+                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+                }`}>
+                  r/{story.subreddit}
+                </span>
+                <span className="truncate max-w-md">{story.title}</span>
+                <span className={`mx-4 ${themeName === 'light' ? 'text-gray-300' : 'text-gray-600'}`}>•</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+type ViewState = 'briefing' | 'setup' | 'report';
 
 const LiveFeed = () => {
   const { themeName } = useTheme();
@@ -14,46 +71,76 @@ const LiveFeed = () => {
   const navigate = useNavigate();
   
   // State
-  const [viewState, setViewState] = useState<ViewState>('setup');
+  const [viewState, setViewState] = useState<ViewState>('briefing');
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
   const [subredditToggles, setSubredditToggles] = useState<Record<string, boolean>>({});
   const [report, setReport] = useState<DiscoverReport | null>(null);
+  const [globalBriefing, setGlobalBriefing] = useState<GlobalBriefing | null>(null);
+  const [isPro, setIsPro] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trendingStories, setTrendingStories] = useState<ReportStory[]>([]);
 
   const userId = user?.name || DiscoverService.getAnonymousUserId();
+  const isLoggedIn = !!user;
 
   // Load categories and user preferences on mount
   const loadInitialData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Load all categories
-      const cats = await DiscoverService.getCategories();
-      setCategories(cats);
-
-      // Load user preferences
-      const prefs = await DiscoverService.getUserPreferences(userId);
-      if (prefs.selectedCategories.length > 0) {
-        setSelectedCategoryIds(new Set(prefs.selectedCategories.map(c => c.id)));
-        
-        // Build toggle map from preferences
-        const toggles: Record<string, boolean> = {};
-        prefs.selectedCategories.forEach(cat => {
-          cat.subreddits.forEach(sub => {
-            toggles[sub.id] = sub.enabled ?? sub.isDefault;
-          });
-        });
-        setSubredditToggles(toggles);
+      // Load trending stories for marquee (from hourly pulse)
+      const trendingReport = await DailyService.getLatestReport();
+      if (trendingReport?.stories) {
+        setTrendingStories(trendingReport.stories);
       }
 
-      // Try to load latest report
-      const latestReport = await DiscoverService.getLatestReport(userId);
-      if (latestReport) {
-        setReport(latestReport);
-        setViewState('report');
+      // Always load global briefing first (available to all users)
+      const briefing = await DiscoverService.getLatestBriefing();
+      if (briefing) {
+        setGlobalBriefing(briefing);
+      }
+
+      // Check Pro status if logged in
+      if (user?.id) {
+        const subscription = await DiscoverService.getSubscriptionStatus(user.id);
+        setIsPro(subscription.isPro);
+
+        if (subscription.isPro) {
+          // Load Pro user data: categories and personalized report
+          const cats = await DiscoverService.getCategories();
+          setCategories(cats);
+
+          const prefs = await DiscoverService.getUserPreferences(userId);
+          if (prefs.selectedCategories.length > 0) {
+            setSelectedCategoryIds(new Set(prefs.selectedCategories.map(c => c.id)));
+            
+            const toggles: Record<string, boolean> = {};
+            prefs.selectedCategories.forEach(cat => {
+              cat.subreddits.forEach(sub => {
+                toggles[sub.id] = sub.enabled ?? sub.isDefault;
+              });
+            });
+            setSubredditToggles(toggles);
+          }
+
+          // Try to load latest personalized report
+          const latestReport = await DiscoverService.getLatestReport(userId);
+          if (latestReport) {
+            setReport(latestReport);
+            setViewState('report');
+          } else {
+            setViewState('setup');
+          }
+        } else {
+          // Not Pro - show briefing
+          setViewState('briefing');
+        }
+      } else {
+        // Not logged in - show briefing
+        setViewState('briefing');
       }
     } catch (err) {
       console.error('Failed to load discover data:', err);
@@ -61,7 +148,7 @@ const LiveFeed = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, user]);
 
   useEffect(() => {
     loadInitialData();
@@ -121,7 +208,17 @@ const LiveFeed = () => {
     }
   };
 
-  const handleStoryClick = (story: DiscoverStory) => {
+  const handleStoryClick = (story: DiscoverStory | GlobalBriefingStory) => {
+    const fullname = `t3_${story.redditPostId}`;
+    const slug = story.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .slice(0, 60);
+    navigate(`/p/${fullname}/${slug}`);
+  };
+
+  const handleTrendingClick = (story: ReportStory) => {
     const fullname = `t3_${story.redditPostId}`;
     const slug = story.title
       .toLowerCase()
@@ -155,10 +252,237 @@ const LiveFeed = () => {
     );
   }
 
-  // Setup View - Category Selection
-  if (viewState === 'setup' || !report) {
+  // Global Briefing View (Free tier default)
+  if (viewState === 'briefing') {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="font-sans">
+        {/* Trending Marquee */}
+        <TrendingMarquee 
+          stories={trendingStories} 
+          onStoryClick={handleTrendingClick} 
+          themeName={themeName} 
+        />
+
+        {/* Header */}
+        <header className="px-4 pb-2">
+          <div className={`max-w-7xl mx-auto border-b-2 ${
+            themeName === 'light' ? 'border-gray-900' : 'border-white/20'
+          }`}>
+            <div className="flex items-center justify-between py-4">
+              <div>
+                <h1 className={`text-2xl font-bold ${
+                  themeName === 'light' ? 'text-gray-900' : ''
+                }`}>
+                  {globalBriefing?.title || 'Reddit Briefing'}
+                </h1>
+                <span className={`text-xs ${
+                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+                }`}>
+                  As of {globalBriefing ? new Date(globalBriefing.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''}
+                </span>
+              </div>
+              {isPro && (
+                <button
+                  onClick={() => setViewState('setup')}
+                  className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+                    themeName === 'light'
+                      ? 'bg-orange-600 text-white hover:bg-orange-700'
+                      : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+                  }`}
+                >
+                  🎯 Customize
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Executive Summary */}
+        {globalBriefing?.executiveSummary && (
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className={`p-6 rounded-2xl border ${
+              themeName === 'light'
+                ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
+                : 'bg-gradient-to-br from-white/5 to-white/10 border-white/10'
+            }`}>
+              <h2 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${
+                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+              }`}>
+                Executive Summary
+              </h2>
+              <div className={`text-base leading-relaxed whitespace-pre-wrap ${
+                themeName === 'light' ? 'text-gray-700' : 'text-gray-200'
+              }`}>
+                {globalBriefing.executiveSummary}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pro Upsell Banner (for non-Pro users) */}
+        {!isPro && (
+          <div className="max-w-4xl mx-auto px-4 pb-6">
+            <div className={`p-4 rounded-xl border flex items-center justify-between ${
+              themeName === 'light'
+                ? 'bg-orange-50 border-orange-200'
+                : 'bg-[var(--theme-primary)]/10 border-[var(--theme-primary)]/30'
+            }`}>
+              <div>
+                <p className={`font-medium ${
+                  themeName === 'light' ? 'text-orange-800' : 'text-[var(--theme-primary)]'
+                }`}>
+                  🎯 Want personalized reports?
+                </p>
+                <p className={`text-sm ${
+                  themeName === 'light' ? 'text-orange-600' : 'text-gray-400'
+                }`}>
+                  {isLoggedIn ? 'Upgrade to Pro to customize your categories and generate tailored reports.' : 'Log in and upgrade to Pro to customize your feed.'}
+                </p>
+              </div>
+              <button
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+                  themeName === 'light'
+                    ? 'bg-orange-600 text-white hover:bg-orange-700'
+                    : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+                }`}
+                onClick={() => {
+                  // TODO: Navigate to Pro signup or show modal
+                  if (!isLoggedIn) {
+                    navigate('/login');
+                  } else {
+                    // For now, show a coming soon message
+                    alert('Pro subscriptions coming soon!');
+                  }
+                }}
+              >
+                {isLoggedIn ? 'Upgrade to Pro' : 'Log In'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stories Grid */}
+        {globalBriefing?.stories && globalBriefing.stories.length > 0 ? (
+          <main className="max-w-7xl mx-auto px-4 pt-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {globalBriefing.stories.map((story, index) => (
+              <article
+                key={story.id}
+                className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition cursor-pointer ${
+                  themeName === 'light'
+                    ? 'bg-white sm:shadow-sm sm:border sm:border-gray-100 hover:shadow-md'
+                    : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
+                } ${index === 0 ? 'lg:col-span-2' : ''}`}
+                style={themeName === 'light' ? undefined : {
+                  backgroundColor: 'var(--theme-cardBg)',
+                  borderColor: 'var(--theme-border)'
+                }}
+                onClick={() => handleStoryClick(story)}
+              >
+                <div className="flex items-baseline justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold uppercase tracking-wide ${
+                      themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+                    }`}>
+                      r/{story.subreddit}
+                    </span>
+                    {story.category && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        themeName === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-white/10 text-gray-400'
+                      }`}>
+                        {story.category.name}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+                    {formatScore(story.score)} pts • {story.numComments} comments
+                  </div>
+                </div>
+
+                <h2 className={`font-bold mb-3 leading-tight transition-colors ${
+                  index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
+                } ${
+                  themeName === 'light'
+                    ? 'text-gray-900 group-hover:text-orange-600'
+                    : 'group-hover:text-[var(--theme-primary)]'
+                }`}>
+                  {story.title}
+                </h2>
+
+                {/* Featured Image for first two stories */}
+                {index <= 1 && story.imageUrl && (
+                  <div className="mb-4 rounded-xl overflow-hidden">
+                    <img
+                      src={story.imageUrl}
+                      alt=""
+                      className={`w-full object-cover ${index === 0 ? 'h-48 sm:h-64' : 'h-40 sm:h-48'}`}
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                  </div>
+                )}
+
+                {/* AI Summary */}
+                {story.summary && (
+                  <div
+                    className={`p-4 rounded-xl mb-4 border ${
+                      themeName === 'light'
+                        ? 'bg-slate-50 border-slate-100'
+                        : 'backdrop-blur-sm'
+                    }`}
+                    style={themeName === 'light' ? undefined : {
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      borderColor: 'var(--theme-border)'
+                    }}
+                  >
+                    <p className={`text-sm leading-relaxed ${
+                      themeName === 'light' ? 'text-gray-700' : 'text-[var(--theme-text)]'
+                    }`}>
+                      {story.summary}
+                    </p>
+                  </div>
+                )}
+
+                {/* Top Comment */}
+                {story.topCommentBody && (
+                  <div className={`space-y-3 pl-4 border-l-2 mb-4 ${
+                    themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
+                  }`}>
+                    <div>
+                      <p className={`text-sm italic mb-1 ${
+                        themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
+                      }`}>
+                        "{story.topCommentBody.slice(0, 200)}{story.topCommentBody.length > 200 ? '...' : ''}"
+                      </p>
+                      <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>
+                        — u/{story.topCommentAuthor}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </article>
+            ))}
+          </main>
+        ) : (
+          <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+            <p className="text-xl">No briefing available yet.</p>
+            <p className="text-sm mt-2">Check back in a few hours!</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Setup View - Category Selection (Pro only)
+  if (viewState === 'setup') {
+    return (
+      <div>
+        {/* Trending Marquee */}
+        <TrendingMarquee 
+          stories={trendingStories} 
+          onStoryClick={handleTrendingClick} 
+          themeName={themeName} 
+        />
+        
+        <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h2 className={`text-2xl font-bold mb-2 ${themeName === 'light' ? 'text-gray-900' : ''}`}>
@@ -296,30 +620,53 @@ const LiveFeed = () => {
           </p>
         )}
 
-        {/* Back to Report button if report exists */}
-        {report && !generating && (
-          <div className="flex justify-center mt-4">
+        {/* Navigation buttons */}
+        {!generating && (
+          <div className="flex justify-center gap-4 mt-4">
             <button
-              onClick={() => setViewState('report')}
+              onClick={() => setViewState('briefing')}
               className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
                 themeName === 'light'
                   ? 'text-gray-600 hover:bg-gray-100'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              ← Back to Report
+              ← Back to Briefing
             </button>
+            {report && (
+              <button
+                onClick={() => setViewState('report')}
+                className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+                  themeName === 'light'
+                    ? 'text-orange-600 hover:bg-orange-50'
+                    : 'text-[var(--theme-primary)] hover:bg-white/10'
+                }`}
+              >
+                View My Report →
+              </button>
+            )}
           </div>
         )}
+        </div>
       </div>
     );
   }
 
-  // Report View
-  const sourceCategories = report.sourceCategories || [];
+  // Report View (Pro only) - also the default fallback for viewState === 'report'
+  const sourceCategories = report?.sourceCategories || [];
+  if (!report) {
+    return null;
+  }
 
   return (
     <div className="font-sans">
+      {/* Trending Marquee */}
+      <TrendingMarquee 
+        stories={trendingStories} 
+        onStoryClick={handleTrendingClick} 
+        themeName={themeName} 
+      />
+
       {/* Header */}
       <header className="px-4 pb-2">
         <div className={`max-w-7xl mx-auto border-b-2 ${
@@ -331,7 +678,12 @@ const LiveFeed = () => {
             }`}>
               {sourceCategories.join(' • ')}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <span className={`text-xs ${
+                themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+              }`}>
+                As of {new Date(report.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              </span>
               <button
                 onClick={() => setViewState('setup')}
                 className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
