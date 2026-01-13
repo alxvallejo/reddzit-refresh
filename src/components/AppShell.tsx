@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
@@ -71,12 +72,12 @@ const AppShell = ({ defaultTab = 'saved' }: AppShellProps) => {
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <Link to="/" className="flex items-center gap-2 flex-shrink-0 no-underline">
               <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
               <span className={`font-serif text-xl font-bold hidden sm:block ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 Reddzit
               </span>
-            </div>
+            </Link>
 
             {/* Tabs */}
             <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
