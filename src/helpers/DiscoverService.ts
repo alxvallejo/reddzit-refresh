@@ -36,6 +36,9 @@ export interface DiscoverStory {
   summary: string | null;
   sentimentLabel: string | null;
   topicTags: string[] | null;
+  topCommentAuthor: string | null;
+  topCommentBody: string | null;
+  topCommentScore: number | null;
 }
 
 export interface DiscoverReport {

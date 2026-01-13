@@ -403,13 +403,13 @@ const LiveFeed = () => {
               {story.title}
             </h2>
 
-            {/* Featured Image for first story */}
-            {index === 0 && story.imageUrl && (
+            {/* Featured Image for first two stories */}
+            {index <= 1 && story.imageUrl && (
               <div className="mb-4 rounded-xl overflow-hidden">
                 <img
                   src={story.imageUrl}
                   alt=""
-                  className="w-full h-48 sm:h-64 object-cover"
+                  className={`w-full object-cover ${index === 0 ? 'h-48 sm:h-64' : 'h-40 sm:h-48'}`}
                   onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
               </div>
@@ -445,6 +445,24 @@ const LiveFeed = () => {
                 {story.summary}
               </p>
             </div>
+
+            {/* Top Comment */}
+            {story.topCommentBody && (
+              <div className={`space-y-3 pl-4 border-l-2 mb-4 ${
+                themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
+              }`}>
+                <div>
+                  <p className={`text-sm italic mb-1 ${
+                    themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
+                  }`}>
+                    "{story.topCommentBody.slice(0, 200)}{story.topCommentBody.length > 200 ? '...' : ''}"
+                  </p>
+                  <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>
+                    — u/{story.topCommentAuthor}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Topic Tags */}
             {story.topicTags && story.topicTags.length > 0 && (
