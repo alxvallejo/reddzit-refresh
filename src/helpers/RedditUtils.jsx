@@ -312,6 +312,10 @@ export const getParsedContent = (
       //debugger
     }
   } else if (selectedContent.img && selectedPost) {
+    // Skip displaying image if preview image is already shown
+    if (hasPreviewImage) {
+      return null;
+    }
     return (
       <div className='my-4' style={{ fontSize }}>
         <figure className='my-4'>
