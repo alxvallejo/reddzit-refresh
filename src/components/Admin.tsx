@@ -19,19 +19,13 @@ interface Stats {
 }
 
 interface User {
-  id: number;
-  redditId: string;
+  id: string;
   redditUsername: string;
+  email: string | null;
   isPro: boolean;
   proExpiresAt: string | null;
   isAdmin: boolean;
   createdAt: string;
-  lastLoginAt: string | null;
-  _count: {
-    categorySelections: number;
-    subredditToggles: number;
-    discoverReports: number;
-  };
 }
 
 interface Briefing {
@@ -47,6 +41,33 @@ interface Briefing {
   };
 }
 
+interface CronJob {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string | null;
+  script: string;
+  cronExpression: string;
+  enabled: boolean;
+  lastRunAt: string | null;
+  lastRunStatus: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | null;
+  lastRunDuration: number | null;
+  runtime: {
+    status: string;
+    pid: number;
+    memory: number;
+    uptime: number;
+    restarts: number;
+  } | null;
+  runHistory: Array<{
+    id: string;
+    startedAt: string;
+    completedAt: string | null;
+    status: string;
+    triggeredBy: string;
+  }>;
+}
+
 const Admin = () => {
   const { themeName } = useTheme();
   const { user } = useReddit();
@@ -57,10 +78,12 @@ const Admin = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [briefings, setBriefings] = useState<Briefing[]>([]);
+  const [jobs, setJobs] = useState<CronJob[]>([]);
+  const [editingCron, setEditingCron] = useState<{name: string; value: string} | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'briefings'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'briefings' | 'jobs'>('stats');
 
   // Auth header
   const getAuthHeaders = useCallback(() => ({
@@ -119,11 +142,71 @@ const Admin = () => {
     }
   }, [getAuthHeaders]);
 
-  // Toggle Pro status
-  const togglePro = async (redditId: string, currentPro: boolean) => {
+  // Fetch jobs
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get<{ jobs: CronJob[] }>(
+        `${API_BASE_URL}/api/admin/jobs`,
+        { headers: getAuthHeaders() }
+      );
+      setJobs(response.data.jobs);
+    } catch {
+      setError('Failed to fetch jobs');
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders]);
+
+  // Toggle job enabled status
+  const toggleJobEnabled = async (name: string, currentEnabled: boolean) => {
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/api/admin/jobs/${name}`,
+        { enabled: !currentEnabled },
+        { headers: getAuthHeaders() }
+      );
+      fetchJobs();
+    } catch {
+      setError('Failed to update job');
+    }
+  };
+
+  // Update cron expression
+  const updateCronExpression = async (name: string, cronExpression: string) => {
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/api/admin/jobs/${name}`,
+        { cronExpression },
+        { headers: getAuthHeaders() }
+      );
+      setEditingCron(null);
+      fetchJobs();
+    } catch {
+      setError('Failed to update cron expression');
+    }
+  };
+
+  // Trigger job manually
+  const triggerJobManually = async (name: string) => {
     try {
       await axios.post(
-        `${API_BASE_URL}/api/admin/users/${redditId}/pro`,
+        `${API_BASE_URL}/api/admin/jobs/${name}/trigger`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      alert(`Job "${name}" triggered`);
+      fetchJobs();
+    } catch {
+      setError('Failed to trigger job');
+    }
+  };
+
+  // Toggle Pro status
+  const togglePro = async (redditUsername: string, currentPro: boolean) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/admin/users/${redditUsername}/pro`,
         { isPro: !currentPro },
         { headers: getAuthHeaders() }
       );
@@ -159,8 +242,9 @@ const Admin = () => {
     if (authenticated) {
       if (activeTab === 'users') fetchUsers(userSearch);
       if (activeTab === 'briefings') fetchBriefings();
+      if (activeTab === 'jobs') fetchJobs();
     }
-  }, [authenticated, activeTab, fetchUsers, fetchBriefings, userSearch]);
+  }, [authenticated, activeTab, fetchUsers, fetchBriefings, fetchJobs, userSearch]);
 
   // Format date
   const formatDate = (dateStr: string | null) => {
@@ -250,7 +334,7 @@ const Admin = () => {
         <div className={`flex gap-1 p-1 rounded-xl mb-8 ${
           themeName === 'light' ? 'bg-gray-200' : 'bg-white/5'
         }`}>
-          {(['stats', 'users', 'briefings'] as const).map((tab) => (
+          {(['stats', 'users', 'briefings', 'jobs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -335,7 +419,6 @@ const Admin = () => {
                     }>
                       <th className="text-left p-4 font-semibold">Username</th>
                       <th className="text-left p-4 font-semibold hidden md:table-cell">Joined</th>
-                      <th className="text-center p-4 font-semibold">Reports</th>
                       <th className="text-center p-4 font-semibold">Pro</th>
                       <th className="text-right p-4 font-semibold">Actions</th>
                     </tr>
@@ -360,11 +443,6 @@ const Admin = () => {
                         }`}>
                           {formatDate(u.createdAt)}
                         </td>
-                        <td className={`p-4 text-center ${
-                          themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-                        }`}>
-                          {u._count.discoverReports}
-                        </td>
                         <td className="p-4 text-center">
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             u.isPro
@@ -376,7 +454,7 @@ const Admin = () => {
                         </td>
                         <td className="p-4 text-right">
                           <button
-                            onClick={() => togglePro(u.redditId, u.isPro)}
+                            onClick={() => togglePro(u.redditUsername, u.isPro)}
                             className={`text-sm px-3 py-1 rounded-lg transition ${
                               u.isPro
                                 ? 'text-red-400 hover:bg-red-500/20'
@@ -450,6 +528,153 @@ const Admin = () => {
                       {b.executiveSummary.slice(0, 200)}...
                     </p>
                   )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Jobs Tab */}
+        {activeTab === 'jobs' && (
+          <div className="space-y-4">
+            {loading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : (
+              jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className={`p-6 rounded-xl ${
+                    themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className={`font-bold text-lg ${
+                          themeName === 'light' ? 'text-gray-900' : 'text-white'
+                        }`}>
+                          {job.displayName}
+                        </h3>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          job.enabled
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {job.enabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                        {job.runtime && (
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            job.runtime.status === 'online'
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : 'bg-yellow-500/20 text-yellow-400'
+                          }`}>
+                            {job.runtime.status}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-sm ${
+                        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
+                        {job.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Cron Expression Editor */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <span className={`text-sm ${
+                      themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
+                    }`}>
+                      Schedule:
+                    </span>
+                    {editingCron?.name === job.name ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingCron.value}
+                          onChange={(e) => setEditingCron({ name: job.name, value: e.target.value })}
+                          className={`px-3 py-1 rounded border text-sm font-mono ${
+                            themeName === 'light'
+                              ? 'bg-gray-50 border-gray-200 text-gray-900'
+                              : 'bg-white/5 border-white/10 text-white'
+                          }`}
+                        />
+                        <button
+                          onClick={() => updateCronExpression(job.name, editingCron.value)}
+                          className="text-sm px-3 py-1 rounded bg-green-500/20 text-green-400"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingCron(null)}
+                          className="text-sm px-3 py-1 rounded bg-gray-500/20 text-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <code className={`text-sm px-2 py-1 rounded ${
+                          themeName === 'light' ? 'bg-gray-100 text-gray-800' : 'bg-white/10 text-gray-200'
+                        }`}>
+                          {job.cronExpression}
+                        </code>
+                        <button
+                          onClick={() => setEditingCron({ name: job.name, value: job.cronExpression })}
+                          className={`text-sm ${
+                            themeName === 'light' ? 'text-blue-600' : 'text-blue-400'
+                          }`}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Last Run Info */}
+                  {job.lastRunAt && (
+                    <p className={`text-sm mb-4 ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      Last run: {formatDate(job.lastRunAt)}
+                      {job.lastRunStatus && (
+                        <span className={`ml-2 ${
+                          job.lastRunStatus === 'COMPLETED' ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          ({job.lastRunStatus})
+                        </span>
+                      )}
+                      {job.lastRunDuration && (
+                        <span className="ml-2">
+                          in {(job.lastRunDuration / 1000).toFixed(1)}s
+                        </span>
+                      )}
+                    </p>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleJobEnabled(job.name, job.enabled)}
+                      className={`text-sm px-4 py-2 rounded-lg transition ${
+                        job.enabled
+                          ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                          : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                      }`}
+                    >
+                      {job.enabled ? 'Disable' : 'Enable'}
+                    </button>
+                    <button
+                      onClick={() => triggerJobManually(job.name)}
+                      className={`text-sm px-4 py-2 rounded-lg transition ${
+                        themeName === 'light'
+                          ? 'bg-orange-100 text-orange-600 hover:bg-orange-200'
+                          : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/30'
+                      }`}
+                    >
+                      Run Now
+                    </button>
+                  </div>
                 </div>
               ))
             )}
