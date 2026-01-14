@@ -43,6 +43,18 @@ const TopFeed = () => {
     return score.toString();
   };
 
+  // Check if post is image-only (no meaningful text content to summarize)
+  const isImageOnlyPost = (story: ReportStory) => {
+    if (!story.postUrl) return false;
+    const url = story.postUrl.toLowerCase();
+    // Check for direct image URLs
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.gifv'];
+    const imageHosts = ['i.redd.it', 'i.imgur.com', 'imgur.com/a/', 'preview.redd.it'];
+
+    return imageExtensions.some(ext => url.endsWith(ext)) ||
+           imageHosts.some(host => url.includes(host));
+  };
+
   if (loading) {
     return (
       <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
@@ -149,8 +161,8 @@ const TopFeed = () => {
                 </div>
               )}
 
-              {/* AI Summary */}
-              {story.summary && (
+              {/* AI Summary - skip for image-only posts */}
+              {story.summary && !isImageOnlyPost(story) && (
                 <div
                   className={`p-4 rounded-xl mb-4 border ${
                     themeName === 'light'

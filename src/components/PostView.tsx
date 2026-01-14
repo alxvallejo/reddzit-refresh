@@ -3,6 +3,7 @@ import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import ReadControls from './ReadControls';
+import TrendingMarquee from './TrendingMarquee';
 import API_BASE_URL from '../config/api';
 
 export default function PostView() {
@@ -151,7 +152,10 @@ export default function PostView() {
                 />
             </div>
         </header>
-        
+
+        {/* Trending Marquee */}
+        <TrendingMarquee />
+
         {/* Content */}
         <main className="max-w-3xl mx-auto px-4 py-8 pb-32">
              <div className="mb-8">
