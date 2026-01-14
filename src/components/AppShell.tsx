@@ -4,19 +4,20 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
 import LiveFeed from './LiveFeed';
+import TopFeed from './TopFeed';
 import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'discover' | 'saved';
+type Tab = 'top' | 'saved' | 'discover';
 
 interface AppShellProps {
   defaultTab?: Tab;
 }
 
-const AppShell = ({ defaultTab = 'saved' }: AppShellProps) => {
+const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
   const { signedIn, user, loading, logout, redirectForAuth } = useReddit();
   const { themeName } = useTheme();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
@@ -81,6 +82,20 @@ const AppShell = ({ defaultTab = 'saved' }: AppShellProps) => {
 
             {/* Tabs */}
             <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
+              <button
+                onClick={() => setActiveTab('top')}
+                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                  themeName === 'light'
+                    ? activeTab === 'top'
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                    : activeTab === 'top'
+                      ? 'bg-white/20 text-white'
+                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                }`}
+              >
+                Top
+              </button>
               <button
                 onClick={() => setActiveTab('saved')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
@@ -261,8 +276,9 @@ const AppShell = ({ defaultTab = 'saved' }: AppShellProps) => {
 
       {/* Content */}
       <main>
-        {activeTab === 'discover' && <LiveFeed />}
         {activeTab === 'saved' && <SavedContent />}
+        {activeTab === 'top' && <TopContent />}
+        {activeTab === 'discover' && <LiveFeed />}
       </main>
     </div>
   );
@@ -302,6 +318,16 @@ const SavedContent = () => {
     <>
       <TrendingMarquee />
       <SavedFeed />
+    </>
+  );
+};
+
+// Top Posts content (no login required)
+const TopContent = () => {
+  return (
+    <>
+      <TrendingMarquee />
+      <TopFeed />
     </>
   );
 };

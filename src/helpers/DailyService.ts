@@ -15,6 +15,7 @@ export interface ReportStory {
   redditPermalink: string;
   redditPostId: string;
   postUrl?: string;
+  imageUrl?: string;
   comments: StoryComment[];
 }
 
