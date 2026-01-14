@@ -29,7 +29,8 @@ export interface StoryComment {
 
 export interface DailyReport {
   id: string;
-  reportDate: string;
+  reportDate?: string;
+  reportHour?: string;
   title: string;
   stories: ReportStory[];
 }

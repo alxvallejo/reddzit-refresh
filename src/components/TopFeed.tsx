@@ -97,11 +97,11 @@ const TopFeed = () => {
               }`}>
                 Top Posts on Reddit
               </h1>
-              {report && (
+              {report && (report.reportHour || report.reportDate) && (
                 <span className={`text-xs ${
                   themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
                 }`}>
-                  Updated {new Date(report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  Updated {new Date(report.reportHour || report.reportDate!).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                 </span>
               )}
             </div>
