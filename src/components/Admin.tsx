@@ -68,6 +68,20 @@ interface CronJob {
   }>;
 }
 
+interface RedditUsage {
+  lastHour: number;
+  last24Hours: number;
+  limit: number;
+  remaining: number;
+  percentUsed: number;
+  apiStatus: {
+    isHealthy: boolean;
+    lastCheckedAt: string;
+    lastErrorCode: number | null;
+    failureCount: number;
+  } | null;
+}
+
 const Admin = () => {
   const { themeName } = useTheme();
   const { user } = useReddit();
@@ -79,6 +93,7 @@ const Admin = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [jobs, setJobs] = useState<CronJob[]>([]);
+  const [redditUsage, setRedditUsage] = useState<RedditUsage | null>(null);
   const [editingCron, setEditingCron] = useState<{name: string; value: string} | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -107,6 +122,18 @@ const Admin = () => {
       } else {
         setError('Failed to fetch stats');
       }
+    }
+  }, [getAuthHeaders]);
+
+  // Fetch Reddit API usage
+  const fetchRedditUsage = useCallback(async () => {
+    try {
+      const response = await axios.get<RedditUsage>(`${API_BASE_URL}/api/admin/reddit-usage`, {
+        headers: getAuthHeaders(),
+      });
+      setRedditUsage(response.data);
+    } catch {
+      console.error('Failed to fetch Reddit usage');
     }
   }, [getAuthHeaders]);
 
@@ -240,11 +267,12 @@ const Admin = () => {
   // Load data when authenticated
   useEffect(() => {
     if (authenticated) {
+      if (activeTab === 'stats') fetchRedditUsage();
       if (activeTab === 'users') fetchUsers(userSearch);
       if (activeTab === 'briefings') fetchBriefings();
       if (activeTab === 'jobs') fetchJobs();
     }
-  }, [authenticated, activeTab, fetchUsers, fetchBriefings, fetchJobs, userSearch]);
+  }, [authenticated, activeTab, fetchUsers, fetchBriefings, fetchJobs, fetchRedditUsage, userSearch]);
 
   // Format date
   const formatDate = (dateStr: string | null) => {
@@ -361,28 +389,130 @@ const Admin = () => {
 
         {/* Stats Tab */}
         {activeTab === 'stats' && stats && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              title="Total Users"
-              value={stats.users.total}
-              themeName={themeName}
-            />
-            <StatCard
-              title="Pro Users"
-              value={stats.users.pro}
-              themeName={themeName}
-              highlight
-            />
-            <StatCard
-              title="New This Week"
-              value={stats.users.newThisWeek}
-              themeName={themeName}
-            />
-            <StatCard
-              title="Global Briefings"
-              value={stats.content.globalBriefings}
-              themeName={themeName}
-            />
+          <div className="space-y-6">
+            {/* Reddit API Usage Card */}
+            {redditUsage && (
+              <div className={`p-6 rounded-xl ${
+                themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`font-bold text-lg ${
+                    themeName === 'light' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    Reddit API Usage
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${
+                      redditUsage.apiStatus?.isHealthy ? 'bg-green-500' : 'bg-red-500'
+                    }`} />
+                    <span className={`text-sm ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      {redditUsage.apiStatus?.isHealthy ? 'Healthy' : 'Unhealthy'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className={themeName === 'light' ? 'text-gray-600' : 'text-gray-300'}>
+                      {redditUsage.lastHour} / {redditUsage.limit} requests this hour
+                    </span>
+                    <span className={`font-medium ${
+                      redditUsage.percentUsed >= 80
+                        ? 'text-red-500'
+                        : redditUsage.percentUsed >= 50
+                          ? 'text-yellow-500'
+                          : themeName === 'light' ? 'text-green-600' : 'text-green-400'
+                    }`}>
+                      {redditUsage.remaining} remaining
+                    </span>
+                  </div>
+                  <div className={`h-3 rounded-full overflow-hidden ${
+                    themeName === 'light' ? 'bg-gray-200' : 'bg-white/10'
+                  }`}>
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        redditUsage.percentUsed >= 80
+                          ? 'bg-red-500'
+                          : redditUsage.percentUsed >= 50
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(redditUsage.percentUsed, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className={`text-2xl font-bold ${
+                      themeName === 'light' ? 'text-gray-900' : 'text-white'
+                    }`}>
+                      {redditUsage.lastHour}
+                    </p>
+                    <p className={`text-xs ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      Last Hour
+                    </p>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${
+                      themeName === 'light' ? 'text-gray-900' : 'text-white'
+                    }`}>
+                      {redditUsage.last24Hours}
+                    </p>
+                    <p className={`text-xs ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      Last 24h
+                    </p>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${
+                      redditUsage.percentUsed >= 80
+                        ? 'text-red-500'
+                        : themeName === 'light' ? 'text-gray-900' : 'text-white'
+                    }`}>
+                      {redditUsage.percentUsed}%
+                    </p>
+                    <p className={`text-xs ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      Used
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Existing stat cards */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                title="Total Users"
+                value={stats.users.total}
+                themeName={themeName}
+              />
+              <StatCard
+                title="Pro Users"
+                value={stats.users.pro}
+                themeName={themeName}
+                highlight
+              />
+              <StatCard
+                title="New This Week"
+                value={stats.users.newThisWeek}
+                themeName={themeName}
+              />
+              <StatCard
+                title="Global Briefings"
+                value={stats.content.globalBriefings}
+                themeName={themeName}
+              />
+            </div>
           </div>
         )}
 
