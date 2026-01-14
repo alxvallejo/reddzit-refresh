@@ -292,7 +292,7 @@ const LiveFeed = () => {
 
         {/* Stories Grid */}
         {globalBriefing?.stories && globalBriefing.stories.length > 0 ? (
-          <main className="max-w-7xl mx-auto px-4 pt-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
             {globalBriefing.stories.map((story, index) => (
               <article
                 key={story.id}
@@ -640,7 +640,7 @@ const LiveFeed = () => {
       )}
 
       {/* Stories Grid - Newspaper Layout */}
-      <main className="max-w-7xl mx-auto px-4 pt-8 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-7xl mx-auto px-4 pt-8 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {report.stories.map((story, index) => (
           <article
             key={story.id}

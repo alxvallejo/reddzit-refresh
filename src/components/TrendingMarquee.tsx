@@ -35,10 +35,10 @@ const TrendingMarquee = () => {
   const duplicatedPosts = [...posts, ...posts];
 
   return (
-    <div className={`overflow-hidden border-b sticky top-0 z-50 ${
+    <div className={`overflow-hidden border-b sticky top-16 z-40 ${
       themeName === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-white/5 border-white/10'
     }`}
-    style={themeName === 'light' ? undefined : { backgroundColor: 'var(--theme-bg)' }}
+    style={themeName === 'light' ? { backgroundColor: '#fcfcfc' } : { backgroundColor: 'var(--theme-bg)' }}
     >
       <div className="flex items-center">
         <div className={`flex-shrink-0 px-4 py-2 font-bold text-xs uppercase tracking-wider ${

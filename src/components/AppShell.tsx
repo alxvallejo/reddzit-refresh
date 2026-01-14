@@ -60,10 +60,10 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
     >
       {/* Header */}
       <header
-        className={`${
+        className={`sticky top-0 z-50 ${
           themeName === 'light'
             ? 'bg-white border-b border-gray-200'
-            : 'border-b sticky top-0 z-50'
+            : 'border-b'
         }`}
         style={themeName === 'light' ? undefined : ({
           backgroundColor: 'var(--theme-headerBg)',
@@ -202,10 +202,17 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
         </div>
       </header>
 
-      {/* Subscribe Banner */}
+      {/* Content */}
+      <main>
+        {activeTab === 'saved' && <SavedContent />}
+        {activeTab === 'top' && <TopContent />}
+        {activeTab === 'discover' && <LiveFeed />}
+      </main>
+
+      {/* Subscribe Banner - Fixed at bottom */}
       {showBanner && subscribeStatus !== 'success' && (
         <div
-          className="sticky top-16 z-40"
+          className="fixed bottom-0 left-0 right-0 z-40"
           style={{
             background: 'var(--theme-bannerBg)',
             color: 'var(--theme-bannerText)'
@@ -259,9 +266,9 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
         </div>
       )}
 
-      {/* Success Banner */}
+      {/* Success Banner - Fixed at bottom */}
       {subscribeStatus === 'success' && showBanner && (
-        <div className="bg-green-500 text-white">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-green-500 text-white">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <p className="text-sm font-medium">✓ You're subscribed! Check your inbox tomorrow morning.</p>
             <button
@@ -273,13 +280,6 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
           </div>
         </div>
       )}
-
-      {/* Content */}
-      <main>
-        {activeTab === 'saved' && <SavedContent />}
-        {activeTab === 'top' && <TopContent />}
-        {activeTab === 'discover' && <LiveFeed />}
-      </main>
     </div>
   );
 };

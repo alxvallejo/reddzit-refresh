@@ -111,7 +111,7 @@ const TopFeed = () => {
 
       {/* Stories Grid */}
       {stories.length > 0 ? (
-        <main className="max-w-7xl mx-auto px-4 pt-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {stories.map((story, index) => (
             <article
               key={story.id}
