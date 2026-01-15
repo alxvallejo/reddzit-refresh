@@ -82,6 +82,13 @@ interface RedditUsage {
   } | null;
 }
 
+interface RedditApiLog {
+  id: string;
+  endpoint: string;
+  status: number;
+  createdAt: string;
+}
+
 const Admin = () => {
   const { themeName } = useTheme();
   const { user } = useReddit();
@@ -94,6 +101,8 @@ const Admin = () => {
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [redditUsage, setRedditUsage] = useState<RedditUsage | null>(null);
+  const [redditLogs, setRedditLogs] = useState<RedditApiLog[]>([]);
+  const [showLogs, setShowLogs] = useState(false);
   const [editingCron, setEditingCron] = useState<{name: string; value: string} | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -136,6 +145,32 @@ const Admin = () => {
       console.error('Failed to fetch Reddit usage');
     }
   }, [getAuthHeaders]);
+
+  // Fetch Reddit API logs
+  const fetchRedditLogs = useCallback(async () => {
+    try {
+      const response = await axios.get<{ logs: RedditApiLog[] }>(`${API_BASE_URL}/api/admin/reddit-usage/logs`, {
+        headers: getAuthHeaders(),
+      });
+      setRedditLogs(response.data.logs);
+    } catch {
+      console.error('Failed to fetch Reddit logs');
+    }
+  }, [getAuthHeaders]);
+
+  // Delete Reddit API logs
+  const deleteRedditLogs = async () => {
+    if (!confirm('Delete all API request logs?')) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/admin/reddit-usage/logs`, {
+        headers: getAuthHeaders(),
+      });
+      setRedditLogs([]);
+      fetchRedditUsage();
+    } catch {
+      setError('Failed to delete logs');
+    }
+  };
 
   // Fetch users
   const fetchUsers = useCallback(async (search = '') => {
@@ -446,7 +481,7 @@ const Admin = () => {
                 </div>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-4 text-center mb-4">
                   <div>
                     <p className={`text-2xl font-bold ${
                       themeName === 'light' ? 'text-gray-900' : 'text-white'
@@ -486,6 +521,95 @@ const Admin = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowLogs(!showLogs);
+                      if (!showLogs) fetchRedditLogs();
+                    }}
+                    className={`text-sm px-4 py-2 rounded-lg transition ${
+                      themeName === 'light'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                    }`}
+                  >
+                    {showLogs ? 'Hide Logs' : 'View Logs'}
+                  </button>
+                  {redditLogs.length > 0 && (
+                    <button
+                      onClick={deleteRedditLogs}
+                      className="text-sm px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition"
+                    >
+                      Clear Logs
+                    </button>
+                  )}
+                </div>
+
+                {/* Logs List */}
+                {showLogs && (
+                  <div className={`mt-4 rounded-lg overflow-hidden ${
+                    themeName === 'light' ? 'bg-gray-50' : 'bg-white/5'
+                  }`}>
+                    {redditLogs.length === 0 ? (
+                      <p className={`p-4 text-sm ${
+                        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                      }`}>
+                        No requests in the last hour
+                      </p>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto">
+                        <table className="w-full text-sm">
+                          <thead className={`sticky top-0 ${
+                            themeName === 'light' ? 'bg-gray-100' : 'bg-white/10'
+                          }`}>
+                            <tr>
+                              <th className={`text-left p-2 font-medium ${
+                                themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
+                              }`}>Time</th>
+                              <th className={`text-left p-2 font-medium ${
+                                themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
+                              }`}>Endpoint</th>
+                              <th className={`text-center p-2 font-medium ${
+                                themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
+                              }`}>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {redditLogs.map((log) => (
+                              <tr key={log.id} className={
+                                themeName === 'light' ? 'border-t border-gray-200' : 'border-t border-white/5'
+                              }>
+                                <td className={`p-2 ${
+                                  themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                                }`}>
+                                  {new Date(log.createdAt).toLocaleTimeString()}
+                                </td>
+                                <td className={`p-2 font-mono text-xs truncate max-w-[200px] ${
+                                  themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
+                                }`}>
+                                  {log.endpoint}
+                                </td>
+                                <td className="p-2 text-center">
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    log.status === 200
+                                      ? 'bg-green-500/20 text-green-400'
+                                      : log.status >= 400
+                                        ? 'bg-red-500/20 text-red-400'
+                                        : 'bg-yellow-500/20 text-yellow-400'
+                                  }`}>
+                                    {log.status || '?'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
