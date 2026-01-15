@@ -17,7 +17,7 @@ type ViewState = 'briefing' | 'setup' | 'report';
 
 const LiveFeed = () => {
   const { themeName } = useTheme();
-  const { user } = useReddit();
+  const { user, redirectForAuth } = useReddit();
   const navigate = useNavigate();
   
   // State
@@ -275,9 +275,8 @@ const LiveFeed = () => {
                     : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
                 }`}
                 onClick={() => {
-                  // TODO: Navigate to Pro signup or show modal
                   if (!isLoggedIn) {
-                    navigate('/login');
+                    redirectForAuth();
                   } else {
                     // For now, show a coming soon message
                     alert('Pro subscriptions coming soon!');
