@@ -15,7 +15,7 @@ const MAX_CATEGORIES = 3;
 
 type ViewState = 'briefing' | 'setup' | 'report';
 
-const LiveFeed = () => {
+const DiscoverFeed = () => {
   const { themeName } = useTheme();
   const { user, redirectForAuth } = useReddit();
   const navigate = useNavigate();
@@ -760,4 +760,4 @@ const LiveFeed = () => {
   );
 };
 
-export default LiveFeed;
+export default DiscoverFeed;

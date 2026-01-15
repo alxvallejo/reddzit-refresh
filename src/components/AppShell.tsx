@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
-import LiveFeed from './LiveFeed';
+import DiscoverFeed from './DiscoverFeed';
 import TopFeed from './TopFeed';
 import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
@@ -206,7 +206,7 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
       <main>
         {activeTab === 'saved' && <SavedContent />}
         {activeTab === 'top' && <TopContent />}
-        {activeTab === 'discover' && <LiveFeed />}
+        {activeTab === 'discover' && <DiscoverFeed />}
       </main>
 
       {/* Subscribe Banner - Fixed at bottom */}
