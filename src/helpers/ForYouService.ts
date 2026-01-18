@@ -42,10 +42,10 @@ const ForYouService = {
    * Refresh user persona based on saved posts
    */
   async refreshPersona(token: string): Promise<{ persona: Persona }> {
-    const response = await axios.post(
+    const response = await axios.post<{ persona: Persona }>(
       `${API_BASE_URL}/api/foryou/persona/refresh`,
       {},
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
@@ -55,12 +55,12 @@ const ForYouService = {
    */
   async getPersona(token: string): Promise<{ persona: Persona | null; lastRefreshedAt: string | null }> {
     try {
-      const response = await axios.get(
+      const response = await axios.get<{ persona: Persona | null; lastRefreshedAt: string | null }>(
         `${API_BASE_URL}/api/foryou/persona`,
-        { headers: { Authorization: `bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return { persona: null, lastRefreshedAt: null };
       }
@@ -72,9 +72,9 @@ const ForYouService = {
    * Get personalized feed
    */
   async getFeed(token: string, limit = 20): Promise<{ posts: ForYouPost[]; recommendedSubreddits: string[] }> {
-    const response = await axios.get(
+    const response = await axios.get<{ posts: ForYouPost[]; recommendedSubreddits: string[] }>(
       `${API_BASE_URL}/api/foryou/feed?limit=${limit}`,
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
@@ -87,10 +87,10 @@ const ForYouService = {
     redditPostId: string,
     action: TriageAction
   ): Promise<{ success: boolean; curatedCount: number }> {
-    const response = await axios.post(
+    const response = await axios.post<{ success: boolean; curatedCount: number }>(
       `${API_BASE_URL}/api/foryou/action`,
       { redditPostId, action },
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
@@ -99,9 +99,9 @@ const ForYouService = {
    * Get curated posts (saved via For You)
    */
   async getCurated(token: string): Promise<{ posts: CuratedPost[]; count: number; limit: number }> {
-    const response = await axios.get(
+    const response = await axios.get<{ posts: CuratedPost[]; count: number; limit: number }>(
       `${API_BASE_URL}/api/foryou/curated`,
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
@@ -110,9 +110,9 @@ const ForYouService = {
    * Get subreddit settings/weights
    */
   async getSettings(token: string): Promise<{ subreddits: SubredditWeight[]; recommendedSubreddits: string[] }> {
-    const response = await axios.get(
+    const response = await axios.get<{ subreddits: SubredditWeight[]; recommendedSubreddits: string[] }>(
       `${API_BASE_URL}/api/foryou/settings`,
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
@@ -121,10 +121,10 @@ const ForYouService = {
    * Star/unstar a subreddit to boost its weight
    */
   async toggleSubredditStar(token: string, subreddit: string, starred: boolean): Promise<{ success: boolean }> {
-    const response = await axios.post(
+    const response = await axios.post<{ success: boolean }>(
       `${API_BASE_URL}/api/foryou/settings/star`,
       { subreddit, starred },
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
@@ -133,10 +133,10 @@ const ForYouService = {
    * Generate report from curated posts
    */
   async generateReport(token: string, model: string): Promise<{ report: any }> {
-    const response = await axios.post(
+    const response = await axios.post<{ report: any }>(
       `${API_BASE_URL}/api/foryou/report/generate`,
       { model },
-      { headers: { Authorization: `bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
   },
