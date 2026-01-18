@@ -117,7 +117,7 @@ export default function PostView() {
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bgColor}`}>
         <h2 className="text-2xl font-bold mb-4">Unable to load post</h2>
         <p className="mb-6">{error}</p>
-        <Link to="/feed" className="bg-[#ff4500] text-white px-6 py-3 rounded-full font-bold shadow-lg no-underline">Back to Feed</Link>
+        <Link to="/" className="bg-[#ff4500] text-white px-6 py-3 rounded-full font-bold shadow-lg no-underline">Back to Feed</Link>
     </div>
   );
 
@@ -126,7 +126,7 @@ export default function PostView() {
         {/* Sticky Header */}
         <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
             <div className="flex items-center gap-4 flex-1 min-w-0">
-                <Link to={signedIn ? "/feed" : "/"} className="flex-shrink-0">
+                <Link to="/" className="flex-shrink-0">
                     <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
                 </Link>
                 
@@ -138,7 +138,7 @@ export default function PostView() {
                 
                 {!isScrolled && (
                      <div className="text-white">
-                        <Link to={signedIn ? "/feed" : "/"} className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
+                        <Link to="/" className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
                      </div>
                 )}
             </div>
