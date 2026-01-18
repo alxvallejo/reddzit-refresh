@@ -1,15 +1,24 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
 import ForYouService, { ForYouPost, Persona, TriageAction } from '../helpers/ForYouService';
 
 const CURATED_LIMIT = 20;
+const SLUG_MAX_LENGTH = 60;
+const SUBREDDITS_DISPLAY_LIMIT = 10;
+const RECOMMENDED_SUBREDDITS_LIMIT = 8;
 
 const ForYouFeed = () => {
   const { themeName } = useTheme();
-  const { user, signedIn, redirectForAuth } = useReddit();
+  const { signedIn, redirectForAuth } = useReddit();
   const navigate = useNavigate();
+
+  // Ref to track component mount state for async cleanup
+  const isMounted = useRef(true);
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
 
   // State
   const [posts, setPosts] = useState<ForYouPost[]>([]);
@@ -40,12 +49,14 @@ const ForYouFeed = () => {
   const loadData = useCallback(async () => {
     const token = getToken();
     if (!token) {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (isMounted.current) {
+      setLoading(true);
+      setError(null);
+    }
 
     try {
       const [personaResult, feedResult, curatedResult] = await Promise.all([
@@ -54,16 +65,20 @@ const ForYouFeed = () => {
         ForYouService.getCurated(token),
       ]);
 
-      setPersona(personaResult.persona);
-      setPersonaRefreshedAt(personaResult.lastRefreshedAt);
-      setPosts(feedResult.posts);
-      setRecommendedSubreddits(feedResult.recommendedSubreddits);
-      setCuratedCount(curatedResult.count);
+      if (isMounted.current) {
+        setPersona(personaResult.persona);
+        setPersonaRefreshedAt(personaResult.lastRefreshedAt);
+        setPosts(feedResult.posts);
+        setRecommendedSubreddits(feedResult.recommendedSubreddits);
+        setCuratedCount(curatedResult.count);
+      }
     } catch (err) {
       console.error('Failed to load For You data:', err);
-      setError('Failed to load personalized feed. Please try again.');
+      if (isMounted.current) {
+        setError('Failed to load personalized feed. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, []);
 
@@ -72,7 +87,7 @@ const ForYouFeed = () => {
     if (signedIn) {
       loadData();
     } else {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [signedIn, loadData]);
 
@@ -81,23 +96,31 @@ const ForYouFeed = () => {
     const token = getToken();
     if (!token) return;
 
-    setRefreshingPersona(true);
-    setError(null);
+    if (isMounted.current) {
+      setRefreshingPersona(true);
+      setError(null);
+    }
 
     try {
       const result = await ForYouService.refreshPersona(token);
-      setPersona(result.persona);
-      setPersonaRefreshedAt(new Date().toISOString());
+      if (isMounted.current) {
+        setPersona(result.persona);
+        setPersonaRefreshedAt(new Date().toISOString());
+      }
 
       // Reload feed with new persona
       const feedResult = await ForYouService.getFeed(token);
-      setPosts(feedResult.posts);
-      setRecommendedSubreddits(feedResult.recommendedSubreddits);
+      if (isMounted.current) {
+        setPosts(feedResult.posts);
+        setRecommendedSubreddits(feedResult.recommendedSubreddits);
+      }
     } catch (err) {
       console.error('Failed to refresh persona:', err);
-      setError('Failed to refresh persona. Please try again.');
+      if (isMounted.current) {
+        setError('Failed to refresh persona. Please try again.');
+      }
     } finally {
-      setRefreshingPersona(false);
+      if (isMounted.current) setRefreshingPersona(false);
     }
   };
 
@@ -108,11 +131,15 @@ const ForYouFeed = () => {
 
     try {
       const result = await ForYouService.recordAction(token, postId, action);
-      setCuratedCount(result.curatedCount);
-      setPosts(prev => prev.filter(p => p.redditPostId !== postId));
+      if (isMounted.current) {
+        setCuratedCount(result.curatedCount);
+        setPosts(prev => prev.filter(p => p.redditPostId !== postId));
+      }
     } catch (err) {
       console.error('Failed to record action:', err);
-      setError('Failed to save action. Please try again.');
+      if (isMounted.current) {
+        setError('Failed to save action. Please try again.');
+      }
     }
   };
 
@@ -122,7 +149,7 @@ const ForYouFeed = () => {
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
-      .slice(0, 60);
+      .slice(0, SLUG_MAX_LENGTH);
     navigate(`/p/t3_${post.redditPostId}/${slug}`);
   };
 
@@ -198,7 +225,7 @@ const ForYouFeed = () => {
         >
           {refreshingPersona ? (
             <span className="flex items-center gap-2">
-              <span className="animate-spin">...</span>
+              <span className="animate-spin inline-block">&#8987;</span>
               Building Persona...
             </span>
           ) : (
@@ -254,7 +281,7 @@ const ForYouFeed = () => {
                     : 'text-[var(--theme-primary)] hover:bg-white/10'
                 }`}
               >
-                {refreshingPersona ? '...' : 'Refresh'}
+                {refreshingPersona ? <span className="animate-spin inline-block">&#8987;</span> : 'Refresh'}
               </button>
             </div>
           </div>
@@ -327,7 +354,7 @@ const ForYouFeed = () => {
                   Top Subreddits
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {persona.subredditAffinities.slice(0, 10).map((sub, i) => (
+                  {persona.subredditAffinities.slice(0, SUBREDDITS_DISPLAY_LIMIT).map((sub, i) => (
                     <span
                       key={i}
                       className={`text-xs px-2 py-1 rounded-full ${
@@ -414,7 +441,7 @@ const ForYouFeed = () => {
             }`}>
               Recommended:
             </span>
-            {recommendedSubreddits.slice(0, 8).map((sub, i) => (
+            {recommendedSubreddits.slice(0, RECOMMENDED_SUBREDDITS_LIMIT).map((sub, i) => (
               <span
                 key={i}
                 className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
@@ -478,6 +505,7 @@ const ForYouFeed = () => {
                     <img
                       src={post.thumbnail}
                       alt=""
+                      loading="lazy"
                       className="w-full h-48 sm:h-64 object-cover"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
