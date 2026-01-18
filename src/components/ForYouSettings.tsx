@@ -84,14 +84,19 @@ const ForYouSettings = () => {
       const result = await ForYouService.refreshPersona(token);
       if (isMounted.current) {
         setPersona(result.persona);
-        setPersonaRefreshedAt(new Date().toISOString());
+        setPersonaRefreshedAt(result.lastRefreshedAt);
       }
 
-      // Reload settings after persona refresh
-      const settingsResult = await ForYouService.getSettings(token);
-      if (isMounted.current) {
-        setSubreddits(settingsResult.subreddits);
-        setRecommendedSubreddits(settingsResult.recommendedSubreddits);
+      // After setting persona, reload settings but don't fail the whole operation
+      try {
+        const settingsResult = await ForYouService.getSettings(token);
+        if (isMounted.current) {
+          setSubreddits(settingsResult.subreddits);
+          setRecommendedSubreddits(settingsResult.recommendedSubreddits);
+        }
+      } catch (settingsErr) {
+        console.error('Failed to reload settings after persona refresh:', settingsErr);
+        // Don't set error state - persona was successfully refreshed
       }
     } catch (err) {
       console.error('Failed to refresh persona:', err);
