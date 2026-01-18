@@ -18,6 +18,7 @@ function App() {
             <Route index path='/' element={<AppShell />} />
             <Route path='/top' element={<AppShell defaultTab="top" />} />
             <Route path='/discover' element={<AppShell defaultTab="discover" />} />
+            <Route path='/foryou' element={<AppShell defaultTab="foryou" />} />
             <Route path='/reddit' element={<AppShell defaultTab="saved" />} />
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />
