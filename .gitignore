@@ -30,3 +30,6 @@ dist-ssr
 !.env.example
 \n+# Deployment SSH keys (do not commit)
 deploy_keys/
+
+# Git worktrees
+.worktrees/
