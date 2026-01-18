@@ -37,6 +37,13 @@ export interface SubredditWeight {
 
 export type TriageAction = 'saved' | 'already_read' | 'not_interested';
 
+export interface Report {
+  id: string;
+  content: string;
+  model: string;
+  generatedAt: string;
+}
+
 const ForYouService = {
   /**
    * Refresh user persona based on saved posts
@@ -132,8 +139,8 @@ const ForYouService = {
   /**
    * Generate report from curated posts
    */
-  async generateReport(token: string, model: string): Promise<{ report: any }> {
-    const response = await axios.post<{ report: any }>(
+  async generateReport(token: string, model: string): Promise<{ report: Report }> {
+    const response = await axios.post<{ report: Report }>(
       `${API_BASE_URL}/api/foryou/report/generate`,
       { model },
       { headers: { Authorization: `Bearer ${token}` } }
