@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
 import ForYouService, { ForYouPost, Persona, TriageAction } from '../helpers/ForYouService';
@@ -268,6 +268,16 @@ const ForYouFeed = () => {
               >
                 {refreshingPersona ? <span className="animate-spin inline-block">&#8987;</span> : 'Refresh'}
               </button>
+              <Link
+                to="/foryou/settings"
+                className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                  themeName === 'light'
+                    ? 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                Settings
+              </Link>
             </div>
           </div>
         </div>

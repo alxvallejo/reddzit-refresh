@@ -7,6 +7,7 @@ import AppShell from './components/AppShell';
 import About from './components/About';
 import PostView from './components/PostView';
 import Admin from './components/Admin';
+import ForYouSettings from './components/ForYouSettings';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path='/top' element={<AppShell defaultTab="top" />} />
             <Route path='/discover' element={<AppShell defaultTab="discover" />} />
             <Route path='/foryou' element={<AppShell defaultTab="foryou" />} />
+            <Route path='/foryou/settings' element={<ForYouSettings />} />
             <Route path='/reddit' element={<AppShell defaultTab="saved" />} />
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />
