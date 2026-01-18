@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
 import DiscoverFeed from './DiscoverFeed';
 import TopFeed from './TopFeed';
+import ForYouFeed from './ForYouFeed';
 import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
@@ -380,9 +381,7 @@ const ForYouContent = () => {
   return (
     <>
       <TrendingMarquee />
-      <div className="max-w-4xl mx-auto px-4 py-8 text-center">
-        <p className="text-gray-500">For You feed coming soon...</p>
-      </div>
+      <ForYouFeed />
     </>
   );
 };
