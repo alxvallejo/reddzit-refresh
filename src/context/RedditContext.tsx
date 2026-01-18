@@ -10,6 +10,7 @@ interface RedditContextType {
   user: any;
   loading: boolean;
   logout: () => void;
+  accessToken: string | null;
   
   // Feed
   saved: any[];
@@ -40,6 +41,7 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [saved, setSaved] = useState<any[]>([]);
   const [after, setAfter] = useState<string | null>(null);
   const [redditHelper, setRedditHelper] = useState<any>(null); // Type as any for now due to JS helper
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   
   const options = getOptions();
   const [darkMode, setDarkMode] = useState(options.darkMode ?? true);
@@ -52,6 +54,7 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const token = await auth.handleAuth();
       
       if (token) {
+        setAccessToken(token);
         const reddit = new Reddit({ accessToken: token });
         setRedditHelper(reddit);
         setSignedIn(true);
@@ -145,7 +148,7 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <RedditContext.Provider value={{
-      signedIn, user, loading, logout,
+      signedIn, user, loading, logout, accessToken,
       saved, after, fetchSaved,
       darkMode, fontSize, toggleDarkMode, setFontSize,
       savePost, unsavePost, redirectForAuth,

@@ -11,8 +11,10 @@ const RECOMMENDED_SUBREDDITS_LIMIT = 8;
 
 const ForYouFeed = () => {
   const { themeName } = useTheme();
-  const { signedIn, redirectForAuth } = useReddit();
+  const { signedIn, redirectForAuth, accessToken } = useReddit();
   const navigate = useNavigate();
+
+  const token = accessToken || '';
 
   // Ref to track component mount state for async cleanup
   const isMounted = useRef(true);
@@ -31,23 +33,8 @@ const ForYouFeed = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPersona, setShowPersona] = useState(false);
 
-  // Get access token from localStorage
-  const getToken = (): string | null => {
-    try {
-      const creds = localStorage.getItem('redditCreds');
-      if (creds) {
-        const parsed = JSON.parse(creds);
-        return parsed.accessToken || null;
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  };
-
   // Load data: persona, feed, and curated count in parallel
   const loadData = useCallback(async () => {
-    const token = getToken();
     if (!token) {
       if (isMounted.current) setLoading(false);
       return;
@@ -80,7 +67,7 @@ const ForYouFeed = () => {
     } finally {
       if (isMounted.current) setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   // Load data on mount
   useEffect(() => {
@@ -93,7 +80,6 @@ const ForYouFeed = () => {
 
   // Refresh persona and reload feed
   const handleRefreshPersona = async () => {
-    const token = getToken();
     if (!token) return;
 
     if (isMounted.current) {
@@ -126,7 +112,6 @@ const ForYouFeed = () => {
 
   // Record triage action and remove post from feed
   const handleAction = async (postId: string, action: TriageAction) => {
-    const token = getToken();
     if (!token) return;
 
     try {
