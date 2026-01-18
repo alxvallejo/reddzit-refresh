@@ -11,7 +11,7 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'top' | 'saved' | 'discover';
+type Tab = 'top' | 'saved' | 'discover' | 'foryou';
 
 interface AppShellProps {
   defaultTab?: Tab;
@@ -125,6 +125,20 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
               >
                 Discover
               </button>
+              <button
+                onClick={() => setActiveTab('foryou')}
+                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                  themeName === 'light'
+                    ? activeTab === 'foryou'
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                    : activeTab === 'foryou'
+                      ? 'bg-white/20 text-white'
+                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                }`}
+              >
+                For You
+              </button>
             </nav>
 
             {/* Theme Switcher */}
@@ -207,6 +221,7 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
         {activeTab === 'saved' && <SavedContent />}
         {activeTab === 'top' && <TopContent />}
         {activeTab === 'discover' && <DiscoverFeed />}
+        {activeTab === 'foryou' && <ForYouContent />}
       </main>
 
       {/* Subscribe Banner - Fixed at bottom */}
@@ -328,6 +343,46 @@ const TopContent = () => {
     <>
       <TrendingMarquee />
       <TopFeed />
+    </>
+  );
+};
+
+// For You content (requires login)
+const ForYouContent = () => {
+  const { signedIn, redirectForAuth } = useReddit();
+  const { themeName } = useTheme();
+
+  if (!signedIn) {
+    return (
+      <>
+        <TrendingMarquee />
+        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+          <div className="text-6xl mb-6">✨</div>
+          <h2 className={`text-2xl font-bold mb-3 ${themeName === 'light' ? 'text-gray-900' : ''}`}>For You</h2>
+          <p className={`mb-8 max-w-md ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+            Connect your Reddit account to get personalized content recommendations based on your interests.
+          </p>
+          <button
+            onClick={redirectForAuth}
+            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg ${
+              themeName === 'light'
+                ? 'bg-orange-600 text-white hover:bg-orange-700'
+                : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+            }`}
+          >
+            Connect with Reddit
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <TrendingMarquee />
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+        <p className="text-gray-500">For You feed coming soon...</p>
+      </div>
     </>
   );
 };
