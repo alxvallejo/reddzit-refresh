@@ -197,8 +197,15 @@ export default function PostView() {
                  </button>
                  <span className="opacity-30">|</span>
                  {signedIn ? (
-                     <button 
-                        onClick={() => post.saved ? unsavePost(post.name) : savePost(post.name)}
+                     <button
+                        onClick={async () => {
+                          if (post.saved) {
+                            await unsavePost(post.name);
+                            navigate('/reddit');
+                          } else {
+                            savePost(post.name);
+                          }
+                        }}
                         className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
                      >
                          {post.saved ? 'Unsave' : 'Save'}
