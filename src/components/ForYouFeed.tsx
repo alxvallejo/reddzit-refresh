@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
@@ -16,12 +16,6 @@ const ForYouFeed = () => {
 
   const token = accessToken || '';
 
-  // Ref to track component mount state for async cleanup
-  const isMounted = useRef(true);
-  useEffect(() => {
-    return () => { isMounted.current = false; };
-  }, []);
-
   // State
   const [posts, setPosts] = useState<ForYouPost[]>([]);
   const [persona, setPersona] = useState<Persona | null>(null);
@@ -36,14 +30,12 @@ const ForYouFeed = () => {
   // Load data: persona, feed, and curated count in parallel
   const loadData = useCallback(async () => {
     if (!token) {
-      if (isMounted.current) setLoading(false);
+      setLoading(false);
       return;
     }
 
-    if (isMounted.current) {
-      setLoading(true);
-      setError(null);
-    }
+    setLoading(true);
+    setError(null);
 
     try {
       const [personaResult, feedResult, curatedResult] = await Promise.all([
@@ -52,18 +44,14 @@ const ForYouFeed = () => {
         ForYouService.getCurated(token),
       ]);
 
-      if (isMounted.current) {
-        setPersona(personaResult.persona);
-        setPersonaRefreshedAt(personaResult.lastRefreshedAt);
-        setPosts(feedResult.posts);
-        setRecommendedSubreddits(feedResult.recommendedSubreddits);
-        setCuratedCount(curatedResult.count);
-      }
+      setPersona(personaResult.persona);
+      setPersonaRefreshedAt(personaResult.lastRefreshedAt);
+      setPosts(feedResult.posts);
+      setRecommendedSubreddits(feedResult.recommendedSubreddits);
+      setCuratedCount(curatedResult.count);
     } catch (err) {
       console.error('Failed to load For You data:', err);
-      if (isMounted.current) {
-        setError('Failed to load personalized feed. Please try again.');
-      }
+      setError('Failed to load personalized feed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +62,7 @@ const ForYouFeed = () => {
     if (signedIn) {
       loadData();
     } else {
-      if (isMounted.current) setLoading(false);
+      setLoading(false);
     }
   }, [signedIn, loadData]);
 
@@ -108,15 +96,11 @@ const ForYouFeed = () => {
 
     try {
       const result = await ForYouService.recordAction(token, postId, action);
-      if (isMounted.current) {
-        setCuratedCount(result.curatedCount);
-        setPosts(prev => prev.filter(p => p.redditPostId !== postId));
-      }
+      setCuratedCount(result.curatedCount);
+      setPosts(prev => prev.filter(p => p.redditPostId !== postId));
     } catch (err) {
       console.error('Failed to record action:', err);
-      if (isMounted.current) {
-        setError('Failed to save action. Please try again.');
-      }
+      setError('Failed to save action. Please try again.');
     }
   };
 
