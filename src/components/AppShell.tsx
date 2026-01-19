@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
@@ -21,6 +21,7 @@ interface AppShellProps {
 const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
   const { signedIn, user, loading, logout, redirectForAuth } = useReddit();
   const { themeName } = useTheme();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [email, setEmail] = useState('');
@@ -84,7 +85,7 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
             {/* Tabs */}
             <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
               <button
-                onClick={() => setActiveTab('top')}
+                onClick={() => navigate('/top')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'top'
@@ -98,7 +99,7 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
                 Top
               </button>
               <button
-                onClick={() => setActiveTab('saved')}
+                onClick={() => navigate('/reddit')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'saved'
@@ -113,7 +114,7 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
                 <span className="hidden sm:inline">Saved Posts</span>
               </button>
               <button
-                onClick={() => setActiveTab('discover')}
+                onClick={() => navigate('/discover')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'discover'
@@ -127,7 +128,7 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
                 Discover
               </button>
               <button
-                onClick={() => setActiveTab('foryou')}
+                onClick={() => navigate('/foryou')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'foryou'
