@@ -139,7 +139,7 @@ const TopFeed = () => {
                 </div>
               </div>
 
-              <h2 className={`font-bold mb-3 leading-tight transition-colors ${
+              <h2 className={`font-medium mb-3 leading-tight transition-colors ${
                 index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
               } ${
                 themeName === 'light'

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
+import { getVideoUrl } from '../helpers/UrlCrawler';
 import ReadControls from './ReadControls';
 import TrendingMarquee from './TrendingMarquee';
 import API_BASE_URL from '../config/api';
@@ -168,12 +169,12 @@ export default function PostView() {
                      </a>
                  </h1>
                  
-                 {/* Preview Image */}
-                 {getArticlePreviewImage(post) && (
+                 {/* Preview Image - skip for video posts since video has its own thumbnail */}
+                 {getArticlePreviewImage(post) && !getVideoUrl(post) && (
                      <div className="rounded-xl overflow-hidden my-6 shadow-md">
-                         <img 
-                            src={getArticlePreviewImage(post)} 
-                            alt="" 
+                         <img
+                            src={getArticlePreviewImage(post)}
+                            alt=""
                             className="w-full h-auto object-cover"
                          />
                      </div>

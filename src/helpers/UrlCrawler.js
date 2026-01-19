@@ -7,8 +7,17 @@ export const getVideoUrl = (post) => {
   // Check for Reddit native video
   if (post.is_video) {
     const redditVideo = post.secure_media?.reddit_video || post.media?.reddit_video;
-    if (redditVideo?.fallback_url) {
-      return redditVideo.fallback_url;
+    if (redditVideo) {
+      // Return object with video info for Reddit videos
+      return {
+        type: 'reddit',
+        // HLS URL includes audio and works natively in Safari, needs hls.js for other browsers
+        hlsUrl: redditVideo.hls_url,
+        // Fallback URL is video-only (no audio)
+        fallbackUrl: redditVideo.fallback_url,
+        // Has audio track?
+        hasAudio: redditVideo.has_audio !== false,
+      };
     }
   }
 
@@ -16,15 +25,23 @@ export const getVideoUrl = (post) => {
   if (post.secure_media && post.secure_media.type) {
     const meta = urlParser.parse(post.url);
     if (meta && meta.provider == 'youtube') {
-      return 'https://youtube.com/embed/' + meta.id;
+      return {
+        type: 'youtube',
+        url: 'https://youtube.com/embed/' + meta.id,
+      };
     }
   }
 
   // Check if URL is a v.redd.it link
   if (post.url && post.url.includes('v.redd.it')) {
     const redditVideo = post.secure_media?.reddit_video || post.media?.reddit_video;
-    if (redditVideo?.fallback_url) {
-      return redditVideo.fallback_url;
+    if (redditVideo) {
+      return {
+        type: 'reddit',
+        hlsUrl: redditVideo.hls_url,
+        fallbackUrl: redditVideo.fallback_url,
+        hasAudio: redditVideo.has_audio !== false,
+      };
     }
   }
 

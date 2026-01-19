@@ -475,7 +475,7 @@ const ForYouFeed = () => {
                   </div>
                 </div>
 
-                <h2 className={`font-bold mb-3 leading-tight transition-colors ${
+                <h2 className={`font-medium mb-3 leading-tight transition-colors ${
                   index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'
                 } ${
                   themeName === 'light'

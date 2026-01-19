@@ -97,16 +97,16 @@ export const getContentSearchParam = (content) => {
 };
 
 export const getPostType = (post) => {
-  let videoUrl = getVideoUrl(post),
+  let videoInfo = getVideoUrl(post),
     imageUrl = getImageUrl(post.url);
   let postType;
   // Basic comment detection: Reddit comments are kind t1 and include a body
   const isRedditComment =
     (post && post.name && post.name.startsWith('t1_')) || !!post.body;
-  if (videoUrl) {
+  if (videoInfo) {
     postType = {
       type: 'video',
-      url: videoUrl,
+      videoInfo: videoInfo, // Pass the full video info object
     };
   } else if (imageUrl) {
     postType = {
@@ -221,7 +221,7 @@ export const handlePostType = async (postType) => {
   switch (postType.type) {
     case 'video':
       return {
-        video: postType.url,
+        video: postType.videoInfo, // Pass the full video info object
       };
 
     case 'image':
