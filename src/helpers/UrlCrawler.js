@@ -44,6 +44,9 @@ export const crawlUrl = async (url) => {
   try {
     // Use base URL and append the endpoint
     const apiBase = import.meta.env.VITE_READ_API_BASE || import.meta.env.VITE_READ_API;
+    if (!apiBase) {
+      throw new Error('API base URL not configured (VITE_READ_API_BASE or VITE_READ_API)');
+    }
     const endpoint = apiBase.includes('/getContent') ? apiBase : `${apiBase}/getContent`;
     
     let httpsUrl = url.replace('http://', 'https://');
