@@ -8,6 +8,7 @@ const CURATED_LIMIT = 20;
 const SLUG_MAX_LENGTH = 60;
 const SUBREDDITS_DISPLAY_LIMIT = 10;
 const RECOMMENDED_SUBREDDITS_LIMIT = 8;
+const MIN_POSTS_THRESHOLD = 5; // Refresh feed when posts drop below this
 
 const ForYouFeed = () => {
   const { themeName } = useTheme();
@@ -97,7 +98,21 @@ const ForYouFeed = () => {
     try {
       const result = await ForYouService.recordAction(token, postId, action);
       setCuratedCount(result.curatedCount);
-      setPosts(prev => prev.filter(p => p.redditPostId !== postId));
+
+      // Remove post and check if we need to refresh
+      setPosts(prev => {
+        const remaining = prev.filter(p => p.redditPostId !== postId);
+
+        // Auto-refresh when posts run low
+        if (remaining.length < MIN_POSTS_THRESHOLD) {
+          ForYouService.getFeed(token).then(feedResult => {
+            setPosts(feedResult.posts);
+            setRecommendedSubreddits(feedResult.recommendedSubreddits);
+          }).catch(console.error);
+        }
+
+        return remaining;
+      });
     } catch (err) {
       console.error('Failed to record action:', err);
       setError('Failed to save action. Please try again.');
