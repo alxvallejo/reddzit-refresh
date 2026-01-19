@@ -22,6 +22,7 @@ const SubredditFeed = () => {
   const [suggestions, setSuggestions] = useState<SubredditSuggestion[]>([]);
   const [nextSuggestion, setNextSuggestion] = useState<SubredditSuggestion | null>(null);
   const [sort, setSort] = useState<'hot' | 'top' | 'new'>('hot');
+  const [relatedSubreddits, setRelatedSubreddits] = useState<string[]>([]);
 
   useEffect(() => {
     if (!name) return;
@@ -33,6 +34,7 @@ const SubredditFeed = () => {
         // Load posts with sort
         const result = await ForYouService.getSubredditPosts(name, sort);
         setPosts(result.posts);
+        setRelatedSubreddits(result.relatedSubreddits || []);
 
         // Load suggestions if signed in (only on initial load)
         if (accessToken && suggestions.length === 0) {
@@ -320,6 +322,32 @@ const SubredditFeed = () => {
           </div>
         </div>
       </div>
+
+      {/* Related Subreddits */}
+      {relatedSubreddits.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 pb-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-xs font-medium ${
+              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
+            }`}>
+              Related:
+            </span>
+            {relatedSubreddits.map((sub) => (
+              <Link
+                key={sub}
+                to={`/r/${sub}`}
+                className={`text-xs px-2 py-1 rounded-full transition-colors no-underline ${
+                  themeName === 'light'
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                }`}
+              >
+                r/{sub}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="max-w-7xl mx-auto px-4 mt-4">

@@ -179,8 +179,8 @@ const ForYouService = {
   /**
    * Get posts from a specific subreddit
    */
-  async getSubredditPosts(subreddit: string, sort: 'hot' | 'top' | 'new' = 'hot'): Promise<{ subreddit: string; posts: SubredditPost[] }> {
-    const response = await axios.get<{ subreddit: string; posts: SubredditPost[] }>(
+  async getSubredditPosts(subreddit: string, sort: 'hot' | 'top' | 'new' = 'hot'): Promise<{ subreddit: string; posts: SubredditPost[]; relatedSubreddits: string[] }> {
+    const response = await axios.get<{ subreddit: string; posts: SubredditPost[]; relatedSubreddits: string[] }>(
       `${API_BASE_URL}/api/subreddit/${subreddit}/posts?sort=${sort}`
     );
     return response.data;
