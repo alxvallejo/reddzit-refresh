@@ -31,6 +31,20 @@ Tapping a post title opens it in PostView. User can save posts they find interes
 
 The persona builds organically through saves. This keeps the system simpler and lets users judge by actual content rather than committing to an entire subreddit blindly.
 
+### "Not Interested" Button
+
+Each subreddit row includes a "Not Interested" button (X icon) to train negative preferences:
+
+- **On click**: Row fades out and is removed from list
+- **Backend**: Records `NOT_INTERESTED` action for that subreddit
+- **Weighting**: Uses same logic as For You feed:
+  - 3+ dismissals = deprioritize subreddit in recommendations
+  - 5+ dismissals = block subreddit entirely from Discover and For You
+
+This gives users two ways to train their persona:
+1. **Positive signal**: Save posts they like → builds affinity
+2. **Negative signal**: Dismiss subreddits → reduces/blocks visibility
+
 ## Backend
 
 ### Daily RSS Job
@@ -93,6 +107,7 @@ Returns all subreddit briefings for the current day. Optionally accepts user ID 
 3. Seed curated subreddit list
 4. Create `/api/discover/briefings` endpoint
 5. Add smart ordering logic based on user affinities
+6. Create `/api/discover/not-interested` endpoint (records subreddit dismissal)
 
 ### Frontend (reddzit-refresh)
 
@@ -101,6 +116,8 @@ Returns all subreddit briefings for the current day. Optionally accepts user ID 
 3. Fetch briefings from new endpoint
 4. Implement smart ordering display
 5. Wire post title clicks to PostView
+6. Add "Not Interested" button with fade-out animation
+7. Call backend to record dismissal
 
 ## API Usage
 
