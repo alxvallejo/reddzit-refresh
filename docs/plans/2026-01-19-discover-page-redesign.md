@@ -1,125 +1,72 @@
-# Discover Page Redesign
+# For You - Subreddit Discovery
 
 ## Goal
 
-Redesign the Discover page to help users find new subreddits and build their For You persona through organic saves.
+Add subreddit discovery directly to the For You tab. Remove the separate Discover tab.
 
-## Architecture
+## Design
 
-### Smart Detection
+### For You Tab Layout
 
-- **New users** (< 3 subreddit affinities): Show header "Explore communities and save posts you like to build your personalized feed"
-- **Established users** (≥ 3 affinities): Show header "Find new communities"
+1. **Suggested Subreddits Section** (top of page)
+   - Horizontal scrollable row of subreddit chips
+   - Each chip: subreddit name + "Not Interested" (X) button
+   - Clicking a chip expands to show top 10 posts from that subreddit
 
-### Subreddit Row Layout
+2. **Expanded Subreddit View**
+   - When user clicks a subreddit chip, show inline preview:
+     - Subreddit name, description, member count
+     - List of 10 post titles (clickable → opens PostView)
+     - "Not Interested" button to dismiss entire subreddit
+     - "Collapse" button to close preview
+   - User can save posts they like → builds positive affinity
+   - User can dismiss subreddit → builds negative signal
 
-Each row displays:
-- Subreddit name (bold)
-- Description (muted, one line, truncated)
-- Member count badge
-- 5 clickable post titles from daily RSS fetch
+3. **Main For You Feed** (below suggestions)
+   - Continues as normal with personalized posts
 
-Tapping a post title opens it in PostView. User can save posts they find interesting, which naturally builds their For You persona through existing weighting logic.
+### Suggestion Logic
 
-### Row Ordering (Smart)
+Subreddits to suggest come from:
+1. **Related to existing interests** - If user likes r/javascript, suggest r/typescript, r/node
+2. **Popular curated list** - Maintained list of quality subreddits by category
+3. **Exclude**: Already-followed subreddits, blocked subreddits (5+ Not Interested)
 
-1. **Recommended** - Related to user's existing interests (if any)
-2. **Popular** - High subscriber count subreddits
-3. **Remaining** - Other curated subreddits
+### Persona Training
 
-### No Explicit "Add" Button
+- **Save a post** from suggested subreddit → adds affinity (existing logic)
+- **"Not Interested" on subreddit** → records dismissal:
+  - 3+ dismissals = deprioritize in suggestions
+  - 5+ dismissals = block from suggestions and For You feed
 
-The persona builds organically through saves. This keeps the system simpler and lets users judge by actual content rather than committing to an entire subreddit blindly.
+## Changes Required
 
-### "Not Interested" Button
+### Remove
 
-Each subreddit row includes a "Not Interested" button (X icon) to train negative preferences:
-
-- **On click**: Row fades out and is removed from list
-- **Backend**: Records `NOT_INTERESTED` action for that subreddit
-- **Weighting**: Uses same logic as For You feed:
-  - 3+ dismissals = deprioritize subreddit in recommendations
-  - 5+ dismissals = block subreddit entirely from Discover and For You
-
-This gives users two ways to train their persona:
-1. **Positive signal**: Save posts they like → builds affinity
-2. **Negative signal**: Dismiss subreddits → reduces/blocks visibility
-
-## Backend
-
-### Daily RSS Job
-
-For each curated subreddit (~50-100):
-1. Fetch `reddit.com/r/{subreddit}/hot.rss`
-2. Extract top 5 post titles + Reddit post IDs
-3. Store in `SubredditBriefing` table
-
-### Database: `SubredditBriefing`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| id | string | Primary key |
-| subredditName | string | e.g., "programming" |
-| description | string | Subreddit description |
-| subscriberCount | number | Member count |
-| iconUrl | string | Subreddit icon (nullable) |
-| featuredPosts | JSON | Array of {redditPostId, title} |
-| generatedAt | datetime | When briefing was created |
-
-### Subreddit Metadata
-
-Reddit API used sparingly for:
-- Subreddit description
-- Subscriber count
-- Icon URL
-
-Cached weekly to minimize API usage.
-
-### API Endpoint
-
-`GET /api/discover/briefings`
-
-Returns all subreddit briefings for the current day. Optionally accepts user ID to return smart-ordered results based on existing persona.
-
-## Frontend Changes
-
-### DiscoverFeed.tsx
-
-1. Change heading from "Reddit Briefing" to "Discover"
-2. Replace current briefing view with subreddit rows
-3. Each row: subreddit info + 5 post titles
-4. Post titles link to PostView
-5. Smart ordering based on user's persona state
-
-### Visual Design
-
-- Card-style rows matching current theme
-- Subreddit name in bold, description muted
-- Post titles as a simple list within each row
-- Responsive: works on mobile and desktop
-
-## Implementation Tasks
+- Discover tab from navigation (AppShell.tsx)
+- `/discover` route (App.tsx)
+- DiscoverFeed.tsx component (or repurpose)
+- DiscoverService.ts (or repurpose relevant parts)
 
 ### Backend (read-api)
 
-1. Create `SubredditBriefing` Prisma model
-2. Create daily RSS fetch job
-3. Seed curated subreddit list
-4. Create `/api/discover/briefings` endpoint
-5. Add smart ordering logic based on user affinities
-6. Create `/api/discover/not-interested` endpoint (records subreddit dismissal)
+1. Create `/api/foryou/suggestions` endpoint
+   - Returns 5-10 suggested subreddits based on user's persona
+   - Excludes already-followed and blocked subreddits
+2. Create `/api/foryou/subreddit/:name/posts` endpoint
+   - Returns top 10 posts from a subreddit (via RSS or Reddit API)
+3. Extend existing Not Interested logic to work at subreddit level
 
 ### Frontend (reddzit-refresh)
 
-1. Update DiscoverFeed heading to "Discover"
-2. Create SubredditRow component
-3. Fetch briefings from new endpoint
-4. Implement smart ordering display
-5. Wire post title clicks to PostView
-6. Add "Not Interested" button with fade-out animation
-7. Call backend to record dismissal
+1. Remove Discover tab from AppShell navigation
+2. Remove `/discover` route
+3. Add SuggestedSubreddits component to ForYouFeed
+4. Add SubredditPreview component (expanded view with 10 posts)
+5. Wire up Not Interested for subreddit dismissal
 
 ## API Usage
 
-- **RSS**: Unlimited, free (daily fetch per subreddit)
-- **Reddit API**: Minimal (weekly metadata refresh only)
+- **Suggestions endpoint**: Light query against persona data
+- **Subreddit posts**: Fetch via RSS (free) when user clicks to expand
+- **Reddit API**: Minimal, only for subreddit metadata if needed
