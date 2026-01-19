@@ -44,6 +44,20 @@ export interface Report {
   generatedAt: string;
 }
 
+export interface SubredditSuggestion {
+  name: string;
+  category: string;
+}
+
+export interface SubredditPost {
+  id: string;
+  title: string;
+  subreddit: string;
+  link: string;
+  author: string;
+  pubDate: string;
+}
+
 const ForYouService = {
   /**
    * Refresh user persona based on saved posts
@@ -143,6 +157,39 @@ const ForYouService = {
     const response = await axios.post<{ report: Report }>(
       `${API_BASE_URL}/api/foryou/report/generate`,
       { model },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get suggested subreddits for discovery
+   */
+  async getSuggestions(token: string): Promise<{ suggestions: SubredditSuggestion[] }> {
+    const response = await axios.get<{ suggestions: SubredditSuggestion[] }>(
+      `${API_BASE_URL}/api/foryou/suggestions`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get posts from a specific subreddit
+   */
+  async getSubredditPosts(subreddit: string): Promise<{ subreddit: string; posts: SubredditPost[] }> {
+    const response = await axios.get<{ subreddit: string; posts: SubredditPost[] }>(
+      `${API_BASE_URL}/api/subreddit/${subreddit}/posts`
+    );
+    return response.data;
+  },
+
+  /**
+   * Mark a subreddit as not interested
+   */
+  async dismissSubreddit(token: string, subreddit: string): Promise<{ success: boolean; dismissCount: number; blocked: boolean }> {
+    const response = await axios.post<{ success: boolean; dismissCount: number; blocked: boolean }>(
+      `${API_BASE_URL}/api/foryou/subreddit-not-interested`,
+      { subreddit },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
