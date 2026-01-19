@@ -65,7 +65,7 @@ const ForYouFeed = () => {
         setError('Failed to load personalized feed. Please try again.');
       }
     } finally {
-      if (isMounted.current) setLoading(false);
+      setLoading(false);
     }
   }, [token]);
 
@@ -82,31 +82,23 @@ const ForYouFeed = () => {
   const handleRefreshPersona = async () => {
     if (!token) return;
 
-    if (isMounted.current) {
-      setRefreshingPersona(true);
-      setError(null);
-    }
+    setRefreshingPersona(true);
+    setError(null);
 
     try {
       const result = await ForYouService.refreshPersona(token);
-      if (isMounted.current) {
-        setPersona(result.persona);
-        setPersonaRefreshedAt(new Date().toISOString());
-      }
+      setPersona(result.persona);
+      setPersonaRefreshedAt(new Date().toISOString());
 
       // Reload feed with new persona
       const feedResult = await ForYouService.getFeed(token);
-      if (isMounted.current) {
-        setPosts(feedResult.posts);
-        setRecommendedSubreddits(feedResult.recommendedSubreddits);
-      }
+      setPosts(feedResult.posts);
+      setRecommendedSubreddits(feedResult.recommendedSubreddits);
     } catch (err) {
       console.error('Failed to refresh persona:', err);
-      if (isMounted.current) {
-        setError('Failed to refresh persona. Please try again.');
-      }
+      setError('Failed to refresh persona. Please try again.');
     } finally {
-      if (isMounted.current) setRefreshingPersona(false);
+      setRefreshingPersona(false);
     }
   };
 
