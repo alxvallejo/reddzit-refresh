@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
-import DiscoverFeed from './DiscoverFeed';
 import TopFeed from './TopFeed';
 import ForYouFeed from './ForYouFeed';
 import TrendingMarquee from './TrendingMarquee';
@@ -12,17 +11,21 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'top' | 'saved' | 'discover' | 'foryou';
+type Tab = 'top' | 'saved' | 'foryou';
 
-interface AppShellProps {
-  defaultTab?: Tab;
-}
+// Derive active tab from URL path
+const getTabFromPath = (pathname: string): Tab => {
+  if (pathname === '/reddit' || pathname === '/saved') return 'saved';
+  if (pathname === '/foryou') return 'foryou';
+  return 'top';
+};
 
-const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
+const AppShell = () => {
   const { signedIn, user, loading, logout, redirectForAuth } = useReddit();
   const { themeName } = useTheme();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
+  const location = useLocation();
+  const activeTab = getTabFromPath(location.pathname);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [email, setEmail] = useState('');
   const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -112,20 +115,6 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
               >
                 <span className="sm:hidden">Saved</span>
                 <span className="hidden sm:inline">Saved Posts</span>
-              </button>
-              <button
-                onClick={() => navigate('/discover')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
-                  themeName === 'light'
-                    ? activeTab === 'discover'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
-                    : activeTab === 'discover'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
-                }`}
-              >
-                Discover
               </button>
               <button
                 onClick={() => navigate('/foryou')}
@@ -222,7 +211,6 @@ const AppShell = ({ defaultTab = 'top' }: AppShellProps) => {
       <main>
         {activeTab === 'saved' && <SavedContent />}
         {activeTab === 'top' && <TopContent />}
-        {activeTab === 'discover' && <DiscoverFeed />}
         {activeTab === 'foryou' && <ForYouContent />}
       </main>
 

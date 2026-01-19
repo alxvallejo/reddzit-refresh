@@ -18,12 +18,11 @@ function App() {
           <div className='App'>
           <Routes>
             <Route index path='/' element={<AppShell />} />
-            <Route path='/top' element={<AppShell defaultTab="top" />} />
-            <Route path='/discover' element={<AppShell defaultTab="discover" />} />
-            <Route path='/foryou' element={<AppShell defaultTab="foryou" />} />
+            <Route path='/top' element={<AppShell />} />
+            <Route path='/foryou' element={<AppShell />} />
             <Route path='/foryou/settings' element={<ForYouSettings />} />
             <Route path='/foryou/report' element={<ForYouReport />} />
-            <Route path='/reddit' element={<AppShell defaultTab="saved" />} />
+            <Route path='/reddit' element={<AppShell />} />
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />
             <Route path='/p/:fullname/:slug' element={<PostView />} />
