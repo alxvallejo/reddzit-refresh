@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
-import ForYouService, { ForYouPost, Persona, TriageAction } from '../helpers/ForYouService';
+import ForYouService, { ForYouPost, Persona, TriageAction, SubredditSuggestion } from '../helpers/ForYouService';
 
 const CURATED_LIMIT = 20;
 const SLUG_MAX_LENGTH = 60;
@@ -23,6 +23,7 @@ const ForYouFeed = () => {
   const [personaRefreshedAt, setPersonaRefreshedAt] = useState<string | null>(null);
   const [curatedCount, setCuratedCount] = useState(0);
   const [recommendedSubreddits, setRecommendedSubreddits] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<SubredditSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshingPersona, setRefreshingPersona] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,10 +40,11 @@ const ForYouFeed = () => {
     setError(null);
 
     try {
-      const [personaResult, feedResult, curatedResult] = await Promise.all([
+      const [personaResult, feedResult, curatedResult, suggestionsResult] = await Promise.all([
         ForYouService.getPersona(token),
         ForYouService.getFeed(token),
         ForYouService.getCurated(token),
+        ForYouService.getSuggestions(token),
       ]);
 
       setPersona(personaResult.persona);
@@ -50,6 +52,7 @@ const ForYouFeed = () => {
       setPosts(feedResult.posts);
       setRecommendedSubreddits(feedResult.recommendedSubreddits);
       setCuratedCount(curatedResult.count);
+      setSuggestions(suggestionsResult.suggestions);
     } catch (err) {
       console.error('Failed to load For You data:', err);
       setError('Failed to load personalized feed. Please try again.');
@@ -438,6 +441,37 @@ const ForYouFeed = () => {
               >
                 r/{sub}
               </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggested Subreddits */}
+      {suggestions.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 pb-6">
+          <h3 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
+            themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
+          }`}>
+            Discover New Subreddits
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {suggestions.map((sub) => (
+              <Link
+                key={sub.name}
+                to={`/r/${sub.name}`}
+                className={`p-3 rounded-xl text-center transition-all no-underline ${
+                  themeName === 'light'
+                    ? 'bg-white hover:shadow-md border border-gray-100 text-gray-900'
+                    : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                <div className="font-medium">r/{sub.name}</div>
+                <div className={`text-xs mt-1 ${
+                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+                }`}>
+                  {sub.category}
+                </div>
+              </Link>
             ))}
           </div>
         </div>
