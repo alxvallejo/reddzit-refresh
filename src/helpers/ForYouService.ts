@@ -56,6 +56,9 @@ export interface SubredditPost {
   link: string;
   author: string;
   pubDate: string;
+  score: number;
+  numComments: number;
+  thumbnail: string | null;
 }
 
 const ForYouService = {
@@ -176,9 +179,9 @@ const ForYouService = {
   /**
    * Get posts from a specific subreddit
    */
-  async getSubredditPosts(subreddit: string): Promise<{ subreddit: string; posts: SubredditPost[] }> {
+  async getSubredditPosts(subreddit: string, sort: 'hot' | 'top' | 'new' = 'hot'): Promise<{ subreddit: string; posts: SubredditPost[] }> {
     const response = await axios.get<{ subreddit: string; posts: SubredditPost[] }>(
-      `${API_BASE_URL}/api/subreddit/${subreddit}/posts`
+      `${API_BASE_URL}/api/subreddit/${subreddit}/posts?sort=${sort}`
     );
     return response.data;
   },
