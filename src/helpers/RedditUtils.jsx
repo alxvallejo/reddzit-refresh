@@ -158,16 +158,31 @@ export const getPostType = (post) => {
   return postType;
 };
 
+// Decode HTML entities in Reddit titles
+const decodeHtmlEntities = (text) => {
+  if (!text) return text;
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&nbsp;/g, ' ');
+};
+
 // Human-friendly title for posts and comments
 export const getDisplayTitle = (post) => {
   if (!post) return '';
-  if (post.title) return post.title;
+  if (post.title) return decodeHtmlEntities(post.title);
   const isRedditComment =
     (post && post.name && post.name.startsWith('t1_')) || !!post.body;
   if (isRedditComment) {
-    return post.link_title || 'Reddit Comment';
+    return decodeHtmlEntities(post.link_title) || 'Reddit Comment';
   }
-  return post.link_title || post.url || 'Untitled';
+  return decodeHtmlEntities(post.link_title) || post.url || 'Untitled';
 };
 
 // Create a short, single-line snippet for a Reddit comment body

@@ -96,7 +96,9 @@ export default function PostView() {
 
   const bgColor = darkMode ? 'bg-[#322a5a] text-gray-200' : 'bg-white text-gray-900';
   const headerBg = darkMode ? 'bg-[#322a5a]/95' : 'bg-[#b6aaf1]/95';
-  const articleClass = darkMode ? 'prose-invert prose-p:text-gray-300 prose-headings:text-gray-100 prose-strong:text-white prose-li:text-gray-300 prose-ul:text-gray-300 prose-ol:text-gray-300 prose-a:text-[#b6aaf1] hover:prose-a:text-white' : 'prose-gray';
+  const articleClass = darkMode
+    ? 'prose-invert prose-p:text-gray-300 prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-gray-300 prose-li:font-light prose-ul:text-gray-300 prose-ol:text-gray-300 prose-a:text-[#b6aaf1] hover:prose-a:text-white'
+    : 'prose-gray prose-p:font-light prose-headings:font-normal prose-strong:font-medium prose-li:font-light';
   
   const handleShare = async () => {
     try {
@@ -132,7 +134,7 @@ export default function PostView() {
                 </Link>
                 
                 <div className={`transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 hidden sm:block'}`}>
-                     <h2 className="text-sm font-bold truncate max-w-[200px] sm:max-w-md text-white">
+                     <h2 className="text-sm font-medium truncate max-w-[200px] sm:max-w-md text-white">
                         {getDisplayTitle(post)}
                      </h2>
                 </div>
@@ -163,7 +165,7 @@ export default function PostView() {
                  <div className="text-[#ff4500] font-bold text-sm uppercase tracking-wide mb-2">
                      {post.subreddit}
                  </div>
-                 <h1 className="text-3xl sm:text-4xl font-serif font-bold leading-tight mb-4">
+                 <h1 className="text-3xl sm:text-4xl font-serif font-normal leading-tight mb-4">
                      <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="hover:text-[#ff4500] transition-colors text-inherit no-underline">
                         {getDisplayTitle(post)}
                      </a>
