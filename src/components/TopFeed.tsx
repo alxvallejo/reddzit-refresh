@@ -37,12 +37,6 @@ const TopFeed = () => {
     navigate(`/p/${fullname}/${slug}`);
   };
 
-  const formatScore = (score: number) => {
-    if (score >= 1000000) return `${(score / 1000000).toFixed(1)}M`;
-    if (score >= 1000) return `${(score / 1000).toFixed(1)}K`;
-    return score.toString();
-  };
-
   // Check if post is image-only (no meaningful text content to summarize)
   const isImageOnlyPost = (story: ReportStory) => {
     if (!story.postUrl) return false;
@@ -126,17 +120,12 @@ const TopFeed = () => {
               }}
               onClick={() => handleStoryClick(story)}
             >
-              <div className="flex items-baseline justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold uppercase tracking-wide ${
-                    themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                  }`}>
-                    r/{story.subreddit}
-                  </span>
-                </div>
-                <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
-                  {formatScore(story.score)} pts • {story.numComments} comments
-                </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-xs font-bold uppercase tracking-wide ${
+                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+                }`}>
+                  r/{story.subreddit}
+                </span>
               </div>
 
               <h2 className={`font-medium mb-3 leading-tight transition-colors ${
