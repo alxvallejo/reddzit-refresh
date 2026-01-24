@@ -376,11 +376,7 @@ export const getParsedContent = (
         },
       });
 
-      return (
-        <div className='prose prose-lg max-w-none' style={{ fontSize }}>
-          {content}
-        </div>
-      );
+      return content;
     } catch (err) {
       return (
         <div className='my-4' style={{ fontSize }}>
@@ -419,11 +415,7 @@ export const getParsedContent = (
         },
       });
 
-      return (
-        <div className='prose prose-lg max-w-none' style={{ fontSize }}>
-          {content}
-        </div>
-      );
+      return content;
     } catch (err) {
       return (
         <div className='my-4' style={{ fontSize }}>
