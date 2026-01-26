@@ -29,6 +29,7 @@ const ForYouFeed = () => {
   const [refreshingPersona, setRefreshingPersona] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPersona, setShowPersona] = useState(false);
+  const [showWeightsModal, setShowWeightsModal] = useState(false);
 
   // Load data: persona, feed, and curated count in parallel
   const loadData = useCallback(async () => {
@@ -301,6 +302,16 @@ const ForYouFeed = () => {
               >
                 {refreshingPersona ? <span className="animate-spin inline-block">&#8987;</span> : 'Refresh'}
               </button>
+              <button
+                onClick={() => setShowWeightsModal(true)}
+                className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                  themeName === 'light'
+                    ? 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                Weights
+              </button>
               <Link
                 to="/foryou/settings"
                 className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
@@ -528,7 +539,7 @@ const ForYouFeed = () => {
                       : 'text-gray-500 hover:text-gray-300 hover:bg-white/10'
                   }`}
                 >
-                  Not Interested
+                  Hide
                 </button>
               </div>
             ))}
@@ -637,7 +648,7 @@ const ForYouFeed = () => {
                       : 'bg-white/10 text-gray-400 hover:bg-white/20'
                   }`}
                 >
-                  Not Interested
+                  Hide
                 </button>
               </div>
             </article>
@@ -647,6 +658,85 @@ const ForYouFeed = () => {
         <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
           <p className="text-xl">No posts available</p>
           <p className="text-sm mt-2">Try refreshing your persona to get new recommendations.</p>
+        </div>
+      )}
+
+      {/* Weights Modal */}
+      {showWeightsModal && persona?.subredditAffinities && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowWeightsModal(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Modal */}
+          <div
+            className={`relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl p-6 ${
+              themeName === 'light'
+                ? 'bg-white shadow-2xl'
+                : 'bg-[#1a1a2e] border border-white/10'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xl font-bold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                Subreddit Weights
+              </h2>
+              <button
+                onClick={() => setShowWeightsModal(false)}
+                className={`p-2 rounded-lg transition ${
+                  themeName === 'light'
+                    ? 'hover:bg-gray-100 text-gray-500'
+                    : 'hover:bg-white/10 text-gray-400'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <p className={`text-sm mb-4 ${themeName === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              Higher weights mean more posts from that subreddit in your feed.
+            </p>
+
+            <div className="space-y-3">
+              {(() => {
+                const maxWeight = Math.max(...persona.subredditAffinities.map(s => s.weight));
+                return persona.subredditAffinities
+                  .sort((a, b) => b.weight - a.weight)
+                  .slice(0, 20)
+                  .map((sub, i) => {
+                    const percentage = maxWeight > 0 ? (sub.weight / maxWeight) * 100 : 0;
+                    return (
+                      <div key={i} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className={themeName === 'light' ? 'text-gray-700' : 'text-gray-200'}>
+                            r/{sub.name}
+                          </span>
+                          <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {sub.weight.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className={`h-2 rounded-full overflow-hidden ${
+                          themeName === 'light' ? 'bg-gray-100' : 'bg-white/10'
+                        }`}>
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              themeName === 'light'
+                                ? 'bg-gradient-to-r from-orange-400 to-orange-600'
+                                : 'bg-gradient-to-r from-[var(--theme-primary)] to-purple-500'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  });
+              })()}
+            </div>
+          </div>
         </div>
       )}
     </div>
