@@ -287,7 +287,7 @@ export const handlePostType = async (postType) => {
                 text-decoration: underline !important;
               }
             </style>
-            <div class="comment-card" style="border-left: 3px solid var(--theme-primary, #b6aaf1); padding: 1rem 1rem 1rem 1.25rem; margin-bottom: 1.5rem; background: var(--theme-cardBg, rgba(255,255,255,0.08)); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div class="comment-card" style="border-left: 3px solid var(--theme-primary, #b6aaf1); padding: 1rem 1rem 1rem 1.25rem; margin-bottom: 1.5rem; background: transparent;">
               <div class="comment-meta" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--theme-textMuted, #c4b8e8);">
                 <span style="font-weight: 600; color: var(--theme-primary, #b6aaf1);">u/${author}</span>
                 ${subreddit ? `<span style="opacity: 0.5;">•</span><span>${subreddit}</span>` : ''}
