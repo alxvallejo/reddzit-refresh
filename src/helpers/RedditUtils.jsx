@@ -286,6 +286,19 @@ export const handlePostType = async (postType) => {
               .comment-body a {
                 text-decoration: underline !important;
               }
+              /* Light mode: use dark gray instead of light purple */
+              .bg-white .comment-body, .bg-white .comment-body p, .bg-white .comment-body span, .bg-white .comment-body a {
+                color: #4b5563 !important;
+              }
+              .bg-white .comment-meta, .bg-white .comment-meta span {
+                color: #6b7280 !important;
+              }
+              .bg-white .comment-meta span[style*="font-weight: 600"] {
+                color: #7c3aed !important;
+              }
+              .bg-white .comment-card {
+                border-left-color: #7c3aed !important;
+              }
             </style>
             <div class="comment-card" style="border-left: 3px solid var(--theme-primary, #b6aaf1); padding: 1rem 1rem 1rem 1.25rem; margin-bottom: 1.5rem; background: transparent;">
               <div class="comment-meta" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--theme-textMuted, #c4b8e8);">
