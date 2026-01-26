@@ -191,10 +191,14 @@ export default function PostView() {
         
         {/* Sticky Footer Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
-            <div className="pointer-events-auto flex gap-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white px-6 py-3 rounded-full shadow-2xl items-center">
-                 <button 
+            <div className={`pointer-events-auto flex gap-4 backdrop-blur-xl border px-6 py-3 rounded-full shadow-2xl items-center ${
+              darkMode
+                ? 'bg-white/10 border-white/20 text-white'
+                : 'bg-gray-900/90 border-gray-700 text-white'
+            }`}>
+                 <button
                     onClick={() => navigate(-1)}
-                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
                  >
                      ← Back
                  </button>
@@ -209,31 +213,31 @@ export default function PostView() {
                             savePost(post.name);
                           }
                         }}
-                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
                      >
                          {post.saved ? 'Unsave' : 'Save'}
                      </button>
                  ) : (
-                     <button 
+                     <button
                         onClick={redirectForAuth}
-                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
                      >
                          Login to Save
                      </button>
                  )}
                  <span className="opacity-30">|</span>
-                 <button 
+                 <button
                     onClick={handleShare}
-                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
+                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
                  >
                      {copied ? 'Copied!' : 'Share'}
                  </button>
                  <span className="opacity-30">|</span>
-                 <a 
+                 <a
                     href={`https://www.reddit.com${post.permalink}`}
-                    target="_blank" 
+                    target="_blank"
                     rel="noreferrer"
-                    className="font-bold hover:text-[#ff4500] transition-colors text-white no-underline"
+                    className="font-bold hover:text-[#ff4500] transition-colors text-inherit no-underline"
                  >
                      View on Reddit
                  </a>
