@@ -87,7 +87,7 @@ const TopFeed = () => {
           <div className="flex items-center justify-between py-4">
             <div>
               <h1 className={`text-2xl font-bold ${
-                themeName === 'light' ? 'text-gray-900' : ''
+                themeName === 'light' ? 'text-gray-900' : 'text-[#c4b8e8]'
               }`}>
                 Top Posts on Reddit
               </h1>
@@ -133,7 +133,7 @@ const TopFeed = () => {
               } ${
                 themeName === 'light'
                   ? 'text-gray-900 group-hover:text-orange-600'
-                  : 'group-hover:text-[var(--theme-primary)]'
+                  : 'text-[#c4b8e8] group-hover:text-[var(--theme-primary)]'
               }`}>
                 {story.title}
               </h2>

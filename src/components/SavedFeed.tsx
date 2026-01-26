@@ -100,7 +100,7 @@ const SavedFeed = () => {
                 {post.subreddit}
               </div>
               <h3 className={`font-medium leading-tight mb-2 line-clamp-2 ${
-                themeName === 'light' ? 'text-gray-900' : ''
+                themeName === 'light' ? 'text-gray-900' : 'text-[#c4b8e8]'
               } ${index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
                 {getDisplayTitle(post)}
               </h3>
