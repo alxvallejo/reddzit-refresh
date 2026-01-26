@@ -280,7 +280,7 @@ export const handlePostType = async (postType) => {
           content: `
             <style>
               .comment-body, .comment-body p, .comment-body span, .comment-body a {
-                color: #c4b8e8 !important;
+                color: #cbc7e2 !important;
                 font-weight: 300 !important;
               }
               .comment-body a {
