@@ -278,20 +278,20 @@ export const handlePostType = async (postType) => {
 
         return {
           content: `
-            <div class="comment-card" style="border-left: 3px solid #ff4500; padding-left: 1rem; margin-bottom: 1.5rem;">
-              <div class="comment-meta" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.875rem; opacity: 0.8;">
-                <span style="font-weight: 600;">u/${author}</span>
-                ${subreddit ? `<span style="opacity: 0.6;">•</span><span>${subreddit}</span>` : ''}
-                <span style="opacity: 0.6;">•</span>
+            <div class="comment-card" style="border-left: 3px solid var(--theme-primary, #b6aaf1); padding: 1rem 1rem 1rem 1.25rem; margin-bottom: 1.5rem; background: var(--theme-cardBg, rgba(255,255,255,0.08)); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div class="comment-meta" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--theme-textMuted, #c4b8e8);">
+                <span style="font-weight: 600; color: var(--theme-primary, #b6aaf1);">u/${author}</span>
+                ${subreddit ? `<span style="opacity: 0.5;">•</span><span>${subreddit}</span>` : ''}
+                <span style="opacity: 0.5;">•</span>
                 <span title="${score} points">▲ ${scoreDisplay}</span>
-                ${date ? `<span style="opacity: 0.6;">•</span><span>${date}</span>` : ''}
+                ${date ? `<span style="opacity: 0.5;">•</span><span>${date}</span>` : ''}
               </div>
-              <div class="comment-body" style="font-style: italic; opacity: 0.95;">
+              <div class="comment-body">
                 ${commentContent}
               </div>
             </div>
             <p style="margin-top: 1.5rem;">
-              <a href="${postType.url}" target="_blank" class="text-[#ff4500] hover:underline" style="font-weight: 500;">View full thread on Reddit →</a>
+              <a href="${postType.url}" target="_blank" style="color: var(--theme-primary, #b6aaf1); font-weight: 500; text-decoration: none;">View full thread on Reddit →</a>
             </p>`,
           title: postType.title,
         };

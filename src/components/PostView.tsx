@@ -191,7 +191,7 @@ export default function PostView() {
         
         {/* Sticky Footer Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
-            <div className="pointer-events-auto flex gap-4 bg-black/80 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl items-center">
+            <div className="pointer-events-auto flex gap-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white px-6 py-3 rounded-full shadow-2xl items-center">
                  <button 
                     onClick={() => navigate(-1)}
                     className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-white"
