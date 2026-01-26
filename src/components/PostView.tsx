@@ -165,7 +165,7 @@ export default function PostView() {
                  <div className="text-[#ff4500] font-bold text-sm uppercase tracking-wide mb-2">
                      {post.subreddit}
                  </div>
-                 <h1 className={`text-3xl sm:text-4xl font-serif leading-tight mb-4 ${darkMode ? 'font-light' : 'font-normal'}`}>
+                 <h1 className={`text-3xl sm:text-4xl font-sans leading-tight mb-4 ${darkMode ? 'font-extralight' : 'font-normal'}`}>
                      <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="hover:text-[#ff4500] transition-colors text-inherit no-underline">
                         {getDisplayTitle(post)}
                      </a>
