@@ -286,7 +286,7 @@ export const handlePostType = async (postType) => {
                 <span title="${score} points">▲ ${scoreDisplay}</span>
                 ${date ? `<span style="opacity: 0.5;">•</span><span>${date}</span>` : ''}
               </div>
-              <div class="comment-body" style="color: var(--theme-textMuted, #c4b8e8);">
+              <div class="comment-body" style="color: #c4b8e8 !important; font-weight: 300;">
                 ${commentContent}
               </div>
             </div>
