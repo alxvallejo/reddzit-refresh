@@ -73,24 +73,21 @@ const SavedFeed = () => {
               borderColor: 'var(--theme-border)'
             } as React.CSSProperties)}
           >
-            {/* Thumbnail */}
-            <div className={`flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center ${
-              themeName === 'light' ? 'bg-gray-100' : 'bg-white/10'
-            } ${index === 0 ? 'w-28 h-28 md:w-32 md:h-32' : 'w-20 h-20'}`}>
-              {getPreviewImage(post) ? (
+            {/* Thumbnail - only show if preview image exists */}
+            {getPreviewImage(post) && (
+              <div className={`flex-shrink-0 rounded-lg overflow-hidden ${
+                index === 0 ? 'w-28 h-28 md:w-32 md:h-32' : 'w-20 h-20'
+              }`}>
                 <img
                   src={getPreviewImage(post)}
                   alt=""
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    (e.target as HTMLImageElement).parentElement!.innerText = '🔗';
+                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
                   }}
                 />
-              ) : (
-                <span className="text-2xl">{post.is_self ? '📝' : '🔗'}</span>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Text */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -99,9 +96,9 @@ const SavedFeed = () => {
               }`}>
                 {post.subreddit}
               </div>
-              <h3 className={`font-sans font-extralight leading-tight mb-2 line-clamp-2 ${
-                themeName === 'light' ? 'text-gray-900 group-hover:text-orange-600' : 'text-[#c4b8e8] group-hover:text-[var(--theme-primary)]'
-              } ${index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
+              <h3 className={`font-sans font-light leading-tight mb-2 transition-colors ${
+                themeName === 'light' ? 'text-gray-500 group-hover:text-orange-600' : 'text-gray-400 group-hover:text-[var(--theme-primary)]'
+              } ${index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'} ${getPreviewImage(post) ? 'line-clamp-2' : 'line-clamp-3'}`}>
                 {getDisplayTitle(post)}
               </h3>
               {isComment(post) && (
