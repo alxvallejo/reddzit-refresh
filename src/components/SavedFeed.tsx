@@ -63,7 +63,7 @@ const SavedFeed = () => {
           <div
             key={post.id}
             onClick={() => handlePostClick(post)}
-            className={`rounded-xl p-4 transition cursor-pointer flex gap-4 overflow-hidden border ${
+            className={`group rounded-xl p-4 transition cursor-pointer flex gap-4 overflow-hidden border ${
               themeName === 'light'
                 ? 'bg-white shadow-sm hover:shadow-md border-gray-100'
                 : 'backdrop-blur-md hover:bg-white/[0.12]'
@@ -99,8 +99,8 @@ const SavedFeed = () => {
               }`}>
                 {post.subreddit}
               </div>
-              <h3 className={`font-medium leading-tight mb-2 line-clamp-2 ${
-                themeName === 'light' ? 'text-gray-900' : 'text-[#c4b8e8]'
+              <h3 className={`font-light italic leading-tight mb-2 line-clamp-2 ${
+                themeName === 'light' ? 'text-gray-900 group-hover:text-orange-600' : 'text-[#c4b8e8] group-hover:text-[var(--theme-primary)]'
               } ${index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
                 {getDisplayTitle(post)}
               </h3>

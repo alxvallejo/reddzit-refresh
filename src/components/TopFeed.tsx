@@ -86,7 +86,7 @@ const TopFeed = () => {
         }`}>
           <div className="flex items-center justify-between py-4">
             <div>
-              <h1 className={`text-2xl font-bold ${
+              <h1 className={`text-2xl font-light italic ${
                 themeName === 'light' ? 'text-gray-900' : 'text-[#c4b8e8]'
               }`}>
                 Top Posts on Reddit
@@ -128,7 +128,7 @@ const TopFeed = () => {
                 </span>
               </div>
 
-              <h2 className={`font-medium mb-3 leading-tight transition-colors ${
+              <h2 className={`font-light italic mb-3 leading-tight ${
                 index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
               } ${
                 themeName === 'light'
