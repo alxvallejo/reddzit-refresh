@@ -63,6 +63,18 @@ export interface SubredditPost {
 
 const ForYouService = {
   /**
+   * Sync user's Reddit subscriptions to our database
+   */
+  async syncSubscriptions(token: string): Promise<{ success: boolean; count: number }> {
+    const response = await axios.post<{ success: boolean; count: number }>(
+      `${API_BASE_URL}/api/foryou/subscriptions/sync`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
+  /**
    * Refresh user persona based on saved posts
    */
   async refreshPersona(token: string): Promise<{ persona: Persona }> {

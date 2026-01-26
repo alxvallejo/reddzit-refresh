@@ -24,6 +24,7 @@ const ForYouFeed = () => {
   const [curatedCount, setCuratedCount] = useState(0);
   const [recommendedSubreddits, setRecommendedSubreddits] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<SubredditSuggestion[]>([]);
+  const [suggestionPool, setSuggestionPool] = useState<SubredditSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshingPersona, setRefreshingPersona] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,12 @@ const ForYouFeed = () => {
     setError(null);
 
     try {
+      // Sync subscriptions first (so suggestions can filter them out)
+      await ForYouService.syncSubscriptions(token).catch(err => {
+        console.warn('Failed to sync subscriptions:', err);
+        // Continue even if sync fails - suggestions may include some subscribed subreddits
+      });
+
       const [personaResult, feedResult, curatedResult, suggestionsResult] = await Promise.all([
         ForYouService.getPersona(token),
         ForYouService.getFeed(token),
@@ -52,7 +59,10 @@ const ForYouFeed = () => {
       setPosts(feedResult.posts);
       setRecommendedSubreddits(feedResult.recommendedSubreddits);
       setCuratedCount(curatedResult.count);
-      setSuggestions(suggestionsResult.suggestions);
+      // Store full pool and display first 12
+      const allSuggestions = suggestionsResult.suggestions;
+      setSuggestionPool(allSuggestions);
+      setSuggestions(allSuggestions.slice(0, 12));
     } catch (err) {
       console.error('Failed to load For You data:', err);
       setError('Failed to load personalized feed. Please try again.');
@@ -119,6 +129,35 @@ const ForYouFeed = () => {
     } catch (err) {
       console.error('Failed to record action:', err);
       setError('Failed to save action. Please try again.');
+    }
+  };
+
+  // Dismiss a suggested subreddit and replace with another from the pool
+  const handleDismissSuggestion = async (subredditName: string) => {
+    if (!token) return;
+
+    try {
+      await ForYouService.dismissSubreddit(token, subredditName);
+
+      // Find a replacement from the pool that's not currently displayed
+      const displayedNames = suggestions.map(s => s.name);
+      const replacement = suggestionPool.find(
+        s => s.name !== subredditName && !displayedNames.includes(s.name)
+      );
+
+      // Update displayed suggestions
+      setSuggestions(prev => {
+        const updated = prev.filter(s => s.name !== subredditName);
+        if (replacement) {
+          updated.push(replacement);
+        }
+        return updated;
+      });
+
+      // Remove dismissed subreddit from pool
+      setSuggestionPool(prev => prev.filter(s => s.name !== subredditName));
+    } catch (err) {
+      console.error('Failed to dismiss subreddit:', err);
     }
   };
 
@@ -431,16 +470,17 @@ const ForYouFeed = () => {
               Recommended:
             </span>
             {recommendedSubreddits.slice(0, RECOMMENDED_SUBREDDITS_LIMIT).map((sub, i) => (
-              <span
+              <Link
                 key={i}
-                className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                to={`/r/${sub}`}
+                className={`text-xs px-2 py-1 rounded-full whitespace-nowrap no-underline ${
                   themeName === 'light'
                     ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                } cursor-pointer transition`}
+                } transition`}
               >
                 r/{sub}
-              </span>
+              </Link>
             ))}
           </div>
         </div>
@@ -456,22 +496,41 @@ const ForYouFeed = () => {
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {suggestions.map((sub) => (
-              <Link
+              <div
                 key={sub.name}
-                to={`/r/${sub.name}`}
-                className={`p-3 rounded-xl text-center transition-all no-underline ${
+                className={`relative p-3 rounded-xl text-center transition-all ${
                   themeName === 'light'
-                    ? 'bg-white hover:shadow-md border border-gray-100 text-gray-900'
+                    ? 'bg-white hover:shadow-md border border-gray-100'
                     : 'bg-white/5 hover:bg-white/10 border border-white/10'
                 }`}
               >
-                <div className="font-medium">r/{sub.name}</div>
-                <div className={`text-xs mt-1 ${
-                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                }`}>
-                  {sub.category}
-                </div>
-              </Link>
+                <Link
+                  to={`/r/${sub.name}`}
+                  className={`block no-underline ${
+                    themeName === 'light' ? 'text-gray-900' : ''
+                  }`}
+                >
+                  <div className="font-medium">r/{sub.name}</div>
+                  <div className={`text-xs mt-1 ${
+                    themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+                  }`}>
+                    {sub.category}
+                  </div>
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDismissSuggestion(sub.name);
+                  }}
+                  className={`mt-2 w-full text-xs px-2 py-1 rounded-lg transition ${
+                    themeName === 'light'
+                      ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  Not Interested
+                </button>
+              </div>
             ))}
           </div>
         </div>

@@ -266,9 +266,33 @@ export const handlePostType = async (postType) => {
           // Fallback to plain text
           commentContent = `<pre>${post.body}</pre>`;
         }
-        
+
+        // Format metadata
+        const author = post.author || 'unknown';
+        const subreddit = post.subreddit ? `r/${post.subreddit}` : '';
+        const score = typeof post.score === 'number' ? post.score : (post.ups || 0);
+        const scoreDisplay = score >= 1000 ? `${(score / 1000).toFixed(1)}k` : score;
+        const date = post.created_utc
+          ? new Date(post.created_utc * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '';
+
         return {
-          content: `<div class="comment-body p-4 bg-gray-50 rounded mb-4">${commentContent}</div><p style="margin-top: 1em;"><a href="${postType.url}" target="_blank" class="text-[#ff4500] hover:underline">View full thread on Reddit</a></p>`,
+          content: `
+            <div class="comment-card" style="border-left: 3px solid #ff4500; padding-left: 1rem; margin-bottom: 1.5rem;">
+              <div class="comment-meta" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.875rem; opacity: 0.8;">
+                <span style="font-weight: 600;">u/${author}</span>
+                ${subreddit ? `<span style="opacity: 0.6;">•</span><span>${subreddit}</span>` : ''}
+                <span style="opacity: 0.6;">•</span>
+                <span title="${score} points">▲ ${scoreDisplay}</span>
+                ${date ? `<span style="opacity: 0.6;">•</span><span>${date}</span>` : ''}
+              </div>
+              <div class="comment-body" style="font-style: italic; opacity: 0.95;">
+                ${commentContent}
+              </div>
+            </div>
+            <p style="margin-top: 1.5rem;">
+              <a href="${postType.url}" target="_blank" class="text-[#ff4500] hover:underline" style="font-weight: 500;">View full thread on Reddit →</a>
+            </p>`,
           title: postType.title,
         };
       }
