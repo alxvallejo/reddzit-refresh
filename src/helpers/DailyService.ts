@@ -125,20 +125,33 @@ const DailyService = {
         const { data, timestamp } = JSON.parse(cached);
         const hasPosts = data?.length > 0;
         if (Date.now() - timestamp < RSS_CACHE_DURATION && hasPosts) {
-          console.log('Using cached RSS, posts:', data.length);
           return data;
         }
         // Clear invalid/empty cache
         if (!hasPosts) {
-          console.log('Clearing empty RSS cache');
           localStorage.removeItem(RSS_CACHE_KEY);
         }
       }
 
-      console.log('Fetching trending RSS from API...');
-      const response = await axios.get(`${API_BASE_URL}/api/trending/rss`);
-      const posts = response.data.posts || [];
-      console.log('RSS posts count:', posts.length);
+      // Call Reddit's public JSON API directly (no backend needed)
+      const response = await fetch('https://www.reddit.com/r/all/hot.json?limit=15');
+      if (!response.ok) {
+        throw new Error(`Reddit API returned ${response.status}`);
+      }
+
+      const json = await response.json();
+      const posts: TrendingPost[] = json.data.children
+        .filter((child: { kind: string; data: { over_18: boolean } }) =>
+          child.kind === 't3' && !child.data.over_18
+        )
+        .map((child: { data: { id: string; title: string; subreddit: string; permalink: string; author: string; created_utc: number } }) => ({
+          id: child.data.id,
+          title: child.data.title,
+          subreddit: child.data.subreddit,
+          link: `https://www.reddit.com${child.data.permalink}`,
+          author: child.data.author,
+          pubDate: new Date(child.data.created_utc * 1000).toISOString(),
+        }));
 
       // Only cache if we have posts
       if (posts.length > 0) {
@@ -150,7 +163,7 @@ const DailyService = {
 
       return posts;
     } catch (error) {
-      console.error('Failed to fetch trending RSS', error);
+      console.error('Failed to fetch trending posts', error);
       // Try to return stale cache on error (only if it has posts)
       const cached = localStorage.getItem(RSS_CACHE_KEY);
       if (cached) {
