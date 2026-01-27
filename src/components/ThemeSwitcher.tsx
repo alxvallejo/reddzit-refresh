@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTheme, themes, ThemeName } from '../context/ThemeContext';
+import { useTheme, themes, ThemeName, FontFamily } from '../context/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPalette, faCheck } from '@fortawesome/free-solid-svg-icons';
 
+const fontOptions: { key: FontFamily; label: string }[] = [
+  { key: 'google-sans', label: 'Google Sans' },
+  { key: 'outfit', label: 'Outfit' },
+];
+
 const ThemeSwitcher = () => {
-  const { themeName, setTheme, theme } = useTheme();
+  const { themeName, setTheme, fontFamily, setFontFamily } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -73,6 +78,36 @@ const ThemeSwitcher = () => {
                   }}
                 />
                 <span className="flex-1">{t.label}</span>
+                {isActive && (
+                  <FontAwesomeIcon icon={faCheck} className="text-xs opacity-70" />
+                )}
+              </button>
+            );
+          })}
+
+          <hr className={`my-2 ${isLight ? 'border-gray-100' : 'border-white/10'}`} />
+
+          <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${
+            isLight ? 'text-gray-400' : 'text-gray-400'
+          }`}>
+            Font
+          </div>
+          {fontOptions.map((font) => {
+            const isActive = font.key === fontFamily;
+            return (
+              <button
+                key={font.key}
+                onClick={() => {
+                  setFontFamily(font.key);
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
+                  isLight
+                    ? `${isActive ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-50'} bg-transparent`
+                    : `${isActive ? 'bg-white/10 text-white' : 'text-gray-200 hover:bg-white/5'} bg-transparent`
+                }`}
+              >
+                <span className="flex-1">{font.label}</span>
                 {isActive && (
                   <FontAwesomeIcon icon={faCheck} className="text-xs opacity-70" />
                 )}

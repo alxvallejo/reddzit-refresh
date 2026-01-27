@@ -530,41 +530,35 @@ const ForYouFeed = () => {
         </div>
       )}
 
-      {/* Posts grid */}
+      {/* Posts list */}
       {posts.length > 0 ? (
-        <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {posts.map((post, index) => (
+        <main className="max-w-6xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {posts.map((post) => (
             <article
               key={post.id}
-              className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition border ${
+              className={`group relative p-3 rounded-lg transition border flex gap-3 ${
                 themeName === 'light'
-                  ? 'bg-white sm:shadow-sm sm:border-gray-100 hover:shadow-md'
-                  : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
-              } ${index === 0 ? 'lg:col-span-2' : ''}`}
-              style={themeName === 'light' ? undefined : {
-                backgroundColor: 'var(--theme-cardBg)',
-                borderColor: 'var(--theme-border)'
-              }}
+                  ? 'bg-transparent border-gray-200 hover:bg-gray-50'
+                  : 'bg-transparent border-white/10 hover:bg-white/[0.05]'
+              }`}
             >
               {/* Post content - clickable */}
               <div
-                className="cursor-pointer"
+                className="cursor-pointer flex-1 min-w-0"
                 onClick={() => handlePostClick(post)}
               >
-                <div className="flex items-baseline justify-between mb-2">
-                  <span className={`text-xs font-bold uppercase tracking-wide ${
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className={`text-xs font-normal uppercase tracking-wide ${
                     themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
                   }`}>
                     r/{post.subreddit}
                   </span>
-                  <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+                  <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
                     {formatTimeAgo(post.createdUtc)}
-                  </div>
+                  </span>
                 </div>
 
-                <h2 className={`font-medium mb-3 leading-tight transition-colors ${
-                  index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'
-                } ${
+                <h2 className={`font-light my-2 leading-snug transition-colors text-base ${
                   themeName === 'light'
                     ? 'text-gray-900 group-hover:text-orange-600'
                     : 'group-hover:text-[var(--theme-primary)]'
@@ -572,41 +566,28 @@ const ForYouFeed = () => {
                   {post.title}
                 </h2>
 
-                {/* Thumbnail for first post */}
-                {index === 0 && post.thumbnail && post.thumbnail !== 'self' && post.thumbnail !== 'default' && (
-                  <div className="mb-4 rounded-xl overflow-hidden">
-                    <img
-                      src={post.thumbnail}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-48 sm:h-64 object-cover"
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
-                    />
-                  </div>
-                )}
-
-                <div className={`text-xs mb-4 ${
+                <div className={`text-xs ${
                   themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
                 }`}>
                   {formatScore(post.score)} pts | {post.numComments} comments
                 </div>
               </div>
 
-              {/* Triage action buttons */}
-              <div className="flex gap-3 mt-2 pt-3 border-t border-current/10">
+              {/* Triage action buttons - vertical on right */}
+              <div className="flex flex-col gap-1 justify-center">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAction(post.redditPostId, 'saved');
                   }}
                   title="Save for report"
-                  className={`p-2 rounded-full transition ${
+                  className={`p-1.5 rounded transition ${
                     themeName === 'light'
                       ? 'text-green-600 hover:bg-green-100'
                       : 'text-green-400 hover:bg-green-500/20'
                   }`}
                 >
-                  <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faBookmark} className="w-3 h-3" />
                 </button>
                 <button
                   onClick={(e) => {
@@ -614,13 +595,13 @@ const ForYouFeed = () => {
                     handleAction(post.redditPostId, 'already_read');
                   }}
                   title="Skip (already read)"
-                  className={`p-2 rounded-full transition ${
+                  className={`p-1.5 rounded transition ${
                     themeName === 'light'
                       ? 'text-blue-600 hover:bg-blue-100'
                       : 'text-blue-400 hover:bg-blue-500/20'
                   }`}
                 >
-                  <FontAwesomeIcon icon={faForward} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faForward} className="w-3 h-3" />
                 </button>
                 <button
                   onClick={(e) => {
@@ -628,13 +609,13 @@ const ForYouFeed = () => {
                     handleAction(post.redditPostId, 'not_interested');
                   }}
                   title="Hide (not interested)"
-                  className={`p-2 rounded-full transition ${
+                  className={`p-1.5 rounded transition ${
                     themeName === 'light'
                       ? 'text-gray-500 hover:bg-gray-100'
                       : 'text-gray-400 hover:bg-white/10'
                   }`}
                 >
-                  <FontAwesomeIcon icon={faEyeSlash} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faEyeSlash} className="w-3 h-3" />
                 </button>
               </div>
             </article>

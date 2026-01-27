@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type ThemeName = 'classic' | 'light';
+export type FontFamily = 'google-sans' | 'outfit';
+
+const fontFamilies: Record<FontFamily, string> = {
+  'google-sans': '"Google Sans Flex", "Outfit", "Open Sans", system-ui, sans-serif',
+  'outfit': '"Outfit", "Open Sans", system-ui, sans-serif',
+};
 
 interface Theme {
   name: ThemeName;
@@ -83,31 +89,45 @@ interface ThemeContextType {
   themeName: ThemeName;
   setTheme: (name: ThemeName) => void;
   toggleTheme: () => void;
+  fontFamily: FontFamily;
+  setFontFamily: (font: FontFamily) => void;
+  toggleFont: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-const [themeName, setThemeName] = useState<ThemeName>(() => {
+  const [themeName, setThemeName] = useState<ThemeName>(() => {
     const saved = localStorage.getItem('reddzit_theme') as ThemeName | null;
     return saved && themes[saved] ? saved : 'classic';
+  });
+
+  const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
+    const saved = localStorage.getItem('reddzit_font') as FontFamily | null;
+    return saved && fontFamilies[saved] ? saved : 'outfit';
   });
 
   const theme = themes[themeName];
 
   useEffect(() => {
     localStorage.setItem('reddzit_theme', themeName);
-    
+
     // Apply CSS variables to document root
     const root = document.documentElement;
     Object.entries(theme.colors).forEach(([key, value]) => {
       root.style.setProperty(`--theme-${key}`, value);
     });
-    
+
     // Update body background
     document.body.style.backgroundColor = theme.colors.bg;
     document.body.style.color = theme.colors.text;
   }, [themeName, theme]);
+
+  useEffect(() => {
+    localStorage.setItem('reddzit_font', fontFamily);
+    // Set data attribute for CSS to use
+    document.documentElement.setAttribute('data-font', fontFamily);
+  }, [fontFamily]);
 
   const setTheme = (name: ThemeName) => {
     if (themes[name]) {
@@ -119,8 +139,18 @@ const [themeName, setThemeName] = useState<ThemeName>(() => {
     setThemeName(prev => prev === 'classic' ? 'light' : 'classic');
   };
 
+  const setFontFamily = (font: FontFamily) => {
+    if (fontFamilies[font]) {
+      setFontFamilyState(font);
+    }
+  };
+
+  const toggleFont = () => {
+    setFontFamilyState(prev => prev === 'google-sans' ? 'outfit' : 'google-sans');
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont }}>
       {children}
     </ThemeContext.Provider>
   );
