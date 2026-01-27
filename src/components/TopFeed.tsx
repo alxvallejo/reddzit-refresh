@@ -40,6 +40,15 @@ const TopFeed = () => {
     navigate(`/p/${fullname}/${slug}`);
   };
 
+  const formatTimeAgo = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+  };
+
   if (loading) {
     return (
       <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
@@ -96,11 +105,16 @@ const TopFeed = () => {
               }`}
               onClick={() => handlePostClick(post)}
             >
-              <div className="mb-1">
+              <div className="flex items-baseline justify-between mb-1">
                 <span className={`text-xs font-normal ${
                   themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
                 }`}>
                   r/{post.subreddit}
+                </span>
+                <span className={`text-xs ${
+                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+                }`}>
+                  {formatTimeAgo(post.pubDate)}
                 </span>
               </div>
 
