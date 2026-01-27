@@ -176,6 +176,15 @@ const ForYouService = {
       { model },
       { headers: { Authorization: `Bearer ${token}` } }
     );
+
+    // Cache the newly generated report
+    if (response.data.report) {
+      localStorage.setItem(FORYOU_REPORT_CACHE_KEY, JSON.stringify({
+        data: response.data.report,
+        date: new Date().toDateString()
+      }));
+    }
+
     return response.data;
   },
 
@@ -185,16 +194,22 @@ const ForYouService = {
   async getReport(token: string, forceRefresh = false): Promise<{ report: Report | null }> {
     // Check frontend cache first (unless forcing refresh)
     if (!forceRefresh) {
-      const cached = localStorage.getItem(FORYOU_REPORT_CACHE_KEY);
-      if (cached) {
-        const { data, date } = JSON.parse(cached);
-        const today = new Date().toDateString();
-        if (date === today) {
-          return { report: data };
+      try {
+        const cached = localStorage.getItem(FORYOU_REPORT_CACHE_KEY);
+        if (cached) {
+          const { data, date } = JSON.parse(cached);
+          const today = new Date().toDateString();
+          if (date === today && data) {
+            console.log('Using cached report from', date);
+            return { report: data };
+          }
         }
+      } catch (e) {
+        console.warn('Failed to read report cache:', e);
       }
     }
 
+    console.log('Fetching report from API');
     try {
       const response = await axios.get<{ report: Report }>(
         `${API_BASE_URL}/api/foryou/report`,
