@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
-import ForYouService, { ForYouPost, Persona, TriageAction, SubredditSuggestion, Report } from '../helpers/ForYouService';
+import ForYouService, { ForYouPost, Persona, TriageAction, SubredditSuggestion } from '../helpers/ForYouService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 import { faForward } from '@fortawesome/free-solid-svg-icons';
@@ -29,7 +29,6 @@ const ForYouFeed = () => {
   const [loading, setLoading] = useState(true);
   const [refreshingPersona, setRefreshingPersona] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cachedReport, setCachedReport] = useState<Report | null>(null);
   const [showPersona, setShowPersona] = useState(false);
   const [showWeightsModal, setShowWeightsModal] = useState(false);
 
@@ -55,12 +54,11 @@ const ForYouFeed = () => {
           .catch(err => console.warn('Failed to sync subscriptions:', err));
       }
 
-      const [personaResult, feedResult, curatedResult, suggestionsResult, reportResult] = await Promise.all([
+      const [personaResult, feedResult, curatedResult, suggestionsResult] = await Promise.all([
         ForYouService.getPersona(token),
         ForYouService.getFeed(token),
         ForYouService.getCurated(token),
         ForYouService.getSuggestions(token),
-        ForYouService.getReport(token),
       ]);
 
       setPersona(personaResult.persona);
@@ -71,7 +69,6 @@ const ForYouFeed = () => {
       const allSuggestions = suggestionsResult.suggestions;
       setSuggestionPool(allSuggestions);
       setSuggestions(allSuggestions.slice(0, 12));
-      setCachedReport(reportResult.report);
     } catch (err) {
       console.error('Failed to load For You data:', err);
       setError('Failed to load personalized feed. Please try again.');
@@ -96,21 +93,14 @@ const ForYouFeed = () => {
     setRefreshingPersona(true);
     setError(null);
 
-    // Clear frontend report cache
-    ForYouService.clearReportCache();
-
     try {
       const result = await ForYouService.refreshPersona(token);
       setPersona(result.persona);
       setPersonaRefreshedAt(new Date().toISOString());
 
-      // Reload feed and report with new persona
-      const [feedResult, reportResult] = await Promise.all([
-        ForYouService.getFeed(token),
-        ForYouService.getReport(token, true), // Force refresh
-      ]);
+      // Reload feed with new persona
+      const feedResult = await ForYouService.getFeed(token);
       setPosts(feedResult.posts);
-      setCachedReport(reportResult.report);
     } catch (err) {
       console.error('Failed to refresh persona:', err);
       setError('Failed to refresh persona. Please try again.');
@@ -183,11 +173,6 @@ const ForYouFeed = () => {
       .replace(/\s+/g, '-')
       .slice(0, SLUG_MAX_LENGTH);
     navigate(`/p/t3_${post.redditPostId}/${slug}`);
-  };
-
-  // Navigate to generate report
-  const handleGenerateReport = () => {
-    navigate('/foryou/report');
   };
 
   // Format time ago
@@ -291,11 +276,6 @@ const ForYouFeed = () => {
                 themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
               }`}>
                 <span>Curated: {curatedCount}/{CURATED_LIMIT}</span>
-                {cachedReport && (
-                  <span className="ml-3">
-                    Report cached: {new Date(cachedReport.generatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(cachedReport.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                  </span>
-                )}
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -451,40 +431,6 @@ const ForYouFeed = () => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* At-cap warning */}
-      {curatedCount >= CURATED_LIMIT && (
-        <div className="max-w-4xl mx-auto px-4 pb-4">
-          <div className={`p-4 rounded-xl border flex items-center justify-between ${
-            themeName === 'light'
-              ? 'bg-orange-50 border-orange-200'
-              : 'bg-[var(--theme-primary)]/10 border-[var(--theme-primary)]/30'
-          }`}>
-            <div>
-              <p className={`font-medium ${
-                themeName === 'light' ? 'text-orange-800' : 'text-[var(--theme-primary)]'
-              }`}>
-                Curated posts at capacity ({CURATED_LIMIT}/{CURATED_LIMIT})
-              </p>
-              <p className={`text-sm ${
-                themeName === 'light' ? 'text-orange-600' : 'text-gray-400'
-              }`}>
-                Generate a report to clear your curated posts and continue.
-              </p>
-            </div>
-            <button
-              onClick={handleGenerateReport}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-                themeName === 'light'
-                  ? 'bg-orange-600 text-white hover:bg-orange-700'
-                  : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
-              }`}
-            >
-              Generate Report
-            </button>
           </div>
         </div>
       )}

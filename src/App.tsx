@@ -8,7 +8,6 @@ import About from './components/About';
 import PostView from './components/PostView';
 import Admin from './components/Admin';
 import ForYouSettings from './components/ForYouSettings';
-import ForYouReport from './components/ForYouReport';
 import SubredditFeed from './components/SubredditFeed';
 
 function App() {
@@ -22,7 +21,6 @@ function App() {
             <Route path='/top' element={<AppShell />} />
             <Route path='/foryou' element={<AppShell />} />
             <Route path='/foryou/settings' element={<ForYouSettings />} />
-            <Route path='/foryou/report' element={<ForYouReport />} />
             <Route path='/reddit' element={<AppShell />} />
             <Route path='/r/:name' element={<SubredditFeed />} />
             <Route path='/about' element={<About />} />

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
 
-const FORYOU_REPORT_CACHE_KEY = 'rdz_foryou_report';
 
 // Types
 export interface Persona {
@@ -39,12 +38,6 @@ export interface SubredditWeight {
 
 export type TriageAction = 'saved' | 'already_read' | 'not_interested';
 
-export interface Report {
-  id: string;
-  content: string;
-  model: string;
-  generatedAt: string;
-}
 
 export interface SubredditSuggestion {
   name: string;
@@ -165,79 +158,6 @@ const ForYouService = {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
-  },
-
-  /**
-   * Generate report from curated posts
-   */
-  async generateReport(token: string, model: string): Promise<{ report: Report }> {
-    const response = await axios.post<{ report: Report }>(
-      `${API_BASE_URL}/api/foryou/report/generate`,
-      { model },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    // Cache the newly generated report
-    if (response.data.report) {
-      localStorage.setItem(FORYOU_REPORT_CACHE_KEY, JSON.stringify({
-        data: response.data.report,
-        date: new Date().toDateString()
-      }));
-    }
-
-    return response.data;
-  },
-
-  /**
-   * Get the latest cached report (with frontend caching)
-   */
-  async getReport(token: string, forceRefresh = false): Promise<{ report: Report | null }> {
-    // Check frontend cache first (unless forcing refresh)
-    if (!forceRefresh) {
-      try {
-        const cached = localStorage.getItem(FORYOU_REPORT_CACHE_KEY);
-        if (cached) {
-          const { data, date } = JSON.parse(cached);
-          const today = new Date().toDateString();
-          if (date === today && data) {
-            console.log('Using cached report from', date);
-            return { report: data };
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to read report cache:', e);
-      }
-    }
-
-    console.log('Fetching report from API');
-    try {
-      const response = await axios.get<{ report: Report }>(
-        `${API_BASE_URL}/api/foryou/report`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Update frontend cache
-      if (response.data.report) {
-        localStorage.setItem(FORYOU_REPORT_CACHE_KEY, JSON.stringify({
-          data: response.data.report,
-          date: new Date().toDateString()
-        }));
-      }
-
-      return response.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        return { report: null };
-      }
-      throw error;
-    }
-  },
-
-  /**
-   * Clear the frontend report cache
-   */
-  clearReportCache(): void {
-    localStorage.removeItem(FORYOU_REPORT_CACHE_KEY);
   },
 
   /**
