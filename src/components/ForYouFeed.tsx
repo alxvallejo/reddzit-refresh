@@ -44,11 +44,16 @@ const ForYouFeed = () => {
     setError(null);
 
     try {
-      // Sync subscriptions first (so suggestions can filter them out)
-      await ForYouService.syncSubscriptions(token).catch(err => {
-        console.warn('Failed to sync subscriptions:', err);
-        // Continue even if sync fails - suggestions may include some subscribed subreddits
-      });
+      // Sync subscriptions once per day (so suggestions can filter them out)
+      const SYNC_CACHE_KEY = 'rdz_subscriptions_synced';
+      const lastSync = localStorage.getItem(SYNC_CACHE_KEY);
+      const today = new Date().toDateString();
+
+      if (lastSync !== today) {
+        ForYouService.syncSubscriptions(token)
+          .then(() => localStorage.setItem(SYNC_CACHE_KEY, today))
+          .catch(err => console.warn('Failed to sync subscriptions:', err));
+      }
 
       const [personaResult, feedResult, curatedResult, suggestionsResult, reportResult] = await Promise.all([
         ForYouService.getPersona(token),
