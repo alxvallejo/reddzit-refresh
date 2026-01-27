@@ -86,9 +86,7 @@ const TopFeed = () => {
         }`}>
           <div className="flex items-center justify-between py-4">
             <div>
-              <h1 className={`text-2xl font-sans font-extralight italic ${
-                themeName === 'light' ? 'text-gray-900' : 'text-[#c4b8e8]'
-              }`}>
+              <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 Top Posts on Reddit
               </h1>
               {report && (report.reportHour || report.reportDate) && (
@@ -120,7 +118,7 @@ const TopFeed = () => {
               }}
               onClick={() => handleStoryClick(story)}
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="mb-2">
                 <span className={`text-xs font-bold uppercase tracking-wide ${
                   themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
                 }`}>
@@ -128,12 +126,12 @@ const TopFeed = () => {
                 </span>
               </div>
 
-              <h2 className={`font-sans font-extralight italic mb-3 leading-tight ${
-                index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
+              <h2 className={`font-medium mb-3 leading-tight transition-colors ${
+                index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'
               } ${
                 themeName === 'light'
                   ? 'text-gray-900 group-hover:text-orange-600'
-                  : 'text-[#c4b8e8] group-hover:text-[var(--theme-primary)]'
+                  : 'group-hover:text-[var(--theme-primary)]'
               }`}>
                 {story.title}
               </h2>

@@ -2,7 +2,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
-import ForYouService, { ForYouPost, Persona, TriageAction, SubredditSuggestion } from '../helpers/ForYouService';
+import ForYouService, { ForYouPost, Persona, TriageAction, SubredditSuggestion, Report } from '../helpers/ForYouService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
+import { faForward } from '@fortawesome/free-solid-svg-icons';
 
 const CURATED_LIMIT = 20;
 const SLUG_MAX_LENGTH = 60;
@@ -28,6 +31,7 @@ const ForYouFeed = () => {
   const [loading, setLoading] = useState(true);
   const [refreshingPersona, setRefreshingPersona] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cachedReport, setCachedReport] = useState<Report | null>(null);
   const [showPersona, setShowPersona] = useState(false);
   const [showWeightsModal, setShowWeightsModal] = useState(false);
 
@@ -48,11 +52,12 @@ const ForYouFeed = () => {
         // Continue even if sync fails - suggestions may include some subscribed subreddits
       });
 
-      const [personaResult, feedResult, curatedResult, suggestionsResult] = await Promise.all([
+      const [personaResult, feedResult, curatedResult, suggestionsResult, reportResult] = await Promise.all([
         ForYouService.getPersona(token),
         ForYouService.getFeed(token),
         ForYouService.getCurated(token),
         ForYouService.getSuggestions(token),
+        ForYouService.getReport(token),
       ]);
 
       setPersona(personaResult.persona);
@@ -64,6 +69,7 @@ const ForYouFeed = () => {
       const allSuggestions = suggestionsResult.suggestions;
       setSuggestionPool(allSuggestions);
       setSuggestions(allSuggestions.slice(0, 12));
+      setCachedReport(reportResult.report);
     } catch (err) {
       console.error('Failed to load For You data:', err);
       setError('Failed to load personalized feed. Please try again.');
@@ -274,11 +280,16 @@ const ForYouFeed = () => {
               <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 For You
               </h1>
-              <span className={`text-xs ${
+              <div className={`text-xs ${
                 themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
               }`}>
-                Curated: {curatedCount}/{CURATED_LIMIT}
-              </span>
+                <span>Curated: {curatedCount}/{CURATED_LIMIT}</span>
+                {cachedReport && (
+                  <span className="ml-3">
+                    Report cached: {new Date(cachedReport.generatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(cachedReport.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -610,45 +621,48 @@ const ForYouFeed = () => {
               </div>
 
               {/* Triage action buttons */}
-              <div className="flex gap-2 mt-2 pt-3 border-t border-current/10">
+              <div className="flex gap-3 mt-2 pt-3 border-t border-current/10">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAction(post.redditPostId, 'saved');
                   }}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                  title="Save for report"
+                  className={`p-2 rounded-full transition ${
                     themeName === 'light'
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                      ? 'text-green-600 hover:bg-green-100'
+                      : 'text-green-400 hover:bg-green-500/20'
                   }`}
                 >
-                  Save
+                  <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAction(post.redditPostId, 'already_read');
                   }}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                  title="Skip (already read)"
+                  className={`p-2 rounded-full transition ${
                     themeName === 'light'
-                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                      : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                      ? 'text-blue-600 hover:bg-blue-100'
+                      : 'text-blue-400 hover:bg-blue-500/20'
                   }`}
                 >
-                  Read
+                  <FontAwesomeIcon icon={faForward} className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAction(post.redditPostId, 'not_interested');
                   }}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                  title="Hide (not interested)"
+                  className={`p-2 rounded-full transition ${
                     themeName === 'light'
-                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                      ? 'text-gray-500 hover:bg-gray-100'
+                      : 'text-gray-400 hover:bg-white/10'
                   }`}
                 >
-                  Hide
+                  <FontAwesomeIcon icon={faEyeSlash} className="w-4 h-4" />
                 </button>
               </div>
             </article>

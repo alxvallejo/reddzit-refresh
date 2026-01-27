@@ -178,6 +178,24 @@ const ForYouService = {
   },
 
   /**
+   * Get the latest cached report
+   */
+  async getReport(token: string): Promise<{ report: Report | null }> {
+    try {
+      const response = await axios.get<{ report: Report }>(
+        `${API_BASE_URL}/api/foryou/report`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return { report: null };
+      }
+      throw error;
+    }
+  },
+
+  /**
    * Get suggested subreddits for discovery
    */
   async getSuggestions(token: string): Promise<{ suggestions: SubredditSuggestion[] }> {
