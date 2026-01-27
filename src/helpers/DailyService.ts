@@ -56,27 +56,41 @@ const DailyService = {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < CACHE_DURATION) {
+        const hasStories = data?.stories?.length > 0;
+        if (Date.now() - timestamp < CACHE_DURATION && hasStories) {
+          console.log('Using cached report, stories:', data.stories.length);
           return data;
+        }
+        // Clear invalid/empty cache
+        if (!hasStories) {
+          console.log('Clearing empty cached report');
+          localStorage.removeItem(CACHE_KEY);
         }
       }
 
       // Using hourly pulse reports (top posts from r/all with comments)
+      console.log('Fetching hourly pulse from API...');
       const response = await axios.get(`${API_BASE_URL}/api/hourly-pulse/latest`);
-      
-      // Update cache
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: response.data,
-        timestamp: Date.now()
-      }));
-      
+      console.log('Stories count:', response.data?.stories?.length || 0);
+
+      // Only cache if we have stories
+      if (response.data?.stories?.length > 0) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: response.data,
+          timestamp: Date.now()
+        }));
+      }
+
       return response.data;
     } catch (error) {
       console.error('Failed to fetch report', error);
-      // Try to return stale cache on error
+      // Try to return stale cache on error (only if it has stories)
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        return JSON.parse(cached).data;
+        const { data } = JSON.parse(cached);
+        if (data?.stories?.length > 0) {
+          return data;
+        }
       }
       return null;
     }
@@ -109,27 +123,41 @@ const DailyService = {
       const cached = localStorage.getItem(RSS_CACHE_KEY);
       if (cached) {
         const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < RSS_CACHE_DURATION) {
+        const hasPosts = data?.length > 0;
+        if (Date.now() - timestamp < RSS_CACHE_DURATION && hasPosts) {
+          console.log('Using cached RSS, posts:', data.length);
           return data;
+        }
+        // Clear invalid/empty cache
+        if (!hasPosts) {
+          console.log('Clearing empty RSS cache');
+          localStorage.removeItem(RSS_CACHE_KEY);
         }
       }
 
+      console.log('Fetching trending RSS from API...');
       const response = await axios.get(`${API_BASE_URL}/api/trending/rss`);
       const posts = response.data.posts || [];
+      console.log('RSS posts count:', posts.length);
 
-      // Update cache
-      localStorage.setItem(RSS_CACHE_KEY, JSON.stringify({
-        data: posts,
-        timestamp: Date.now()
-      }));
+      // Only cache if we have posts
+      if (posts.length > 0) {
+        localStorage.setItem(RSS_CACHE_KEY, JSON.stringify({
+          data: posts,
+          timestamp: Date.now()
+        }));
+      }
 
       return posts;
     } catch (error) {
       console.error('Failed to fetch trending RSS', error);
-      // Try to return stale cache on error
+      // Try to return stale cache on error (only if it has posts)
       const cached = localStorage.getItem(RSS_CACHE_KEY);
       if (cached) {
-        return JSON.parse(cached).data;
+        const { data } = JSON.parse(cached);
+        if (data?.length > 0) {
+          return data;
+        }
       }
       return [];
     }
