@@ -1,6 +1,8 @@
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
 
+const FORYOU_REPORT_CACHE_KEY = 'rdz_foryou_report';
+
 // Types
 export interface Persona {
   keywords: string[];
@@ -178,14 +180,35 @@ const ForYouService = {
   },
 
   /**
-   * Get the latest cached report
+   * Get the latest cached report (with frontend caching)
    */
-  async getReport(token: string): Promise<{ report: Report | null }> {
+  async getReport(token: string, forceRefresh = false): Promise<{ report: Report | null }> {
+    // Check frontend cache first (unless forcing refresh)
+    if (!forceRefresh) {
+      const cached = localStorage.getItem(FORYOU_REPORT_CACHE_KEY);
+      if (cached) {
+        const { data, date } = JSON.parse(cached);
+        const today = new Date().toDateString();
+        if (date === today) {
+          return { report: data };
+        }
+      }
+    }
+
     try {
       const response = await axios.get<{ report: Report }>(
         `${API_BASE_URL}/api/foryou/report`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // Update frontend cache
+      if (response.data.report) {
+        localStorage.setItem(FORYOU_REPORT_CACHE_KEY, JSON.stringify({
+          data: response.data.report,
+          date: new Date().toDateString()
+        }));
+      }
+
       return response.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -193,6 +216,13 @@ const ForYouService = {
       }
       throw error;
     }
+  },
+
+  /**
+   * Clear the frontend report cache
+   */
+  clearReportCache(): void {
+    localStorage.removeItem(FORYOU_REPORT_CACHE_KEY);
   },
 
   /**

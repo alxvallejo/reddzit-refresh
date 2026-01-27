@@ -10,7 +10,6 @@ import { faForward } from '@fortawesome/free-solid-svg-icons';
 const CURATED_LIMIT = 20;
 const SLUG_MAX_LENGTH = 60;
 const SUBREDDITS_DISPLAY_LIMIT = 10;
-const RECOMMENDED_SUBREDDITS_LIMIT = 8;
 const MIN_POSTS_THRESHOLD = 5; // Refresh feed when posts drop below this
 
 const ForYouFeed = () => {
@@ -25,7 +24,6 @@ const ForYouFeed = () => {
   const [persona, setPersona] = useState<Persona | null>(null);
   const [personaRefreshedAt, setPersonaRefreshedAt] = useState<string | null>(null);
   const [curatedCount, setCuratedCount] = useState(0);
-  const [recommendedSubreddits, setRecommendedSubreddits] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<SubredditSuggestion[]>([]);
   const [suggestionPool, setSuggestionPool] = useState<SubredditSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +61,6 @@ const ForYouFeed = () => {
       setPersona(personaResult.persona);
       setPersonaRefreshedAt(personaResult.lastRefreshedAt);
       setPosts(feedResult.posts);
-      setRecommendedSubreddits(feedResult.recommendedSubreddits);
       setCuratedCount(curatedResult.count);
       // Store full pool and display first 12
       const allSuggestions = suggestionsResult.suggestions;
@@ -94,15 +91,21 @@ const ForYouFeed = () => {
     setRefreshingPersona(true);
     setError(null);
 
+    // Clear frontend report cache
+    ForYouService.clearReportCache();
+
     try {
       const result = await ForYouService.refreshPersona(token);
       setPersona(result.persona);
       setPersonaRefreshedAt(new Date().toISOString());
 
-      // Reload feed with new persona
-      const feedResult = await ForYouService.getFeed(token);
+      // Reload feed and report with new persona
+      const [feedResult, reportResult] = await Promise.all([
+        ForYouService.getFeed(token),
+        ForYouService.getReport(token, true), // Force refresh
+      ]);
       setPosts(feedResult.posts);
-      setRecommendedSubreddits(feedResult.recommendedSubreddits);
+      setCachedReport(reportResult.report);
     } catch (err) {
       console.error('Failed to refresh persona:', err);
       setError('Failed to refresh persona. Please try again.');
@@ -127,7 +130,6 @@ const ForYouFeed = () => {
         if (remaining.length < MIN_POSTS_THRESHOLD) {
           ForYouService.getFeed(token).then(feedResult => {
             setPosts(feedResult.posts);
-            setRecommendedSubreddits(feedResult.recommendedSubreddits);
           }).catch(console.error);
         }
 
@@ -482,75 +484,45 @@ const ForYouFeed = () => {
         </div>
       )}
 
-      {/* Recommended Subreddits */}
-      {recommendedSubreddits && recommendedSubreddits.length > 0 && (
+      {/* Suggested Subreddits */}
+      {suggestions.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 pb-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <div className="flex items-center flex-wrap gap-2">
             <span className={`text-xs font-medium whitespace-nowrap ${
               themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
             }`}>
-              Recommended:
+              Discover:
             </span>
-            {recommendedSubreddits.slice(0, RECOMMENDED_SUBREDDITS_LIMIT).map((sub, i) => (
-              <Link
-                key={i}
-                to={`/r/${sub}`}
-                className={`text-xs px-2 py-1 rounded-full whitespace-nowrap no-underline ${
-                  themeName === 'light'
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                } transition`}
-              >
-                r/{sub}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Suggested Subreddits */}
-      {suggestions.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 pb-6">
-          <h3 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-            themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-          }`}>
-            Discover New Subreddits
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {suggestions.map((sub) => (
               <div
                 key={sub.name}
-                className={`relative p-3 rounded-xl text-center transition-all ${
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full whitespace-nowrap ${
                   themeName === 'light'
-                    ? 'bg-white hover:shadow-md border border-gray-100'
-                    : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                    ? 'bg-gray-100 text-gray-600'
+                    : 'bg-white/10 text-gray-400'
                 }`}
               >
                 <Link
                   to={`/r/${sub.name}`}
-                  className={`block no-underline ${
-                    themeName === 'light' ? 'text-gray-900' : ''
+                  title={sub.category}
+                  className={`no-underline ${
+                    themeName === 'light'
+                      ? 'text-gray-600 hover:text-gray-900'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  <div className="font-medium">r/{sub.name}</div>
-                  <div className={`text-xs mt-1 ${
-                    themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                  }`}>
-                    {sub.category}
-                  </div>
+                  r/{sub.name}
                 </Link>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDismissSuggestion(sub.name);
-                  }}
-                  className={`mt-2 w-full text-xs px-2 py-1 rounded-lg transition ${
+                  onClick={() => handleDismissSuggestion(sub.name)}
+                  className={`ml-1 leading-none ${
                     themeName === 'light'
-                      ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      : 'text-gray-500 hover:text-gray-300 hover:bg-white/10'
+                      ? 'text-gray-400 hover:text-gray-600'
+                      : 'text-gray-500 hover:text-gray-300'
                   }`}
+                  title="Dismiss"
                 >
-                  Hide
+                  ×
                 </button>
               </div>
             ))}
@@ -586,7 +558,7 @@ const ForYouFeed = () => {
                     r/{post.subreddit}
                   </span>
                   <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
-                    {formatScore(post.score)} pts | {post.numComments} comments
+                    {formatTimeAgo(post.createdUtc)}
                   </div>
                 </div>
 
@@ -616,7 +588,7 @@ const ForYouFeed = () => {
                 <div className={`text-xs mb-4 ${
                   themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
                 }`}>
-                  by u/{post.author} | {formatTimeAgo(post.createdUtc)}
+                  {formatScore(post.score)} pts | {post.numComments} comments
                 </div>
               </div>
 
