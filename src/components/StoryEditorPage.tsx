@@ -27,12 +27,6 @@ export default function StoryEditorPage() {
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auth guard
-  if (!signedIn) {
-    redirectForAuth();
-    return null;
-  }
-
   // Load story and quotes on mount
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -139,6 +133,12 @@ export default function StoryEditorPage() {
   };
 
   const isLight = themeName === 'light';
+
+  // Auth guard (after all hooks)
+  if (!signedIn) {
+    redirectForAuth();
+    return null;
+  }
 
   if (loading) {
     return (
