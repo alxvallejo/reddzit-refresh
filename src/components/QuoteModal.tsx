@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faQuoteLeft, faLink } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
+import StoryService, { Story } from '../helpers/StoryService';
 
 interface QuoteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (note: string, tags: string[]) => Promise<void>;
+  onSave: (note: string, tags: string[], storyId?: string) => Promise<void>;
   selectedText: string;
   sourceUrl: string;
   postTitle: string;
+  accessToken?: string;
 }
 
 export default function QuoteModal({
@@ -18,13 +20,26 @@ export default function QuoteModal({
   onSave,
   selectedText,
   sourceUrl,
-  postTitle
+  postTitle,
+  accessToken
 }: QuoteModalProps) {
   const { themeName } = useTheme();
   const [note, setNote] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [selectedStoryId, setSelectedStoryId] = useState<string>('');
+  const [storiesLoading, setStoriesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !accessToken) return;
+    setStoriesLoading(true);
+    StoryService.listStories(accessToken)
+      .then(({ stories }) => setStories(stories))
+      .catch(() => {})
+      .finally(() => setStoriesLoading(false));
+  }, [isOpen, accessToken]);
 
   if (!isOpen) return null;
 
@@ -36,9 +51,10 @@ export default function QuoteModal({
         .split(',')
         .map(t => t.trim())
         .filter(t => t.length > 0);
-      await onSave(note, tags);
+      await onSave(note, tags, selectedStoryId || undefined);
       setNote('');
       setTagsInput('');
+      setSelectedStoryId('');
       onClose();
     } catch (err) {
       setError('Failed to save quote. Please try again.');
@@ -50,6 +66,7 @@ export default function QuoteModal({
   const handleClose = () => {
     setNote('');
     setTagsInput('');
+    setSelectedStoryId('');
     setError(null);
     onClose();
   };
@@ -178,6 +195,32 @@ export default function QuoteModal({
               }`}
             />
           </div>
+
+          {/* Story */}
+          {accessToken && (
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
+              }`}>
+                Assign to Story (optional)
+              </label>
+              <select
+                value={selectedStoryId}
+                onChange={(e) => setSelectedStoryId(e.target.value)}
+                disabled={storiesLoading}
+                className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                  themeName === 'light'
+                    ? 'bg-white border border-gray-300 text-gray-900 focus:ring-orange-500/50'
+                    : 'bg-white/5 border border-white/20 text-white focus:ring-[#7e87ef]/50'
+                }`}
+              >
+                <option value="">No story</option>
+                {stories.map(s => (
+                  <option key={s.id} value={s.id}>{s.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Error */}
           {error && (

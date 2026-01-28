@@ -147,7 +147,7 @@ export default function PostView() {
     }
   };
 
-  const handleSaveQuote = async (note: string, tags: string[]) => {
+  const handleSaveQuote = async (note: string, tags: string[], storyId?: string) => {
     if (!accessToken || !post) return;
 
     await QuoteService.createQuote(accessToken, {
@@ -158,7 +158,8 @@ export default function PostView() {
       sourceUrl: post.url || `https://www.reddit.com${post.permalink}`,
       subreddit: post.subreddit,
       postTitle: post.title,
-      author: post.author
+      author: post.author,
+      storyId
     });
 
     setSelectedText('');
@@ -322,6 +323,7 @@ export default function PostView() {
           selectedText={selectedText}
           sourceUrl={post?.url || `https://www.reddit.com${post?.permalink}`}
           postTitle={post?.title || ''}
+          accessToken={accessToken || undefined}
         />
 
         {/* Quote Saved Toast */}
