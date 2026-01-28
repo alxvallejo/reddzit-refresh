@@ -9,6 +9,7 @@ import PostView from './components/PostView';
 import Admin from './components/Admin';
 import ForYouSettings from './components/ForYouSettings';
 import SubredditFeed from './components/SubredditFeed';
+import QuotesPage from './components/QuotesPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path='/p/:fullname' element={<PostView />} />
             <Route path='/p/:fullname/:slug' element={<PostView />} />
             <Route path='/admin' element={<Admin />} />
+            <Route path='/quotes' element={<QuotesPage />} />
             </Routes>
           </div>
         </RedditProvider>
