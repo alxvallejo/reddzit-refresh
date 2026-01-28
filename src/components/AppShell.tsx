@@ -9,7 +9,7 @@ import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes, faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes, faQuoteLeft, faBookOpen } from '@fortawesome/free-solid-svg-icons';
 
 type Tab = 'top' | 'saved' | 'foryou';
 
@@ -178,6 +178,16 @@ const AppShell = () => {
                     >
                       <FontAwesomeIcon icon={faQuoteLeft} className="w-4 text-gray-400" />
                       Your Quotes
+                    </Link>
+                    <Link
+                      to="/stories"
+                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                      }`}
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <FontAwesomeIcon icon={faBookOpen} className="w-4 text-gray-400" />
+                      Your Stories
                     </Link>
                     <a
                       href="https://www.buymeacoffee.com/reddzit"
