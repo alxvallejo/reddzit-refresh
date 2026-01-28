@@ -9,7 +9,7 @@ import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes, faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
 
 type Tab = 'top' | 'saved' | 'foryou';
 
@@ -169,6 +169,16 @@ const AppShell = () => {
                       <FontAwesomeIcon icon={faUser} className={`w-4 ${themeName === 'light' ? 'text-gray-400' : 'text-gray-400'}`} />
                       Reddit Profile
                     </a>
+                    <Link
+                      to="/quotes"
+                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                      }`}
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <FontAwesomeIcon icon={faQuoteLeft} className="w-4 text-gray-400" />
+                      Your Quotes
+                    </Link>
                     <a
                       href="https://www.buymeacoffee.com/reddzit"
                       target="_blank"
