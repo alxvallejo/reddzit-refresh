@@ -11,6 +11,7 @@ export interface Quote {
   subreddit: string;
   postTitle: string;
   author: string;
+  storyId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,18 +25,21 @@ export interface CreateQuoteData {
   subreddit: string;
   postTitle: string;
   author: string;
+  storyId?: string;
 }
 
 export interface UpdateQuoteData {
   note?: string;
   tags?: string[];
+  storyId?: string | null;
 }
 
 const QuoteService = {
-  async listQuotes(token: string): Promise<{ quotes: Quote[]; count: number }> {
+  async listQuotes(token: string, storyId?: string): Promise<{ quotes: Quote[]; count: number }> {
+    const params = storyId ? { storyId } : {};
     const response = await axios.get<{ quotes: Quote[]; count: number }>(
       `${API_BASE_URL}/api/quotes`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` }, params }
     );
     return response.data;
   },
