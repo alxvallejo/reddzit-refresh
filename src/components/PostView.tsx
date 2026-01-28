@@ -6,6 +6,9 @@ import { getVideoUrl } from '../helpers/UrlCrawler';
 import ReadControls from './ReadControls';
 import TrendingMarquee from './TrendingMarquee';
 import API_BASE_URL from '../config/api';
+import QuoteSelectionButton from './QuoteSelectionButton';
+import QuoteModal from './QuoteModal';
+import QuoteService from '../helpers/QuoteService';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -13,11 +16,12 @@ export default function PostView() {
   const navigate = useNavigate();
   
   // Use context for preferences.
-  const { 
-    fontSize, setFontSize, 
+  const {
+    fontSize, setFontSize,
     darkMode, toggleDarkMode,
     savePost, unsavePost,
-    signedIn, redirectForAuth 
+    signedIn, redirectForAuth,
+    accessToken
   } = useReddit();
 
   const [post, setPost] = useState<any>(location.state?.post || null);
@@ -26,6 +30,10 @@ export default function PostView() {
   const [error, setError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionPosition, setSelectionPosition] = useState<{ top: number; left: number } | null>(null);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quoteSaved, setQuoteSaved] = useState(false);
 
   // Scroll to top on mount/navigation
   useEffect(() => {
@@ -48,6 +56,35 @@ export default function PostView() {
       window.addEventListener('scroll', handleScroll);
       return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Handle text selection for quote feature
+  useEffect(() => {
+    if (!signedIn) return;
+
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const text = selection?.toString().trim();
+
+      if (text && text.length > 0) {
+        const range = selection?.getRangeAt(0);
+        const rect = range?.getBoundingClientRect();
+
+        if (rect) {
+          setSelectedText(text);
+          setSelectionPosition({
+            top: rect.top - 45,
+            left: rect.left + rect.width / 2
+          });
+        }
+      } else {
+        setSelectedText('');
+        setSelectionPosition(null);
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+  }, [signedIn]);
 
   // Fetch Logic
   useEffect(() => {
@@ -108,6 +145,31 @@ export default function PostView() {
     } catch (err) {
       console.error('Failed to copy:', err);
     }
+  };
+
+  const handleSaveQuote = async (note: string, tags: string[]) => {
+    if (!accessToken || !post) return;
+
+    await QuoteService.createQuote(accessToken, {
+      postId: post.name || `t3_${post.id}`,
+      text: selectedText,
+      note: note || undefined,
+      tags: tags.length > 0 ? tags : undefined,
+      sourceUrl: post.url || `https://www.reddit.com${post.permalink}`,
+      subreddit: post.subreddit,
+      postTitle: post.title,
+      author: post.author
+    });
+
+    setSelectedText('');
+    setSelectionPosition(null);
+    setQuoteSaved(true);
+    setTimeout(() => setQuoteSaved(false), 2000);
+  };
+
+  const openQuoteModal = () => {
+    setShowQuoteModal(true);
+    setSelectionPosition(null);
   };
 
   if (loading) return (
@@ -243,6 +305,31 @@ export default function PostView() {
                  </a>
             </div>
         </div>
+
+        {/* Quote Selection Button */}
+        {signedIn && selectionPosition && selectedText && (
+          <QuoteSelectionButton
+            position={selectionPosition}
+            onClick={openQuoteModal}
+          />
+        )}
+
+        {/* Quote Modal */}
+        <QuoteModal
+          isOpen={showQuoteModal}
+          onClose={() => setShowQuoteModal(false)}
+          onSave={handleSaveQuote}
+          selectedText={selectedText}
+          sourceUrl={post?.url || `https://www.reddit.com${post?.permalink}`}
+          postTitle={post?.title || ''}
+        />
+
+        {/* Quote Saved Toast */}
+        {quoteSaved && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-green-500 text-white text-sm font-medium shadow-lg">
+            Quote saved!
+          </div>
+        )}
     </div>
   );
 }
