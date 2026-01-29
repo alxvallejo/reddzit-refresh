@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import StoryService, { Story } from '../helpers/StoryService';
+import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faPlus, faPen, faTrash, faGlobe, faEyeSlash, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faPen, faTrash, faGlobe, faEyeSlash, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { faFileAlt } from '@fortawesome/free-regular-svg-icons';
 
 function StoryCard({
@@ -215,18 +216,7 @@ export default function StoriesPage() {
       <div className={`min-h-screen ${
         themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
       }`}>
-        <header className={`sticky top-0 z-50 ${
-          themeName === 'light' ? 'bg-white border-b border-gray-200' : 'bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]'
-        }`}>
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 no-underline">
-              <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-            </Link>
-            <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
-              Your Stories
-            </h1>
-          </div>
-        </header>
+        <MainHeader />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">
             <FontAwesomeIcon icon={faFileAlt} className="opacity-30" />
@@ -256,32 +246,23 @@ export default function StoriesPage() {
     <div className={`min-h-screen ${
       themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
     }`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-50 ${
-        themeName === 'light' ? 'bg-white border-b border-gray-200' : 'bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]'
+      <MainHeader />
+
+      {/* Page Header */}
+      <div className={`border-b ${
+        themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className={`flex items-center gap-2 no-underline ${
-                themeName === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <FontAwesomeIcon icon={faArrowLeft} />
-              <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-            </Link>
-            <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
-              Your Stories
-              {stories.length > 0 && (
-                <span className={`ml-2 text-sm font-normal ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                }`}>
-                  ({stories.length})
-                </span>
-              )}
-            </h1>
-          </div>
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            Your Stories
+            {stories.length > 0 && (
+              <span className={`ml-2 text-sm font-normal ${
+                themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+              }`}>
+                ({stories.length})
+              </span>
+            )}
+          </h1>
           <Link
             to="/stories/new"
             className={`px-4 py-2 rounded-full font-semibold text-sm no-underline transition-colors ${
@@ -294,7 +275,7 @@ export default function StoriesPage() {
             New Story
           </Link>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">

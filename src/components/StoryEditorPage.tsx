@@ -4,6 +4,7 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import StoryService, { Story } from '../helpers/StoryService';
 import QuoteService, { Quote } from '../helpers/QuoteService';
+import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faQuoteLeft, faCheck, faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
@@ -160,11 +161,13 @@ export default function StoryEditorPage() {
 
   return (
     <div className={`min-h-screen ${isLight ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-50 ${
-        isLight ? 'bg-white border-b border-gray-200' : 'bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]'
+      <MainHeader />
+
+      {/* Editor Header */}
+      <div className={`border-b ${
+        isLight ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/stories"
@@ -213,7 +216,7 @@ export default function StoryEditorPage() {
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Body */}
       <div className="flex max-w-6xl mx-auto">
@@ -249,7 +252,7 @@ export default function StoryEditorPage() {
 
         {/* Sidebar */}
         {showSidebar && (
-          <aside className={`w-80 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto px-4 py-4 ${
+          <aside className={`w-80 sticky top-28 h-[calc(100vh-7rem)] overflow-y-auto px-4 py-4 ${
             isLight ? 'border-l border-gray-200' : 'border-l border-[var(--theme-border)]'
           }`}>
             {/* Assigned quotes */}

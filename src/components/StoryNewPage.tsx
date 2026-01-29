@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import StoryService from '../helpers/StoryService';
+import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
@@ -50,14 +51,16 @@ export default function StoryNewPage() {
     <div className={`min-h-screen ${
       themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
     }`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-50 ${
-        themeName === 'light' ? 'bg-white border-b border-gray-200' : 'bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]'
+      <MainHeader />
+
+      {/* Page Header */}
+      <div className={`border-b ${
+        themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center gap-4">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
           <Link
             to="/stories"
-            className={`flex items-center gap-2 no-underline ${
+            className={`flex items-center no-underline ${
               themeName === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -67,7 +70,7 @@ export default function StoryNewPage() {
             New Story
           </h1>
         </div>
-      </header>
+      </div>
 
       {/* Form */}
       <main className="max-w-2xl mx-auto px-4 py-8">
