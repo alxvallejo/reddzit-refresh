@@ -1,92 +1,73 @@
+// popup.js - Popup UI for Reddzit extension
+
+const REDDZIT_URL = 'https://reddzit.com';
+const REDDZIT_DEV_URL = 'http://localhost:5173';
+
 document.addEventListener('DOMContentLoaded', async () => {
-  const statusEl = document.getElementById('status');
-  const resultsEl = document.getElementById('results');
-  const openReddzitBtn = document.getElementById('open-reddzit');
+  const loadingEl = document.getElementById('loading');
+  const authRequiredEl = document.getElementById('auth-required');
+  const authenticatedEl = document.getElementById('authenticated');
+  const usernameEl = document.getElementById('username');
+  const connectBtn = document.getElementById('connect-btn');
+  const openQuotesBtn = document.getElementById('open-quotes-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const devModeCheckbox = document.getElementById('dev-mode');
+  const devToggleContainer = document.getElementById('dev-toggle-container');
 
-  // URL to open when "Open Reddzit" is clicked
-  const REDDZIT_URL = 'https://reddzit.com'; 
-
-  // Open Reddzit button
-  openReddzitBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: REDDZIT_URL });
+  // Check dev mode
+  chrome.storage.local.get(['useDev'], (result) => {
+    if (result.useDev) {
+      devModeCheckbox.checked = true;
+    }
+    // Show dev toggle with keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        devToggleContainer.style.display = 'flex';
+      }
+    });
   });
 
-  try {
-    // Get current tab URL
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
-    if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
-      statusEl.textContent = 'Cannot check this page.';
-      return;
-    }
+  devModeCheckbox.addEventListener('change', () => {
+    chrome.runtime.sendMessage({
+      type: 'SET_DEV_MODE',
+      enabled: devModeCheckbox.checked
+    });
+  });
 
-    const currentUrl = tab.url;
-    
-    // Check Reddit API
-    // We fetch as JSON. Note that Reddit API might require User-Agent, but browsers set it automatically.
-    const response = await fetch(`https://www.reddit.com/api/info.json?url=${encodeURIComponent(currentUrl)}`);
-    
-    if (!response.ok) {
-        if (response.status === 429) {
-             throw new Error('Rate limited by Reddit. Please try again later.');
-        }
-        throw new Error(`Reddit API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const posts = data.data && data.data.children ? data.data.children : [];
-
-    if (posts.length === 0) {
-      statusEl.innerHTML = `
-        <p>Not found on Reddit.</p>
-        <a href="https://www.reddit.com/submit?url=${encodeURIComponent(currentUrl)}" target="_blank" class="submit-link">Submit this link to Reddit</a>
-      `;
-    } else {
-      statusEl.style.display = 'none';
-      renderPosts(posts, resultsEl);
-    }
-
-  } catch (error) {
-    console.error('Error checking Reddit:', error);
-    statusEl.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+  // Get current URL for redirect
+  function getReddzitUrl() {
+    return devModeCheckbox.checked ? REDDZIT_DEV_URL : REDDZIT_URL;
   }
-});
 
-function renderPosts(posts, container) {
-  const list = document.createElement('div');
-  
-  // Sort posts by score (descending)
-  posts.sort((a, b) => b.data.score - a.data.score);
+  // Check authentication status
+  chrome.runtime.sendMessage({ type: 'GET_AUTH_STATUS' }, (response) => {
+    loadingEl.style.display = 'none';
 
-  posts.forEach(post => {
-    const p = post.data;
-    const item = document.createElement('a');
-    item.className = 'result-item';
-    item.href = `https://www.reddit.com${p.permalink}`;
-    item.target = '_blank';
-    
-    const date = new Date(p.created_utc * 1000).toLocaleDateString();
-    
-    item.innerHTML = `
-      <div class="post-title">${escapeHtml(p.title)}</div>
-      <div class="post-meta">
-        <span>r/${escapeHtml(p.subreddit)}</span>
-        <span>⬆️ ${p.score} • ${date}</span>
-      </div>
-    `;
-    
-    list.appendChild(item);
+    if (response?.authenticated) {
+      authenticatedEl.style.display = 'block';
+      usernameEl.textContent = response.username ? `u/${response.username}` : 'Connected';
+    } else {
+      authRequiredEl.style.display = 'block';
+    }
   });
-  
-  container.appendChild(list);
-}
 
-function escapeHtml(text) {
-  if (!text) return '';
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+  // Connect button - opens Reddzit
+  connectBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: getReddzitUrl() });
+    window.close();
+  });
+
+  // Open quotes button
+  openQuotesBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: `${getReddzitUrl()}/quotes` });
+    window.close();
+  });
+
+  // Logout button
+  logoutBtn.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'LOGOUT' }, () => {
+      authenticatedEl.style.display = 'none';
+      authRequiredEl.style.display = 'block';
+    });
+  });
+});
