@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Reddzit - Reddit Saved Posts Viewer",
-  "description": "Easily access and read your saved Reddit posts in a clean, organized interface",
-  "version": "1.0.4",
+  "name": "Reddzit - Save Quotes from Any Page",
+  "description": "Highlight text on any webpage and save it to your Reddzit quote library",
+  "version": "2.0.0",
   "author": "Reddzit Team",
-  
+
   "action": {
-    "default_title": "Open Reddzit",
+    "default_title": "Reddzit",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -15,21 +15,39 @@
       "128": "icons/icon128.png"
     }
   },
-  
+
   "background": {
     "service_worker": "background.js"
   },
-  
-  "permissions": [
-    "tabs"
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    },
+    {
+      "matches": ["https://reddzit.com/*", "http://localhost:5173/*"],
+      "js": ["auth-content.js"]
+    }
   ],
-  
+
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+
+  "host_permissions": [
+    "https://reddzit.com/*",
+    "http://localhost:3001/*"
+  ],
+
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  
-  "homepage_url": "https://github.com/your-username/reddzit"
-} 
+
+  "homepage_url": "https://reddzit.com"
+}
