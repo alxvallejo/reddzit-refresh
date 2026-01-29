@@ -6,13 +6,14 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faQuoteLeft, faBookOpen } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'top' | 'saved' | 'foryou' | null;
+type Tab = 'top' | 'saved' | 'foryou' | 'stories' | null;
 
 const getTabFromPath = (pathname: string): Tab => {
   if (pathname === '/reddit' || pathname === '/saved') return 'saved';
   if (pathname === '/foryou') return 'foryou';
+  if (pathname.startsWith('/stories')) return 'stories';
   if (pathname === '/' || pathname === '/top') return 'top';
-  return null; // For other pages like /stories, /quotes, etc.
+  return null;
 };
 
 export default function MainHeader() {
@@ -89,6 +90,20 @@ export default function MainHeader() {
               }`}
             >
               For You
+            </button>
+            <button
+              onClick={() => navigate('/stories')}
+              className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                themeName === 'light'
+                  ? activeTab === 'stories'
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                  : activeTab === 'stories'
+                    ? 'bg-white/20 text-white'
+                    : 'text-gray-300 hover:bg-white/10 bg-transparent'
+              }`}
+            >
+              Stories
             </button>
           </nav>
 
