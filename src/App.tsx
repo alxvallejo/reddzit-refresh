@@ -9,6 +9,10 @@ import PostView from './components/PostView';
 import Admin from './components/Admin';
 import ForYouSettings from './components/ForYouSettings';
 import SubredditFeed from './components/SubredditFeed';
+import QuotesPage from './components/QuotesPage';
+import StoriesPage from './components/StoriesPage';
+import StoryNewPage from './components/StoryNewPage';
+import StoryEditorPage from './components/StoryEditorPage';
 
 function App() {
   return (
@@ -27,6 +31,10 @@ function App() {
             <Route path='/p/:fullname' element={<PostView />} />
             <Route path='/p/:fullname/:slug' element={<PostView />} />
             <Route path='/admin' element={<Admin />} />
+            <Route path='/quotes' element={<QuotesPage />} />
+            <Route path='/stories' element={<StoriesPage />} />
+            <Route path='/stories/new' element={<StoryNewPage />} />
+            <Route path='/stories/:id/edit' element={<StoryEditorPage />} />
             </Routes>
           </div>
         </RedditProvider>

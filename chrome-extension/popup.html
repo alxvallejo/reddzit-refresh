@@ -2,22 +2,72 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Reddzit Check</title>
+  <title>Reddzit</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Reddzit Check</h1>
+      <div class="logo">
+        <img src="icons/icon32.png" alt="Reddzit" width="24" height="24">
+        <span>Reddzit</span>
+      </div>
     </header>
-    
-    <div id="status" class="status">Checking Reddit...</div>
-    
-    <div id="results" class="results-list"></div>
-    
-    <div class="footer">
-      <button id="open-reddzit" class="primary-btn">Open Reddzit App</button>
+
+    <!-- Not authenticated state -->
+    <div id="auth-required" class="section" style="display: none;">
+      <div class="hero">
+        <div class="hero-icon">📝</div>
+        <h2>Save Quotes from Anywhere</h2>
+        <p>Highlight text on any page and save it to your Reddzit library.</p>
+      </div>
+      <button id="connect-btn" class="primary-btn">
+        Connect with Reddzit
+      </button>
+      <p class="hint">You'll be redirected to log in with Reddit</p>
     </div>
+
+    <!-- Authenticated state -->
+    <div id="authenticated" class="section" style="display: none;">
+      <div class="user-info">
+        <div class="avatar">👤</div>
+        <div class="user-details">
+          <div class="username" id="username">Loading...</div>
+          <div class="status">Connected</div>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h3>How to save quotes:</h3>
+        <ol>
+          <li>Highlight any text on a webpage</li>
+          <li>Click the "Save Quote" button that appears</li>
+          <li>View your quotes on Reddzit</li>
+        </ol>
+      </div>
+
+      <div class="actions">
+        <button id="open-quotes-btn" class="primary-btn">
+          View Your Quotes
+        </button>
+        <button id="logout-btn" class="secondary-btn">
+          Disconnect
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading" class="section">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+
+    <footer>
+      <label class="dev-toggle" id="dev-toggle-container" style="display: none;">
+        <input type="checkbox" id="dev-mode">
+        <span>Dev mode</span>
+      </label>
+    </footer>
   </div>
   <script src="popup.js"></script>
 </body>

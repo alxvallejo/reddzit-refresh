@@ -62,6 +62,11 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         try {
           await reddit.getMe();
           setUser(reddit.me);
+          // Store token and username for Chrome extension
+          localStorage.setItem('reddit_access_token', token);
+          if (reddit.me?.name) {
+            localStorage.setItem('reddit_username', reddit.me.name);
+          }
         } catch (e) {
           console.error("Failed to fetch user", e);
         }
@@ -138,6 +143,9 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.removeItem('rdz_anon_id');
     localStorage.removeItem('rdz_latest_report');
     localStorage.removeItem('reddzit_discover_anon_id');
+    // Remove extension auth keys
+    localStorage.removeItem('reddit_access_token');
+    localStorage.removeItem('reddit_username');
     window.location.href = '/';
   };
   
