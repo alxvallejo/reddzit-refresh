@@ -6,12 +6,13 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCoffee, faSignOutAlt, faQuoteLeft, faBookOpen } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'top' | 'saved' | 'foryou' | 'stories' | null;
+type Tab = 'top' | 'saved' | 'foryou' | 'stories' | 'quotes' | null;
 
 const getTabFromPath = (pathname: string): Tab => {
   if (pathname === '/reddit' || pathname === '/saved') return 'saved';
   if (pathname === '/foryou') return 'foryou';
   if (pathname.startsWith('/stories')) return 'stories';
+  if (pathname.startsWith('/quotes')) return 'quotes';
   if (pathname === '/' || pathname === '/top') return 'top';
   return null;
 };
@@ -104,6 +105,21 @@ export default function MainHeader() {
               }`}
             >
               Stories
+            </button>
+            <button
+              onClick={() => navigate('/quotes')}
+              className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                themeName === 'light'
+                  ? activeTab === 'quotes'
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                  : activeTab === 'quotes'
+                    ? 'bg-white/20 text-white'
+                    : 'text-gray-300 hover:bg-white/10 bg-transparent'
+              }`}
+            >
+              <FontAwesomeIcon icon={faQuoteLeft} className="mr-1.5 text-xs" />
+              Quotes
             </button>
           </nav>
 
