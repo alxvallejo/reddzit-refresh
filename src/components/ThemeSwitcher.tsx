@@ -45,7 +45,7 @@ const ThemeSwitcher = () => {
           className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl py-2 border z-50 ${
             isLight
               ? 'bg-white border-gray-100'
-              : 'bg-[#3d3466] border-[#7e87ef]/30'
+              : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]'
           }`}
         >
           <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${

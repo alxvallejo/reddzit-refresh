@@ -5,6 +5,16 @@ import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft } from '@fortawesome/fre
 import { useTheme } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
 
+function isImageUrl(text: string): boolean {
+  if (/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text)) return true;
+  try {
+    const url = new URL(text);
+    return ['preview.redd.it', 'i.redd.it'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 interface QuoteCardProps {
   quote: Quote;
   onUpdate: (id: string, note: string, tags: string[]) => Promise<void>;
@@ -58,21 +68,32 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
     <div className={`rounded-xl p-4 ${
       themeName === 'light'
         ? 'bg-white border border-gray-200 shadow-sm'
-        : 'bg-[#3d3466] border border-[#7e87ef]/20'
+        : 'bg-transparent border border-[var(--theme-border)]'
     }`}>
       {/* Quoted Text */}
       <div className={`mb-3 ${themeName === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>
-        <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-40" />
-        <span>{displayText}</span>
-        {quote.text.length > 200 && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className={`ml-2 text-sm font-medium border-none bg-transparent cursor-pointer ${
-              themeName === 'light' ? 'text-orange-600' : 'text-[#7e87ef]'
-            }`}
-          >
-            {expanded ? 'Show less' : 'Show more'}
-          </button>
+        {isImageUrl(quote.text) ? (
+          <img
+            src={quote.text}
+            alt={quote.postTitle || 'Saved image'}
+            className="max-w-full max-h-48 rounded-lg object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <>
+            <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-40" />
+            <span>{displayText}</span>
+            {quote.text.length > 200 && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className={`ml-2 text-sm font-medium border-none bg-transparent cursor-pointer ${
+                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+                }`}
+              >
+                {expanded ? 'Show less' : 'Show more'}
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -87,7 +108,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
             className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
               themeName === 'light'
                 ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
-                : 'bg-white/5 border border-white/20 text-white focus:ring-[#7e87ef]/50'
+                : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
             }`}
           />
           <input
@@ -98,13 +119,13 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
             className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
               themeName === 'light'
                 ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
-                : 'bg-white/5 border border-white/20 text-white focus:ring-[#7e87ef]/50'
+                : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
             }`}
           />
         </div>
       ) : quote.note ? (
         <div className={`mb-3 pl-4 border-l-2 ${
-          themeName === 'light' ? 'border-orange-300 text-gray-600' : 'border-[#7e87ef]/50 text-gray-400'
+          themeName === 'light' ? 'border-orange-300 text-gray-600' : 'border-[var(--theme-border)] text-gray-400'
         }`}>
           {quote.note}
         </div>

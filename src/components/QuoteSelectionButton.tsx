@@ -24,7 +24,7 @@ export default function QuoteSelectionButton({ position, onClick }: QuoteSelecti
       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg transition-all border-none cursor-pointer ${
         themeName === 'light'
           ? 'bg-orange-600 text-white hover:bg-orange-700'
-          : 'bg-[#7e87ef] text-white hover:bg-[#6b74e0]'
+          : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
       }`}
     >
       <FontAwesomeIcon icon={faQuoteLeft} className="text-xs" />

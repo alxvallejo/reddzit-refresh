@@ -314,6 +314,29 @@ export default function PostView() {
                      </button>
                    </>
                  )}
+                 {signedIn && getArticlePreviewImage(post) && !getVideoUrl(post) && (
+                   <>
+                     <span className="opacity-30">|</span>
+                     <button
+                        onClick={async () => {
+                          if (!accessToken) return;
+                          await QuoteService.createQuote(accessToken, {
+                            postId: post.name || `t3_${post.id}`,
+                            text: getArticlePreviewImage(post)!,
+                            sourceUrl: post.url || `https://www.reddit.com${post.permalink}`,
+                            subreddit: post.subreddit,
+                            postTitle: post.link_title || post.title,
+                            author: post.author,
+                          });
+                          setQuoteSaved(true);
+                          setTimeout(() => setQuoteSaved(false), 2000);
+                        }}
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                     >
+                         Save Image
+                     </button>
+                   </>
+                 )}
                  <span className="opacity-30">|</span>
                  <button
                     onClick={handleShare}

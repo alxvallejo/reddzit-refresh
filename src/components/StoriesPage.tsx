@@ -51,7 +51,7 @@ function StoryCard({
     <div className={`rounded-xl p-4 ${
       themeName === 'light'
         ? 'bg-white border border-gray-200 shadow-sm'
-        : 'bg-[#3d3466] border border-[#7e87ef]/20'
+        : 'bg-transparent border border-[var(--theme-border)]'
     }`}>
       {/* Title + Status */}
       <div className="flex items-center gap-2 mb-2">
@@ -252,7 +252,7 @@ export default function StoriesPage() {
       <div className={`border-b ${
         themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
             Your Stories
             {stories.length > 0 && (
@@ -265,10 +265,10 @@ export default function StoriesPage() {
           </h1>
           <Link
             to="/stories/new"
-            className={`px-4 py-2 rounded-full font-semibold text-sm no-underline transition-colors ${
+            className={`px-4 py-2 rounded-lg font-semibold text-sm no-underline transition-colors border ${
               themeName === 'light'
-                ? 'bg-orange-600 text-white hover:bg-orange-700'
-                : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+                ? 'bg-transparent border-orange-600 text-orange-600 hover:bg-orange-50'
+                : 'bg-transparent border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-white/5'
             }`}
           >
             <FontAwesomeIcon icon={faPlus} className="mr-1.5" />
@@ -278,7 +278,7 @@ export default function StoriesPage() {
       </div>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
@@ -305,7 +305,7 @@ export default function StoriesPage() {
             {drafts.length > 0 && (
               <section>
                 <h2 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-primary)]'
                 }`}>
                   Drafts ({drafts.length})
                 </h2>
@@ -326,7 +326,7 @@ export default function StoriesPage() {
             {published.length > 0 && (
               <section>
                 <h2 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-primary)]'
                 }`}>
                   Published ({published.length})
                 </h2>

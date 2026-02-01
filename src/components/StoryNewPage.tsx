@@ -57,7 +57,7 @@ export default function StoryNewPage() {
       <div className={`border-b ${
         themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
           <Link
             to="/stories"
             className={`flex items-center no-underline ${
@@ -87,7 +87,7 @@ export default function StoryNewPage() {
               className={`w-full px-3 py-2 rounded-lg text-lg focus:outline-none focus:ring-2 ${
                 themeName === 'light'
                   ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
-                  : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[#7e87ef]/50'
+                  : 'bg-black/20 border border-[var(--theme-border)] text-white placeholder-gray-300 focus:ring-[var(--theme-border)]'
               }`}
             />
           </div>
@@ -102,7 +102,7 @@ export default function StoryNewPage() {
               className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
                 themeName === 'light'
                   ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
-                  : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[#7e87ef]/50'
+                  : 'bg-black/20 border border-[var(--theme-border)] text-white placeholder-gray-300 focus:ring-[var(--theme-border)]'
               }`}
             />
           </div>
@@ -132,7 +132,7 @@ export default function StoryNewPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer disabled:opacity-50 ${
                 themeName === 'light'
                   ? 'bg-orange-600 text-white hover:bg-orange-700'
-                  : 'bg-[#7e87ef] text-white hover:bg-[#6b74e0]'
+                  : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
               }`}
             >
               {saving ? 'Creating...' : 'Create & Start Writing'}

@@ -84,50 +84,54 @@ const SavedFeed = () => {
                 : 'bg-transparent border-white/10 hover:bg-white/[0.08]'
             }`}
           >
-            <div className="flex items-baseline justify-between mb-1">
-              <span className={`text-xs font-normal ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
-                r/{post.subreddit}
-              </span>
+            <div className="flex gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline justify-between mb-1">
+                  <span className={`text-xs font-normal ${
+                    themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+                  }`}>
+                    r/{post.subreddit}
+                  </span>
+                </div>
+
+                <h2 className={`font-light text-base my-2 leading-tight transition-colors ${
+                  themeName === 'light'
+                    ? 'text-gray-900 group-hover:text-orange-600'
+                    : ''
+                }`}>
+                  {getDisplayTitle(post)}
+                </h2>
+
+                {isComment(post) && (
+                  <div className={`text-sm line-clamp-2 italic p-2 rounded ${
+                    themeName === 'light' ? 'text-gray-500 bg-gray-50' : 'text-[var(--theme-textMuted)] bg-white/5'
+                  }`}>
+                    "{getCommentSnippet(post, 100)}"
+                  </div>
+                )}
+
+                {post.author && (
+                  <div className={`text-xs ${
+                    themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+                  }`}>
+                    u/{post.author}
+                  </div>
+                )}
+              </div>
+
+              {getPreviewImage(post) && (
+                <div className="flex-shrink-0 rounded-lg overflow-hidden self-center">
+                  <img
+                    src={getPreviewImage(post)}
+                    alt=""
+                    className="w-24 h-24 object-cover rounded-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
             </div>
-
-            <h2 className={`font-light text-base my-2 leading-tight transition-colors ${
-              themeName === 'light'
-                ? 'text-gray-900 group-hover:text-orange-600'
-                : ''
-            }`}>
-              {getDisplayTitle(post)}
-            </h2>
-
-            {getPreviewImage(post) && (
-              <div className="my-2 rounded-lg overflow-hidden">
-                <img
-                  src={getPreviewImage(post)}
-                  alt=""
-                  className="w-full h-32 object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-
-            {isComment(post) && (
-              <div className={`text-sm line-clamp-2 italic p-2 rounded ${
-                themeName === 'light' ? 'text-gray-500 bg-gray-50' : 'text-[var(--theme-textMuted)] bg-white/5'
-              }`}>
-                "{getCommentSnippet(post, 100)}"
-              </div>
-            )}
-
-            {post.author && (
-              <div className={`text-xs ${
-                themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-              }`}>
-                u/{post.author}
-              </div>
-            )}
           </article>
         ))}
       </div>

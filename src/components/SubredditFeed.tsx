@@ -173,7 +173,7 @@ const SubredditFeed = () => {
                 <div className={`absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl py-2 border z-50 ${
                   themeName === 'light'
                     ? 'bg-white border-gray-100'
-                    : 'bg-[#3d3466] border-[#7e87ef]/30'
+                    : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]'
                 }`}>
                   <a
                     href={`https://www.reddit.com/user/${user.name}`}

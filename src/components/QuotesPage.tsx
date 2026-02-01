@@ -90,7 +90,7 @@ export default function QuotesPage() {
       <div className={`border-b ${
         themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
             Your Quotes
             {quotes.length > 0 && (
@@ -105,7 +105,7 @@ export default function QuotesPage() {
       </div>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />

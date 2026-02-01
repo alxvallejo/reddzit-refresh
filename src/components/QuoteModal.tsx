@@ -130,7 +130,7 @@ export default function QuoteModal({
       <div className={`relative w-full sm:max-w-lg rounded-t-xl sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col ${
         themeName === 'light'
           ? 'bg-white'
-          : 'bg-[#3d3466] border border-[#7e87ef]/30'
+          : 'bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]'
       }`}>
         {/* Header */}
         <div className={`flex items-center justify-between px-5 py-4 border-b flex-shrink-0 ${
@@ -173,7 +173,7 @@ export default function QuoteModal({
                     ? 'bg-white border-gray-300 text-gray-900 hover:border-gray-400'
                     : 'bg-white/5 border-white/20 text-white hover:border-white/40'
                 } ${dropdownOpen
-                    ? themeName === 'light' ? 'ring-2 ring-orange-500/50' : 'ring-2 ring-[#7e87ef]/50'
+                    ? themeName === 'light' ? 'ring-2 ring-orange-500/50' : 'ring-2 ring-[var(--theme-border)]'
                     : ''
                 }`}
               >
@@ -210,7 +210,7 @@ export default function QuoteModal({
                       className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
                         themeName === 'light'
                           ? `bg-transparent hover:bg-gray-50 ${!selectedStoryId ? 'text-orange-600 font-medium' : 'text-gray-600'}`
-                          : `bg-transparent hover:bg-white/5 ${!selectedStoryId ? 'text-[#7e87ef] font-medium' : 'text-gray-300'}`
+                          : `bg-transparent hover:bg-white/5 ${!selectedStoryId ? 'text-[var(--theme-primary)] font-medium' : 'text-gray-300'}`
                       }`}
                     >
                       <span>No story</span>
@@ -226,7 +226,7 @@ export default function QuoteModal({
                         className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
                           themeName === 'light'
                             ? `bg-transparent hover:bg-gray-50 ${selectedStoryId === s.id ? 'text-orange-600 font-medium' : 'text-gray-900'}`
-                            : `bg-transparent hover:bg-white/5 ${selectedStoryId === s.id ? 'text-[#7e87ef] font-medium' : 'text-gray-200'}`
+                            : `bg-transparent hover:bg-white/5 ${selectedStoryId === s.id ? 'text-[var(--theme-primary)] font-medium' : 'text-gray-200'}`
                         }`}
                       >
                         <span className="flex items-center gap-2 truncate">
@@ -260,7 +260,7 @@ export default function QuoteModal({
                           className={`flex-1 px-2.5 py-1.5 rounded text-sm focus:outline-none focus:ring-1 ${
                             themeName === 'light'
                               ? 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
-                              : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[#7e87ef]/50'
+                              : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
                           }`}
                         />
                         <button
@@ -270,7 +270,7 @@ export default function QuoteModal({
                           className={`p-1.5 rounded text-xs transition-colors border-none cursor-pointer disabled:opacity-40 ${
                             themeName === 'light'
                               ? 'bg-orange-600 text-white hover:bg-orange-700'
-                              : 'bg-[#7e87ef] text-white hover:bg-[#6b74e0]'
+                              : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
                           }`}
                         >
                           <FontAwesomeIcon icon={faCheck} />
@@ -294,7 +294,7 @@ export default function QuoteModal({
                         className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
                           themeName === 'light'
                             ? 'bg-transparent text-orange-600 hover:bg-orange-50'
-                            : 'bg-transparent text-[#7e87ef] hover:bg-white/5'
+                            : 'bg-transparent text-[var(--theme-primary)] hover:bg-white/5'
                         }`}
                       >
                         <FontAwesomeIcon icon={faPlus} className="text-xs" />
@@ -362,7 +362,7 @@ export default function QuoteModal({
               className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
                 themeName === 'light'
                   ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
-                  : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[#7e87ef]/50'
+                  : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
               }`}
             />
           </div>
@@ -382,7 +382,7 @@ export default function QuoteModal({
               className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
                 themeName === 'light'
                   ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
-                  : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[#7e87ef]/50'
+                  : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
               }`}
             />
           </div>
@@ -414,7 +414,7 @@ export default function QuoteModal({
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer disabled:opacity-50 ${
               themeName === 'light'
                 ? 'bg-orange-600 text-white hover:bg-orange-700'
-                : 'bg-[#7e87ef] text-white hover:bg-[#6b74e0]'
+                : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
             }`}
           >
             {saving ? 'Saving...' : 'Save Quote'}
