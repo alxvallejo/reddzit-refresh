@@ -1,7 +1,7 @@
 // background.js - Service worker for Reddzit Chrome Extension
 
-const API_BASE = 'https://reddzit.com';
-const API_BASE_DEV = 'http://localhost:3001';
+const API_BASE = 'https://read-api.reddzit.com';
+const API_BASE_DEV = 'http://localhost:3000';
 
 // Determine if we're in development
 function getApiBase() {
@@ -42,47 +42,55 @@ async function clearAuthToken() {
 // Save quote to API
 async function saveQuote(data) {
   const token = await getAuthToken();
+  console.log('[Reddzit] Auth token:', token ? `${token.substring(0, 10)}...` : 'MISSING');
+
   if (!token) {
     return { success: false, error: 'NOT_AUTHENTICATED' };
   }
 
   const apiBase = await getApiBase();
+  const url = `${apiBase}/api/quotes`;
+  const body = {
+    text: data.text,
+    sourceUrl: data.sourceUrl,
+    pageUrl: data.pageUrl,
+    pageTitle: data.pageTitle,
+    isExternal: true,
+    subreddit: '',
+    postTitle: data.pageTitle || '',
+    author: ''
+  };
+
+  console.log('[Reddzit] POST', url, body);
 
   try {
-    const response = await fetch(`${apiBase}/api/quotes`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        text: data.text,
-        sourceUrl: data.sourceUrl,
-        pageUrl: data.pageUrl,
-        pageTitle: data.pageTitle,
-        isExternal: true,
-        // These are empty for external quotes
-        subreddit: '',
-        postTitle: data.pageTitle || '',
-        author: ''
-      })
+      body: JSON.stringify(body)
     });
 
+    console.log('[Reddzit] Response status:', response.status);
+
     if (response.status === 401) {
-      // Token expired or invalid
       await clearAuthToken();
       return { success: false, error: 'NOT_AUTHENTICATED' };
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('[Reddzit] API error:', response.status, errorData);
       return { success: false, error: errorData.error || 'Failed to save quote' };
     }
 
     const result = await response.json();
+    console.log('[Reddzit] Saved:', result);
     return { success: true, quote: result.quote };
   } catch (error) {
-    console.error('Save quote error:', error);
+    console.error('[Reddzit] Network error:', error);
     return { success: false, error: 'Network error. Please try again.' };
   }
 }

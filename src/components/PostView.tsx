@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
-import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
+import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle, isComment } from '../helpers/RedditUtils';
 import { getVideoUrl } from '../helpers/UrlCrawler';
+import MainHeader from './MainHeader';
 import ReadControls from './ReadControls';
 import TrendingMarquee from './TrendingMarquee';
 import API_BASE_URL from '../config/api';
@@ -63,6 +64,10 @@ export default function PostView() {
     if (!signedIn) return;
 
     const handleSelectionChange = () => {
+      // Don't touch selectedText while the quote modal is open —
+      // focusing the textarea clears the browser selection which would wipe the quote.
+      if (showQuoteModal) return;
+
       const selection = window.getSelection();
       const text = selection?.toString().trim();
 
@@ -85,7 +90,7 @@ export default function PostView() {
 
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => document.removeEventListener('selectionchange', handleSelectionChange);
-  }, [signedIn]);
+  }, [signedIn, showQuoteModal]);
 
   // Fetch Logic
   useEffect(() => {
@@ -160,7 +165,7 @@ export default function PostView() {
       tags: tags.length > 0 ? tags : undefined,
       sourceUrl: post.url || `https://www.reddit.com${post.permalink}`,
       subreddit: post.subreddit,
-      postTitle: post.title,
+      postTitle: post.link_title || post.title,
       author: post.author,
       storyId
     });
@@ -192,35 +197,39 @@ export default function PostView() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${bgColor} w-full`}>
-        {/* Sticky Header */}
-        <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-                <Link to="/" className="flex-shrink-0">
-                    <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
-                </Link>
-                
-                <div className={`transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 hidden sm:block'}`}>
-                     <h2 className="text-sm font-medium truncate max-w-[200px] sm:max-w-md text-white">
-                        {getDisplayTitle(post)}
-                     </h2>
-                </div>
-                
-                {!isScrolled && (
-                     <div className="text-white">
-                        <Link to="/" className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
-                     </div>
-                )}
-            </div>
-            
-            <div className="flex-shrink-0">
-                <ReadControls 
-                    fontSize={fontSize} 
-                    setSize={setFontSize} 
-                    darkMode={darkMode} 
-                    toggleDarkMode={toggleDarkMode} 
-                />
-            </div>
-        </header>
+        {/* Header */}
+        {signedIn ? (
+          <MainHeader />
+        ) : (
+          <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <Link to="/" className="flex-shrink-0">
+                      <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
+                  </Link>
+
+                  <div className={`transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 hidden sm:block'}`}>
+                       <h2 className="text-sm font-medium truncate max-w-[200px] sm:max-w-md text-white">
+                          {getDisplayTitle(post)}
+                       </h2>
+                  </div>
+
+                  {!isScrolled && (
+                       <div className="text-white">
+                          <Link to="/" className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
+                       </div>
+                  )}
+              </div>
+
+              <div className="flex-shrink-0">
+                  <ReadControls
+                      fontSize={fontSize}
+                      setSize={setFontSize}
+                      darkMode={darkMode}
+                      toggleDarkMode={toggleDarkMode}
+                  />
+              </div>
+          </header>
+        )}
 
         {/* Trending Marquee */}
         <TrendingMarquee />
@@ -291,6 +300,20 @@ export default function PostView() {
                          Login to Save
                      </button>
                  )}
+                 {signedIn && isComment(post) && (
+                   <>
+                     <span className="opacity-30">|</span>
+                     <button
+                        onClick={() => {
+                          setSelectedText(post.body);
+                          openQuoteModal();
+                        }}
+                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                     >
+                         Save as Quote
+                     </button>
+                   </>
+                 )}
                  <span className="opacity-30">|</span>
                  <button
                     onClick={handleShare}
@@ -325,7 +348,7 @@ export default function PostView() {
           onSave={handleSaveQuote}
           selectedText={selectedText}
           sourceUrl={post?.url || `https://www.reddit.com${post?.permalink}`}
-          postTitle={post?.title || ''}
+          postTitle={post?.link_title || post?.title || ''}
           accessToken={accessToken || undefined}
         />
 

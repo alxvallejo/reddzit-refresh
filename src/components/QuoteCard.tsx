@@ -44,6 +44,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
     }
   };
 
+  const isComment = quote.postId.startsWith('t1_');
   const postSlug = quote.postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
   const postLink = `/p/${quote.postId}/${postSlug}`;
 
@@ -62,7 +63,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
       {/* Quoted Text */}
       <div className={`mb-3 ${themeName === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>
         <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-40" />
-        <span className="italic">{displayText}</span>
+        <span>{displayText}</span>
         {quote.text.length > 200 && (
           <button
             onClick={() => setExpanded(!expanded)}
@@ -134,14 +135,27 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
         <div className="flex items-center gap-2">
           <span className="font-medium text-[#ff4500]">r/{quote.subreddit}</span>
           <span>·</span>
-          <Link
-            to={postLink}
-            className={`hover:underline truncate max-w-[200px] ${
-              themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
-            }`}
-          >
-            {quote.postTitle}
-          </Link>
+          {isComment ? (
+            <a
+              href={quote.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`hover:underline truncate max-w-[200px] ${
+                themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
+              }`}
+            >
+              {quote.postTitle}
+            </a>
+          ) : (
+            <Link
+              to={postLink}
+              className={`hover:underline truncate max-w-[200px] ${
+                themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
+              }`}
+            >
+              {quote.postTitle}
+            </Link>
+          )}
           <span>·</span>
           <span>{formattedDate}</span>
         </div>

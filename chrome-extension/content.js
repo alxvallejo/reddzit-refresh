@@ -124,15 +124,26 @@
     `;
 
     // Send message to background script
+    const payload = {
+      text: currentSelection,
+      pageUrl: window.location.href,
+      pageTitle: document.title,
+      sourceUrl: window.location.href
+    };
+    console.log('[Reddzit] Saving quote:', payload);
+
     chrome.runtime.sendMessage({
       type: 'SAVE_QUOTE',
-      data: {
-        text: currentSelection,
-        pageUrl: window.location.href,
-        pageTitle: document.title,
-        sourceUrl: window.location.href
-      }
+      data: payload
     }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('[Reddzit] sendMessage error:', chrome.runtime.lastError);
+        hideButton();
+        showToast('Extension error. Try reloading the page.', 'error');
+        return;
+      }
+
+      console.log('[Reddzit] Save response:', response);
       hideButton();
       window.getSelection()?.removeAllRanges();
 

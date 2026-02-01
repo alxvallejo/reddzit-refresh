@@ -39,7 +39,8 @@
 
   "host_permissions": [
     "https://reddzit.com/*",
-    "http://localhost:3001/*"
+    "https://read-api.reddzit.com/*",
+    "http://localhost:3000/*"
   ],
 
   "icons": {
