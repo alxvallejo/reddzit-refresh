@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
@@ -9,7 +9,7 @@ import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes, faQuoteLeft, faBookOpen } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faCoffee, faSignOutAlt, faTimes, faQuoteLeft, faBookOpen, faArrowUp, faBookmark, faStar } from '@fortawesome/free-solid-svg-icons';
 
 type Tab = 'top' | 'saved' | 'foryou' | 'stories' | 'quotes';
 
@@ -31,9 +31,31 @@ const AppShell = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [email, setEmail] = useState('');
   const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [showPageTitle, setShowPageTitle] = useState(false);
   const [showBanner, setShowBanner] = useState(() => {
     return localStorage.getItem('hideDailyBanner') !== 'true';
   });
+
+  const pageTitles: Record<Tab, string> = {
+    top: 'Top Posts on Reddit',
+    saved: 'Saved Posts',
+    foryou: 'For You',
+    stories: 'Stories',
+    quotes: 'Quotes',
+  };
+
+  useEffect(() => {
+    setShowPageTitle(false);
+    const header = document.getElementById('page-header');
+    if (!header) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowPageTitle(!entry.isIntersecting),
+      { rootMargin: '-64px 0px 0px 0px', threshold: 0 }
+    );
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [activeTab]);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,18 +99,29 @@ const AppShell = () => {
           borderColor: 'var(--theme-border)'
         } as React.CSSProperties)}
       >
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        {/* Page title (shown when page header scrolls out of view) */}
+        {showPageTitle && (
+          <div className="absolute left-0 right-0 top-0 h-16 hidden md:flex items-center pointer-events-none">
+            <div className={`max-w-7xl mx-auto pl-14 pr-4 w-full ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+              <span className="text-xl font-thin" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
+                {pageTitles[activeTab]}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0 no-underline">
               <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-              <span className={`font-serif text-xl font-bold hidden sm:block ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+              <span className={`font-serif text-xl font-bold hidden sm:block ${showPageTitle ? 'md:hidden' : ''} ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 Reddzit
               </span>
             </Link>
 
             {/* Tabs */}
-            <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
+            <nav className="flex gap-1 overflow-x-auto ml-auto mr-48 scrollbar-hide">
               <button
                 onClick={() => navigate('/top')}
                 className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
@@ -101,7 +134,7 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                Top
+                <FontAwesomeIcon icon={faArrowUp} />
               </button>
               <button
                 onClick={() => navigate('/reddit')}
@@ -115,7 +148,7 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                Saved
+                <FontAwesomeIcon icon={faBookmark} />
               </button>
               <button
                 onClick={() => navigate('/foryou')}
@@ -129,7 +162,7 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                New
+                <FontAwesomeIcon icon={faStar} />
               </button>
               <button
                 onClick={() => navigate('/stories')}
@@ -143,7 +176,7 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                Stories
+                <FontAwesomeIcon icon={faBookOpen} />
               </button>
               <button
                 onClick={() => navigate('/quotes')}
@@ -157,102 +190,109 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                <FontAwesomeIcon icon={faQuoteLeft} className="mr-1.5 text-xs" />
-                Quotes
+                <FontAwesomeIcon icon={faQuoteLeft} />
               </button>
             </nav>
+          </div>
+        </div>
 
-            {/* Theme Switcher */}
-            <ThemeSwitcher />
+        {/* Right-side controls (aligned with card grid) */}
+        <div className="absolute right-0 left-0 top-0 h-16 flex items-center pointer-events-none">
+          <div className="max-w-7xl mx-auto px-4 w-full flex justify-end gap-2">
+            <div className="pointer-events-auto">
+              <ThemeSwitcher />
+            </div>
 
             {/* User Menu / Login */}
-            {signedIn && user ? (
-              <div className="relative">
+            <div className="pointer-events-auto">
+              {signedIn && user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer bg-transparent ${
+                      themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="font-medium text-sm max-w-[120px] truncate hidden sm:block">u/{user.name}</span>
+                    <span className="font-medium text-sm sm:hidden"><FontAwesomeIcon icon={faUser} /></span>
+                    <FontAwesomeIcon
+                      icon={faChevronDown}
+                      className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  {showUserMenu && (
+                    <div className={`absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl py-2 border z-50 ${
+                      themeName === 'light'
+                        ? 'bg-white border-gray-100'
+                        : 'bg-[#3d3466] border-[#7e87ef]/30'
+                    }`}>
+                      <a
+                        href={`https://www.reddit.com/user/${user.name}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+                          themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                        }`}
+                      >
+                        <FontAwesomeIcon icon={faUser} className={`w-4 ${themeName === 'light' ? 'text-gray-400' : 'text-gray-400'}`} />
+                        Reddit Profile
+                      </a>
+                      <Link
+                        to="/quotes"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+                          themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                        }`}
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <FontAwesomeIcon icon={faQuoteLeft} className="w-4 text-gray-400" />
+                        Your Quotes
+                      </Link>
+                      <Link
+                        to="/stories"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+                          themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                        }`}
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <FontAwesomeIcon icon={faBookOpen} className="w-4 text-gray-400" />
+                        Your Stories
+                      </Link>
+                      <a
+                        href="https://www.buymeacoffee.com/reddzit"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+                          themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                        }`}
+                      >
+                        <FontAwesomeIcon icon={faCoffee} className="w-4 text-gray-400" />
+                        Buy me a coffee
+                      </a>
+                      <hr className={`my-2 ${themeName === 'light' ? 'border-gray-100' : 'border-white/10'}`} />
+                      <button
+                        onClick={logout}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-500/20 text-red-400 text-sm text-left border-none bg-transparent cursor-pointer"
+                      >
+                        <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer bg-transparent ${
-                    themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
+                  onClick={redirectForAuth}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer ${
+                    themeName === 'light'
+                      ? 'bg-orange-600 text-white hover:bg-orange-700'
+                      : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
                   }`}
                 >
-                  <span className="font-medium text-sm max-w-[120px] truncate hidden sm:block">u/{user.name}</span>
-                  <span className="font-medium text-sm sm:hidden"><FontAwesomeIcon icon={faUser} /></span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
-                  />
+                  Log in
                 </button>
-
-                {showUserMenu && (
-                  <div className={`absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl py-2 border z-50 ${
-                    themeName === 'light'
-                      ? 'bg-white border-gray-100'
-                      : 'bg-[#3d3466] border-[#7e87ef]/30'
-                  }`}>
-                    <a
-                      href={`https://www.reddit.com/user/${user.name}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faUser} className={`w-4 ${themeName === 'light' ? 'text-gray-400' : 'text-gray-400'}`} />
-                      Reddit Profile
-                    </a>
-                    <Link
-                      to="/quotes"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <FontAwesomeIcon icon={faQuoteLeft} className="w-4 text-gray-400" />
-                      Your Quotes
-                    </Link>
-                    <Link
-                      to="/stories"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <FontAwesomeIcon icon={faBookOpen} className="w-4 text-gray-400" />
-                      Your Stories
-                    </Link>
-                    <a
-                      href="https://www.buymeacoffee.com/reddzit"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faCoffee} className="w-4 text-gray-400" />
-                      Buy me a coffee
-                    </a>
-                    <hr className={`my-2 ${themeName === 'light' ? 'border-gray-100' : 'border-white/10'}`} />
-                    <button
-                      onClick={logout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-500/20 text-red-400 text-sm text-left border-none bg-transparent cursor-pointer"
-                    >
-                      <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={redirectForAuth}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
-                    ? 'bg-orange-600 text-white hover:bg-orange-700'
-                    : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
-                }`}
-              >
-                Log in
-              </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </header>

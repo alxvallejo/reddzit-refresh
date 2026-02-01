@@ -38,9 +38,9 @@ const TrendingMarquee = () => {
     <div className={`overflow-hidden border-b sticky top-16 z-40 ${
       themeName === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-white/5 border-white/10'
     }`}
-    style={themeName === 'light' ? { backgroundColor: '#fcfcfc' } : { backgroundColor: 'var(--theme-bg)' }}
+    style={themeName === 'light' ? { backgroundColor: '#fcfcfc' } : { backgroundColor: 'var(--theme-headerBg)' }}
     >
-      <div className="flex items-center">
+      <div className="max-w-7xl mx-auto px-4 flex items-center">
         <div className={`flex-shrink-0 px-4 py-2 font-bold text-xs uppercase tracking-wider ${
           themeName === 'light' ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
         }`}>

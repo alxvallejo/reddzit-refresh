@@ -59,11 +59,11 @@ const SavedFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header className="px-4 pb-2">
+      <header id="page-header" className="px-4 pb-2">
         <div className={`max-w-7xl mx-auto border-b-2 ${
           themeName === 'light' ? 'border-gray-900' : 'border-white/20'
         }`}>
-          <div className="flex items-center justify-between py-4">
+          <div className="flex items-center justify-between py-4 pl-4">
             <div>
               <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 Saved Posts
