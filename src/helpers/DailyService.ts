@@ -133,17 +133,33 @@ const DailyService = {
         }
       }
 
-      // Call Reddit's public JSON API directly (no backend needed)
-      const response = await fetch('https://www.reddit.com/r/all/hot.json?limit=15');
-      if (!response.ok) {
-        throw new Error(`Reddit API returned ${response.status}`);
+      // Fetch from multiple Reddit feeds in parallel
+      const feeds = [
+        'https://www.reddit.com/r/all/hot.json?limit=25',
+        'https://www.reddit.com/r/all/rising.json?limit=25',
+      ];
+
+      const responses = await Promise.allSettled(feeds.map(url => fetch(url)));
+      const allChildren: any[] = [];
+      for (const result of responses) {
+        if (result.status === 'fulfilled' && result.value.ok) {
+          const json = await result.value.json();
+          allChildren.push(...(json.data?.children || []));
+        }
       }
 
-      const json = await response.json();
-      const posts: TrendingPost[] = json.data.children
-        .filter((child: { kind: string; data: { over_18: boolean } }) =>
-          child.kind === 't3' && !child.data.over_18
-        )
+      if (allChildren.length === 0) {
+        throw new Error('No posts from any feed');
+      }
+
+      // Deduplicate by post id
+      const seen = new Set<string>();
+      const posts: TrendingPost[] = allChildren
+        .filter((child: { kind: string; data: { over_18: boolean; id: string } }) => {
+          if (child.kind !== 't3' || child.data.over_18 || seen.has(child.data.id)) return false;
+          seen.add(child.data.id);
+          return true;
+        })
         .map((child: { data: { id: string; title: string; subreddit: string; permalink: string; author: string; created_utc: number } }) => ({
           id: child.data.id,
           title: child.data.title,

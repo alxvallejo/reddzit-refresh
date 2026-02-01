@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeName = 'classic' | 'violet' | 'teal' | 'light';
+export type ThemeName = 'classic' | 'violet' | 'indigo' | 'light';
 export type FontFamily = 'brygada' | 'outfit';
 
 const fontFamilies: Record<FontFamily, string> = {
@@ -82,12 +82,12 @@ export const themes: Record<ThemeName, Theme> = {
       bannerInputPlaceholder: '#a89cc4',
     },
   },
-  teal: {
-    name: 'teal',
-    label: 'Teal',
+  indigo: {
+    name: 'indigo',
+    label: 'Indigo',
     colors: {
-      bg: '#2d5a5a',
-      bgSecondary: '#234a4a',
+      bg: '#1e1e4a',
+      bgSecondary: '#16163a',
       text: '#eaf5f5',
       textMuted: '#a3cccc',
       primary: '#7dd3d3',
@@ -95,11 +95,11 @@ export const themes: Record<ThemeName, Theme> = {
       accent: '#4db8a4',
       border: 'rgba(125, 211, 211, 0.3)',
       cardBg: 'rgba(255, 255, 255, 0.08)',
-      headerBg: 'rgba(30, 50, 50, 0.85)',
-      bannerBg: '#234a4a',
+      headerBg: 'rgba(20, 20, 50, 0.85)',
+      bannerBg: '#16163a',
       bannerText: '#eaf5f5',
       bannerButtonBg: '#7dd3d3',
-      bannerButtonText: '#1e3232',
+      bannerButtonText: '#1e1e4a',
       bannerErrorText: '#e8b4b4',
       bannerInputBg: 'rgba(255, 255, 255, 0.15)',
       bannerInputText: '#eaf5f5',

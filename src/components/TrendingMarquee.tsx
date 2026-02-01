@@ -31,7 +31,7 @@ const TrendingMarquee = () => {
 
   if (posts.length === 0) return null;
 
-  // Duplicate posts for seamless loop
+  // Duplicate posts for seamless loop (2x so -50% translate resets cleanly)
   const duplicatedPosts = [...posts, ...posts];
 
   return (
@@ -40,10 +40,16 @@ const TrendingMarquee = () => {
     }`}
     style={themeName === 'light' ? { backgroundColor: '#fcfcfc' } : { backgroundColor: 'var(--theme-headerBg)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 flex items-center">
-        <div className={`flex-shrink-0 px-4 py-2 font-bold text-xs uppercase tracking-wider ${
-          themeName === 'light' ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
-        }`}>
+      <div className="max-w-7xl mx-auto pr-4 flex items-center">
+        <div
+          className={`flex-shrink-0 px-4 py-2 pr-6 font-bold text-xs uppercase tracking-wider ${
+            themeName === 'light' ? 'text-white' : 'text-[#262129]'
+          }`}
+          style={{
+            backgroundColor: themeName === 'light' ? '#ea580c' : 'var(--theme-primary)',
+            clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%)',
+          }}
+        >
           Trending
         </div>
         <div className="overflow-hidden flex-1">

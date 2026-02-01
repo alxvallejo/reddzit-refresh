@@ -52,13 +52,15 @@ body {
 }
 
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 60s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Faster marquee on mobile */
 @media (max-width: 640px) {
   .animate-marquee {
-    animation: marquee 15s linear infinite;
+    animation: marquee 30s linear infinite;
   }
 }
 

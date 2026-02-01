@@ -1,7 +1,7 @@
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { getDisplayTitle, isComment, getCommentSnippet } from '../helpers/RedditUtils';
+import { getPreviewImage, getDisplayTitle, isComment, getCommentSnippet } from '../helpers/RedditUtils';
 import NoContent from './NoContent';
 
 const SavedFeed = () => {
@@ -99,6 +99,19 @@ const SavedFeed = () => {
             }`}>
               {getDisplayTitle(post)}
             </h2>
+
+            {getPreviewImage(post) && (
+              <div className="my-2 rounded-lg overflow-hidden">
+                <img
+                  src={getPreviewImage(post)}
+                  alt=""
+                  className="w-full h-32 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
 
             {isComment(post) && (
               <div className={`text-sm line-clamp-2 italic p-2 rounded ${
