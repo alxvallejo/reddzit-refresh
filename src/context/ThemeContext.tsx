@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeName = 'classic' | 'light';
-export type FontFamily = 'google-sans' | 'outfit';
+export type ThemeName = 'classic' | 'violet' | 'teal' | 'light';
+export type FontFamily = 'brygada' | 'outfit';
 
 const fontFamilies: Record<FontFamily, string> = {
-  'google-sans': '"Google Sans Flex", "Outfit", "Open Sans", system-ui, sans-serif',
+  'brygada': '"Brygada 1918", "Outfit", system-ui, serif',
   'outfit': '"Outfit", "Open Sans", system-ui, sans-serif',
 };
 
@@ -58,6 +58,54 @@ export const themes: Record<ThemeName, Theme> = {
       bannerInputPlaceholder: '#a89cc4',
     },
   },
+  violet: {
+    name: 'violet',
+    label: 'Violet',
+    colors: {
+      bg: '#7063ab',
+      bgSecondary: '#5e5392',
+      text: '#f0eef5',
+      textMuted: '#c4b8e8',
+      primary: '#b6aaf1',
+      primaryHover: '#9f8de8',
+      accent: '#9f72d6',
+      border: 'rgba(182, 170, 241, 0.3)',
+      cardBg: 'rgba(255, 255, 255, 0.08)',
+      headerBg: 'rgba(38, 33, 41, 0.85)',
+      bannerBg: '#5e5392',
+      bannerText: '#f0eef5',
+      bannerButtonBg: '#b6aaf1',
+      bannerButtonText: '#262129',
+      bannerErrorText: '#e8b4b4',
+      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
+      bannerInputText: '#f0eef5',
+      bannerInputPlaceholder: '#a89cc4',
+    },
+  },
+  teal: {
+    name: 'teal',
+    label: 'Teal',
+    colors: {
+      bg: '#2d5a5a',
+      bgSecondary: '#234a4a',
+      text: '#eaf5f5',
+      textMuted: '#a3cccc',
+      primary: '#7dd3d3',
+      primaryHover: '#5cb8b8',
+      accent: '#4db8a4',
+      border: 'rgba(125, 211, 211, 0.3)',
+      cardBg: 'rgba(255, 255, 255, 0.08)',
+      headerBg: 'rgba(30, 50, 50, 0.85)',
+      bannerBg: '#234a4a',
+      bannerText: '#eaf5f5',
+      bannerButtonBg: '#7dd3d3',
+      bannerButtonText: '#1e3232',
+      bannerErrorText: '#e8b4b4',
+      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
+      bannerInputText: '#eaf5f5',
+      bannerInputPlaceholder: '#80b3b3',
+    },
+  },
   light: {
     name: 'light',
     label: 'Light',
@@ -92,6 +140,8 @@ interface ThemeContextType {
   fontFamily: FontFamily;
   setFontFamily: (font: FontFamily) => void;
   toggleFont: () => void;
+  bgShade: string | null;
+  setBgShade: (color: string | null) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -107,6 +157,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return saved && fontFamilies[saved] ? saved : 'outfit';
   });
 
+  const [bgShade, setBgShadeState] = useState<string | null>(() => {
+    return localStorage.getItem('reddzit_bg_shade');
+  });
+
   const theme = themes[themeName];
 
   useEffect(() => {
@@ -118,10 +172,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.style.setProperty(`--theme-${key}`, value);
     });
 
-    // Update body background
-    document.body.style.backgroundColor = theme.colors.bg;
+    // Apply bgShade override if set
+    const effectiveBg = bgShade ?? theme.colors.bg;
+    root.style.setProperty('--theme-bg', effectiveBg);
+    document.body.style.backgroundColor = effectiveBg;
     document.body.style.color = theme.colors.text;
-  }, [themeName, theme]);
+  }, [themeName, theme, bgShade]);
 
   useEffect(() => {
     localStorage.setItem('reddzit_font', fontFamily);
@@ -146,11 +202,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const toggleFont = () => {
-    setFontFamilyState(prev => prev === 'google-sans' ? 'outfit' : 'google-sans');
+    setFontFamilyState(prev => prev === 'brygada' ? 'outfit' : 'brygada');
+  };
+
+  const setBgShade = (color: string | null) => {
+    setBgShadeState(color);
+    if (color) {
+      localStorage.setItem('reddzit_bg_shade', color);
+    } else {
+      localStorage.removeItem('reddzit_bg_shade');
+    }
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, bgShade, setBgShade }}>
       {children}
     </ThemeContext.Provider>
   );

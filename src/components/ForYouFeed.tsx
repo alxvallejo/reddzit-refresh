@@ -98,8 +98,8 @@ const ForYouFeed = () => {
       setPersona(result.persona);
       setPersonaRefreshedAt(new Date().toISOString());
 
-      // Reload feed with new persona
-      const feedResult = await ForYouService.getFeed(token);
+      // Reload feed with new persona (bypass cache to get fresh posts)
+      const feedResult = await ForYouService.getFeed(token, { refresh: true });
       setPosts(feedResult.posts);
     } catch (err) {
       console.error('Failed to refresh persona:', err);
@@ -212,8 +212,9 @@ const ForYouFeed = () => {
   // Loading state
   if (loading) {
     return (
-      <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
-        <div className="animate-pulse text-xl">Loading For You...</div>
+      <div className={`py-24 flex flex-col items-center justify-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+        <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin mb-4 opacity-50" />
+        <div className="text-sm">Loading feed...</div>
       </div>
     );
   }
@@ -242,7 +243,7 @@ const ForYouFeed = () => {
         >
           {refreshingPersona ? (
             <span className="flex items-center gap-2">
-              <span className="animate-spin inline-block">&#8987;</span>
+              <span className="inline-block w-5 h-5 border-3 border-current border-t-transparent rounded-full animate-spin" />
               Building Persona...
             </span>
           ) : (
@@ -272,10 +273,16 @@ const ForYouFeed = () => {
               <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 For You
               </h1>
-              <div className={`text-xs ${
+              <div className={`flex items-center gap-3 text-xs ${
                 themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
               }`}>
                 <span>Curated: {curatedCount}/{CURATED_LIMIT}</span>
+                {personaRefreshedAt && (
+                  <>
+                    <span>·</span>
+                    <span>Last refreshed: {formatTimeAgo(personaRefreshedAt)}</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -298,7 +305,7 @@ const ForYouFeed = () => {
                     : 'text-[var(--theme-primary)] hover:bg-white/10'
                 }`}
               >
-                {refreshingPersona ? <span className="animate-spin inline-block">&#8987;</span> : 'Refresh'}
+                {refreshingPersona ? <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : 'Refresh'}
               </button>
               <button
                 onClick={() => setShowWeightsModal(true)}

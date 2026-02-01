@@ -150,7 +150,7 @@ const Feed = () => {
                         <div className="text-xs font-bold text-[#ff4500] uppercase tracking-wide mb-1">
                             {post.subreddit}
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 leading-tight mb-2 line-clamp-2">
+                        <h3 className="text-lg font-light text-gray-900 leading-tight mb-2 line-clamp-2">
                             {getDisplayTitle(post)}
                         </h3>
                          {isComment(post) && (

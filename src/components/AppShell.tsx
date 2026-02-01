@@ -115,8 +115,7 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                <span className="sm:hidden">Saved</span>
-                <span className="hidden sm:inline">Saved Posts</span>
+                Saved
               </button>
               <button
                 onClick={() => navigate('/foryou')}
@@ -130,7 +129,7 @@ const AppShell = () => {
                       : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
-                For You
+                New
               </button>
               <button
                 onClick={() => navigate('/stories')}

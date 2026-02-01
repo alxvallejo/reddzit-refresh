@@ -102,9 +102,11 @@ const ForYouService = {
   /**
    * Get personalized feed
    */
-  async getFeed(token: string, limit = 20): Promise<{ posts: ForYouPost[]; recommendedSubreddits: string[] }> {
+  async getFeed(token: string, { limit = 20, refresh = false }: { limit?: number; refresh?: boolean } = {}): Promise<{ posts: ForYouPost[]; recommendedSubreddits: string[] }> {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (refresh) params.set('refresh', 'true');
     const response = await axios.get<{ posts: ForYouPost[]; recommendedSubreddits: string[] }>(
-      `${API_BASE_URL}/api/foryou/feed?limit=${limit}`,
+      `${API_BASE_URL}/api/foryou/feed?${params}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;

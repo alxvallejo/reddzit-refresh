@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
+import { useTheme } from '../context/ThemeContext';
 import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, getDisplayTitle } from '../helpers/RedditUtils';
 import { getVideoUrl } from '../helpers/UrlCrawler';
 import ReadControls from './ReadControls';
@@ -131,10 +132,12 @@ export default function PostView() {
     return () => { cancelled = true; };
   }, [fullname, location.state]);
 
-  const bgColor = darkMode ? 'bg-[#322a5a] text-gray-200' : 'bg-white text-gray-900';
-  const headerBg = darkMode ? 'bg-[#322a5a]/95' : 'bg-[#b6aaf1]/95';
-  const articleClass = darkMode
-    ? 'prose-invert prose-p:text-[#cbc7e2] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[#cbc7e2] prose-li:font-light prose-ul:text-[#cbc7e2] prose-ol:text-[#cbc7e2] prose-a:text-[#b6aaf1] hover:prose-a:text-white'
+  const { themeName } = useTheme();
+  const isLight = themeName === 'light';
+  const bgColor = isLight ? 'bg-white text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
+  const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
+  const articleClass = !isLight
+    ? 'prose-invert prose-p:text-[var(--theme-textMuted)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-textMuted)] prose-li:font-light prose-ul:text-[var(--theme-textMuted)] prose-ol:text-[var(--theme-textMuted)] prose-a:text-[var(--theme-primary)] hover:prose-a:text-white'
     : 'prose-gray prose-p:font-light prose-headings:font-normal prose-strong:font-medium prose-li:font-light';
   
   const handleShare = async () => {
@@ -228,7 +231,7 @@ export default function PostView() {
                  <div className="text-[#ff4500] font-bold text-sm uppercase tracking-wide mb-2">
                      {post.subreddit}
                  </div>
-                 <h1 className={`text-3xl sm:text-4xl font-sans leading-tight mb-4 ${darkMode ? 'font-extralight' : 'font-normal'}`}>
+                 <h1 className={`text-3xl sm:text-4xl font-sans leading-tight mb-4 ${!isLight ? 'font-extralight' : 'font-normal'}`}>
                      <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="hover:text-[#ff4500] transition-colors text-inherit no-underline">
                         {getDisplayTitle(post)}
                      </a>
@@ -255,7 +258,7 @@ export default function PostView() {
         {/* Sticky Footer Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
             <div className={`pointer-events-auto flex gap-4 backdrop-blur-xl border px-6 py-3 rounded-full shadow-2xl items-center ${
-              darkMode
+              !isLight
                 ? 'bg-white/10 border-white/20 text-white'
                 : 'bg-gray-900/90 border-gray-700 text-white'
             }`}>

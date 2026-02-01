@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPalette, faCheck } from '@fortawesome/free-solid-svg-icons';
 
 const fontOptions: { key: FontFamily; label: string }[] = [
-  { key: 'google-sans', label: 'Google Sans' },
+  { key: 'brygada', label: 'Brygada 1918' },
   { key: 'outfit', label: 'Outfit' },
 ];
 
 const ThemeSwitcher = () => {
-  const { themeName, setTheme, fontFamily, setFontFamily } = useTheme();
+  const { themeName, setTheme, fontFamily, setFontFamily, theme, bgShade, setBgShade } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +114,37 @@ const ThemeSwitcher = () => {
               </button>
             );
           })}
+
+          <hr className={`my-2 ${isLight ? 'border-gray-100' : 'border-white/10'}`} />
+
+          <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${
+            isLight ? 'text-gray-400' : 'text-gray-400'
+          }`}>
+            Background
+          </div>
+          <div className="px-4 py-2 flex items-center gap-2">
+            <input
+              type="color"
+              value={bgShade ?? theme.colors.bg}
+              onChange={(e) => setBgShade(e.target.value)}
+              className="w-8 h-8 rounded cursor-pointer border-none bg-transparent p-0"
+            />
+            <span className={`flex-1 text-sm ${isLight ? 'text-gray-700' : 'text-gray-200'}`}>
+              {bgShade ?? theme.colors.bg}
+            </span>
+            {bgShade && (
+              <button
+                onClick={() => setBgShade(null)}
+                className={`text-xs px-2 py-1 rounded cursor-pointer border-none transition-colors ${
+                  isLight
+                    ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
+                    : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                }`}
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
