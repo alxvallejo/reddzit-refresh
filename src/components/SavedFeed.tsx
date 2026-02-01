@@ -1,7 +1,7 @@
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { getPreviewImage, getDisplayTitle, isComment, getCommentSnippet } from '../helpers/RedditUtils';
+import { getDisplayTitle, isComment, getCommentSnippet } from '../helpers/RedditUtils';
 import NoContent from './NoContent';
 
 const SavedFeed = () => {
@@ -57,64 +57,70 @@ const SavedFeed = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 pt-6 pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {saved.map((post, index) => (
-          <div
+    <div className="font-sans">
+      {/* Header */}
+      <header className="px-4 pb-2">
+        <div className={`max-w-7xl mx-auto border-b-2 ${
+          themeName === 'light' ? 'border-gray-900' : 'border-white/20'
+        }`}>
+          <div className="flex items-center justify-between py-4">
+            <div>
+              <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+                Saved Posts
+              </h1>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
+        {saved.map((post) => (
+          <article
             key={post.id}
             onClick={() => handlePostClick(post)}
-            className={`group rounded-xl p-4 transition cursor-pointer flex gap-4 overflow-hidden border ${
+            className={`group relative p-4 rounded-xl transition cursor-pointer border ${
               themeName === 'light'
-                ? 'bg-white shadow-sm hover:shadow-md border-gray-100'
-                : 'backdrop-blur-md hover:bg-white/[0.12]'
-            } ${index === 0 ? 'lg:col-span-2' : ''}`}
-            style={themeName === 'light' ? undefined : ({
-              backgroundColor: 'var(--theme-cardBg)',
-              borderColor: 'var(--theme-border)'
-            } as React.CSSProperties)}
+                ? 'bg-white border-gray-100 hover:shadow-md'
+                : 'bg-transparent border-white/10 hover:bg-white/[0.08]'
+            }`}
           >
-            {/* Thumbnail - only show if preview image exists */}
-            {getPreviewImage(post) && (
-              <div className={`flex-shrink-0 rounded-lg overflow-hidden ${
-                index === 0 ? 'w-28 h-28 md:w-32 md:h-32' : 'w-20 h-20'
+            <div className="flex items-baseline justify-between mb-1">
+              <span className={`text-xs font-normal ${
+                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
               }`}>
-                <img
-                  src={getPreviewImage(post)}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-                  }}
-                />
+                r/{post.subreddit}
+              </span>
+            </div>
+
+            <h2 className={`font-light text-base my-2 leading-tight transition-colors ${
+              themeName === 'light'
+                ? 'text-gray-900 group-hover:text-orange-600'
+                : ''
+            }`}>
+              {getDisplayTitle(post)}
+            </h2>
+
+            {isComment(post) && (
+              <div className={`text-sm line-clamp-2 italic p-2 rounded ${
+                themeName === 'light' ? 'text-gray-500 bg-gray-50' : 'text-[var(--theme-textMuted)] bg-white/5'
+              }`}>
+                "{getCommentSnippet(post, 100)}"
               </div>
             )}
 
-            {/* Text */}
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <div className={`text-xs font-bold uppercase tracking-wide mb-1 ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+            {post.author && (
+              <div className={`text-xs ${
+                themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
               }`}>
-                {post.subreddit}
+                u/{post.author}
               </div>
-              <h3 className={`font-sans font-light leading-tight mb-2 transition-colors ${
-                themeName === 'light' ? 'text-gray-500 group-hover:text-orange-600' : 'text-gray-400 group-hover:text-[var(--theme-primary)]'
-              } ${index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'} ${getPreviewImage(post) ? 'line-clamp-2' : 'line-clamp-3'}`}>
-                {getDisplayTitle(post)}
-              </h3>
-              {isComment(post) && (
-                <div className={`text-sm line-clamp-2 italic p-2 rounded ${
-                  themeName === 'light' ? 'text-gray-500 bg-gray-50' : 'text-[var(--theme-textMuted)] bg-white/5'
-                }`}>
-                  "{getCommentSnippet(post, 100)}"
-                </div>
-              )}
-            </div>
-          </div>
+            )}
+          </article>
         ))}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-4 pt-8 pb-6">
+      <div className="flex justify-center gap-4 pb-6">
         <button
           onClick={handlePageDown}
           className={`px-6 py-3 rounded-full font-medium transition-colors cursor-pointer border-none ${

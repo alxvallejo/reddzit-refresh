@@ -121,7 +121,7 @@ const TopFeed = () => {
               <h2 className={`font-light text-base my-2 leading-tight transition-colors ${
                 themeName === 'light'
                   ? 'text-gray-900 group-hover:text-orange-600'
-                  : 'group-hover:text-[var(--theme-primary)]'
+                  : ''
               }`}>
                 {post.title}
               </h2>
