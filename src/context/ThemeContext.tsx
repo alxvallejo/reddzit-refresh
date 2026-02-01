@@ -62,8 +62,8 @@ export const themes: Record<ThemeName, Theme> = {
     name: 'violet',
     label: 'Violet',
     colors: {
-      bg: '#7063ab',
-      bgSecondary: '#5e5392',
+      bg: '#5756c8',
+      bgSecondary: '#4a49a8',
       text: '#f0eef5',
       textMuted: '#c4b8e8',
       primary: '#b6aaf1',
@@ -187,6 +187,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setTheme = (name: ThemeName) => {
     if (themes[name]) {
+      setBgShade(null);
       setThemeName(name);
     }
   };

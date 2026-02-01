@@ -70,87 +70,8 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
         ? 'bg-white border border-gray-200 shadow-sm'
         : 'bg-transparent border border-[var(--theme-border)]'
     }`}>
-      {/* Quoted Text */}
-      <div className={`mb-3 ${themeName === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>
-        {isImageUrl(quote.text) ? (
-          <img
-            src={quote.text}
-            alt={quote.postTitle || 'Saved image'}
-            className="max-w-full max-h-48 rounded-lg object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <>
-            <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-40" />
-            <span>{displayText}</span>
-            {quote.text.length > 200 && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className={`ml-2 text-sm font-medium border-none bg-transparent cursor-pointer ${
-                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                }`}
-              >
-                {expanded ? 'Show less' : 'Show more'}
-              </button>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Note */}
-      {editing ? (
-        <div className="mb-3 space-y-2">
-          <textarea
-            value={editNote}
-            onChange={(e) => setEditNote(e.target.value)}
-            placeholder="Your note..."
-            rows={2}
-            className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
-              themeName === 'light'
-                ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
-                : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
-            }`}
-          />
-          <input
-            type="text"
-            value={editTags}
-            onChange={(e) => setEditTags(e.target.value)}
-            placeholder="Tags (comma-separated)"
-            className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
-              themeName === 'light'
-                ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
-                : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
-            }`}
-          />
-        </div>
-      ) : quote.note ? (
-        <div className={`mb-3 pl-4 border-l-2 ${
-          themeName === 'light' ? 'border-orange-300 text-gray-600' : 'border-[var(--theme-border)] text-gray-400'
-        }`}>
-          {quote.note}
-        </div>
-      ) : null}
-
-      {/* Tags */}
-      {!editing && quote.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {quote.tags.map((tag, i) => (
-            <span
-              key={i}
-              className={`px-2 py-0.5 rounded-full text-xs ${
-                themeName === 'light'
-                  ? 'bg-gray-100 text-gray-600'
-                  : 'bg-white/10 text-gray-300'
-              }`}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* Metadata */}
-      <div className={`flex items-center justify-between text-xs ${
+      <div className={`flex items-center justify-between text-xs mb-3 ${
         themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
       }`}>
         <div className="flex items-center gap-2">
@@ -258,6 +179,86 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
           )}
         </div>
       </div>
+
+      {/* Quoted Text */}
+      <div className={`mb-3 ${themeName === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>
+        {isImageUrl(quote.text) ? (
+          <img
+            src={quote.text}
+            alt={quote.postTitle || 'Saved image'}
+            className="max-w-full max-h-48 rounded-lg object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <>
+            <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-40" />
+            <span>{displayText}</span>
+            {quote.text.length > 200 && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className={`ml-2 text-sm font-medium border-none bg-transparent cursor-pointer ${
+                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
+                }`}
+              >
+                {expanded ? 'Show less' : 'Show more'}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Note */}
+      {editing ? (
+        <div className="mb-3 space-y-2">
+          <textarea
+            value={editNote}
+            onChange={(e) => setEditNote(e.target.value)}
+            placeholder="Your note..."
+            rows={2}
+            className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
+              themeName === 'light'
+                ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
+                : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
+            }`}
+          />
+          <input
+            type="text"
+            value={editTags}
+            onChange={(e) => setEditTags(e.target.value)}
+            placeholder="Tags (comma-separated)"
+            className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
+              themeName === 'light'
+                ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
+                : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
+            }`}
+          />
+        </div>
+      ) : quote.note ? (
+        <div className={`mb-3 pl-4 border-l-2 ${
+          themeName === 'light' ? 'border-orange-300 text-gray-600' : 'border-[var(--theme-border)] text-gray-400'
+        }`}>
+          {quote.note}
+        </div>
+      ) : null}
+
+      {/* Tags */}
+      {!editing && quote.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {quote.tags.map((tag, i) => (
+            <span
+              key={i}
+              className={`px-2 py-0.5 rounded-full text-xs ${
+                themeName === 'light'
+                  ? 'bg-gray-100 text-gray-600'
+                  : 'bg-white/10 text-gray-300'
+              }`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 }
