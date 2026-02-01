@@ -91,28 +91,28 @@ const AppShell = () => {
             <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
               <button
                 onClick={() => navigate('/top')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'top'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                      ? 'border-orange-500 text-orange-700'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 bg-transparent'
                     : activeTab === 'top'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                      ? 'border-white text-white'
+                      : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
                 Top
               </button>
               <button
                 onClick={() => navigate('/reddit')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'saved'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                      ? 'border-orange-500 text-orange-700'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 bg-transparent'
                     : activeTab === 'saved'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                      ? 'border-white text-white'
+                      : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
                 <span className="sm:hidden">Saved</span>
@@ -120,42 +120,42 @@ const AppShell = () => {
               </button>
               <button
                 onClick={() => navigate('/foryou')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'foryou'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                      ? 'border-orange-500 text-orange-700'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 bg-transparent'
                     : activeTab === 'foryou'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                      ? 'border-white text-white'
+                      : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
                 For You
               </button>
               <button
                 onClick={() => navigate('/stories')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'stories'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                      ? 'border-orange-500 text-orange-700'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 bg-transparent'
                     : activeTab === 'stories'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                      ? 'border-white text-white'
+                      : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
                 Stories
               </button>
               <button
                 onClick={() => navigate('/quotes')}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
                   themeName === 'light'
                     ? activeTab === 'quotes'
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'text-gray-600 hover:bg-gray-100 bg-transparent'
+                      ? 'border-orange-500 text-orange-700'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-900 bg-transparent'
                     : activeTab === 'quotes'
-                      ? 'bg-white/20 text-white'
-                      : 'text-gray-300 hover:bg-white/10 bg-transparent'
+                      ? 'border-white text-white'
+                      : 'border-transparent text-gray-400 hover:border-white/40 hover:text-white bg-transparent'
                 }`}
               >
                 <FontAwesomeIcon icon={faQuoteLeft} className="mr-1.5 text-xs" />
