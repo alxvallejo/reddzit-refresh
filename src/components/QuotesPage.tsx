@@ -4,8 +4,9 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import QuoteService, { Quote } from '../helpers/QuoteService';
 import QuoteCard from './QuoteCard';
+import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuoteLeft, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faQuoteLeft, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 
 export default function QuotesPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
@@ -53,18 +54,7 @@ export default function QuotesPage() {
       <div className={`min-h-screen ${
         themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
       }`}>
-        <header className={`sticky top-0 z-50 ${
-          themeName === 'light' ? 'bg-white border-b border-gray-200' : 'bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]'
-        }`}>
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 no-underline">
-              <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-            </Link>
-            <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
-              Your Quotes
-            </h1>
-          </div>
-        </header>
+        <MainHeader />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">
             <FontAwesomeIcon icon={faQuoteLeft} className="opacity-30" />
@@ -94,34 +84,25 @@ export default function QuotesPage() {
     <div className={`min-h-screen ${
       themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
     }`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-50 ${
-        themeName === 'light' ? 'bg-white border-b border-gray-200' : 'bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]'
+      <MainHeader />
+
+      {/* Page Header */}
+      <div className={`border-b ${
+        themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
       }`}>
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className={`flex items-center gap-2 no-underline ${
-                themeName === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <FontAwesomeIcon icon={faArrowLeft} />
-              <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-            </Link>
-            <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
-              Your Quotes
-              {quotes.length > 0 && (
-                <span className={`ml-2 text-sm font-normal ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                }`}>
-                  ({quotes.length})
-                </span>
-              )}
-            </h1>
-          </div>
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            Your Quotes
+            {quotes.length > 0 && (
+              <span className={`ml-2 text-sm font-normal ${
+                themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+              }`}>
+                ({quotes.length})
+              </span>
+            )}
+          </h1>
         </div>
-      </header>
+      </div>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
@@ -141,9 +122,22 @@ export default function QuotesPage() {
             }`}>
               No quotes yet
             </h2>
-            <p className={themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}>
-              Highlight text in any article to save your first quote.
+            <p className={`mb-6 max-w-md mx-auto ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+              Highlight text in any article to save your first quote, or use the Chrome extension to save quotes from any page on the web.
             </p>
+            <a
+              href="https://chromewebstore.google.com/detail/reddzit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm no-underline transition-colors ${
+                themeName === 'light'
+                  ? 'bg-orange-600 text-white hover:bg-orange-700'
+                  : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+              }`}
+            >
+              <FontAwesomeIcon icon={faPuzzlePiece} />
+              Get the Chrome Extension
+            </a>
           </div>
         ) : (
           <div className="space-y-4">
