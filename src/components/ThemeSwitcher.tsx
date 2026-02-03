@@ -40,6 +40,15 @@ const ThemeSwitcher = () => {
 
   const hasOverrides = bgShade !== null || accentShade !== null;
 
+  const activePaletteName = hasOverrides
+    ? palettes.find(
+        (p) =>
+          p.baseTheme === themeName &&
+          p.bg === (bgShade ?? theme.colors.bg) &&
+          p.accent === (accentShade ?? theme.colors.primary),
+      )?.name ?? null
+    : null;
+
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2000);
@@ -120,7 +129,7 @@ const ThemeSwitcher = () => {
           </div>
           {(Object.keys(themes) as ThemeName[]).map((key) => {
             const t = themes[key];
-            const isActive = key === themeName;
+            const isActive = key === themeName && !hasOverrides;
             return (
               <button
                 key={key}
@@ -156,16 +165,23 @@ const ThemeSwitcher = () => {
               <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400`}>
                 Saved Palettes
               </div>
-              {palettes.map((p) => (
+              {palettes.map((p) => {
+                const isPaletteActive = activePaletteName === p.name;
+                return (
                 <div key={p.name} className="flex items-center">
                   <button
                     onClick={() => handleApplyPalette(p)}
                     className={`flex-1 flex items-center gap-3 px-4 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
-                      isLight ? 'text-gray-700 hover:bg-gray-50 bg-transparent' : 'text-gray-200 hover:bg-white/5 bg-transparent'
+                      isLight
+                        ? `${isPaletteActive ? 'bg-orange-50 text-orange-700' : 'text-gray-700 hover:bg-gray-50'} bg-transparent`
+                        : `${isPaletteActive ? 'bg-white/10 text-white' : 'text-gray-200 hover:bg-white/5'} bg-transparent`
                     }`}
                   >
                     <span className="w-5 h-5 rounded-full border-2 flex-shrink-0" style={{ backgroundColor: p.bg, borderColor: p.accent }} />
                     <span className="flex-1">{p.name}</span>
+                    {isPaletteActive && (
+                      <FontAwesomeIcon icon={faCheck} className="text-xs opacity-70" />
+                    )}
                   </button>
                   <button
                     onClick={() => handleDeletePalette(p.name)}
@@ -176,7 +192,8 @@ const ThemeSwitcher = () => {
                     <FontAwesomeIcon icon={faTimes} />
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </>
           )}
 

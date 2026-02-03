@@ -93,8 +93,8 @@ export const themes: Record<ThemeName, Theme> = {
     name: 'indigo',
     label: 'Indigo',
     colors: {
-      bg: '#1e1e4a',
-      bgSecondary: '#16163a',
+      bg: '#5e43a8',
+      bgSecondary: '#4e3890',
       text: '#eaf5f5',
       textMuted: '#a3cccc',
       primary: '#7dd3d3',
@@ -102,11 +102,11 @@ export const themes: Record<ThemeName, Theme> = {
       accent: '#4db8a4',
       border: 'rgba(125, 211, 211, 0.3)',
       cardBg: 'rgba(255, 255, 255, 0.08)',
-      headerBg: 'rgba(20, 20, 50, 0.85)',
-      bannerBg: '#16163a',
+      headerBg: 'rgba(80, 57, 143, 0.85)',
+      bannerBg: '#4e3890',
       bannerText: '#eaf5f5',
       bannerButtonBg: '#7dd3d3',
-      bannerButtonText: '#1e1e4a',
+      bannerButtonText: '#5e43a8',
       bannerErrorText: '#e8b4b4',
       bannerInputBg: 'rgba(255, 255, 255, 0.15)',
       bannerInputText: '#eaf5f5',
@@ -141,24 +141,24 @@ export const themes: Record<ThemeName, Theme> = {
     name: 'lavender',
     label: 'Lavender',
     colors: {
-      bg: '#a5a4e5',
-      bgSecondary: '#9593d1',
-      text: '#1a1740',
-      textMuted: '#3d3870',
-      primary: '#2d2a6e',
-      primaryHover: '#1e1b55',
-      accent: '#6c3fa0',
-      border: 'rgba(30, 27, 64, 0.2)',
-      cardBg: 'rgba(255, 255, 255, 0.2)',
-      headerBg: 'rgba(147, 145, 205, 0.95)',
-      bannerBg: '#9593d1',
-      bannerText: '#1a1740',
-      bannerButtonBg: '#2d2a6e',
-      bannerButtonText: '#e8e7f5',
-      bannerErrorText: '#8b2020',
-      bannerInputBg: 'rgba(255, 255, 255, 0.3)',
-      bannerInputText: '#1a1740',
-      bannerInputPlaceholder: '#5a5690',
+      bg: '#7e5ab5',
+      bgSecondary: '#7151a3',
+      text: '#f0eef5',
+      textMuted: '#c7b3d9',
+      primary: '#b79bd9',
+      primaryHover: '#9c84b9',
+      accent: '#b79bd9',
+      border: 'rgba(183, 155, 217, 0.3)',
+      cardBg: 'rgba(255, 255, 255, 0.08)',
+      headerBg: 'rgba(108, 77, 154, 0.85)',
+      bannerBg: '#7151a3',
+      bannerText: '#f0eef5',
+      bannerButtonBg: '#b79bd9',
+      bannerButtonText: '#3d2a5e',
+      bannerErrorText: '#f87171',
+      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
+      bannerInputText: '#f0eef5',
+      bannerInputPlaceholder: '#b8a2ca',
     },
   },
   light: {
@@ -211,7 +211,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_font') as FontFamily | null;
-    return saved && fontFamilies[saved] ? saved : 'outfit';
+    return saved && fontFamilies[saved] ? saved : 'noto-znamenny';
   });
 
   const [bgShade, setBgShadeState] = useState<string | null>(() => {
