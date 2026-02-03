@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 
 const TopFeed = () => {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ const TopFeed = () => {
 
   if (loading) {
     return (
-      <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+      <div className="py-24 text-center text-[var(--theme-textMuted)]">
         <div className="animate-pulse text-xl">Loading Top Posts...</div>
       </div>
     );
@@ -66,11 +66,11 @@ const TopFeed = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <p className={themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}>{error}</p>
+        <p className="text-[var(--theme-textMuted)]">{error}</p>
         <button
           onClick={loadTopPosts}
           className={`mt-4 px-4 py-2 rounded-lg border-none cursor-pointer ${
-            themeName === 'light'
+            isLight
               ? 'bg-orange-600 text-white hover:bg-orange-700'
               : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
           }`}
@@ -84,19 +84,13 @@ const TopFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header id="page-header" className={`px-4 pb-2 sticky top-16 z-40 ${
-        themeName === 'light' ? 'bg-white' : 'bg-[var(--theme-bg)]'
-      }`}>
-        <div className={`max-w-7xl mx-auto border-b-2 ${
-          themeName === 'light' ? 'border-gray-900' : 'border-white/20'
-        }`}>
+      <header id="page-header" className="px-4 pb-2 sticky top-16 z-40 bg-[var(--theme-bg)]">
+        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4 pl-4 pr-4">
-            <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+            <h1 className="text-2xl font-bold text-[var(--theme-text)]">
               Top Posts on Reddit
             </h1>
-            <span className={`text-xs whitespace-nowrap ${
-              themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-            }`}>
+            <span className="text-xs whitespace-nowrap text-[var(--theme-textMuted)]">
               {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
               {' '}
               {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
@@ -111,36 +105,26 @@ const TopFeed = () => {
           {posts.map((post) => (
             <article
               key={post.id}
-              className={`group relative p-4 rounded-xl transition cursor-pointer border ${
-                themeName === 'light'
-                  ? 'bg-white border-gray-100 hover:border-orange-600'
-                  : 'bg-transparent border-white/10 hover:border-[var(--theme-primary)]'
+              className={`group relative p-4 rounded-xl transition cursor-pointer border bg-[var(--theme-cardBg)] border-[var(--theme-border)] ${
+                isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
               }`}
               onClick={() => handlePostClick(post)}
             >
               <div className="flex items-baseline justify-between mb-1">
-                <span className={`text-xs font-normal ${
-                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                }`}>
+                <span className="text-xs font-normal text-[var(--theme-primary)]">
                   r/{post.subreddit}
                 </span>
-                <span className={`text-xs ${
-                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <span className="text-xs text-[var(--theme-textMuted)]">
                   {formatTimeAgo(post.pubDate)}
                 </span>
               </div>
 
-              <h2 className={`font-light text-base my-2 leading-tight ${
-                themeName === 'light' ? 'text-gray-900' : ''
-              }`}>
+              <h2 className="font-light text-base my-2 leading-tight text-[var(--theme-text)]">
                 {post.title}
               </h2>
 
               {post.author && (
-                <div className={`text-xs ${
-                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <div className="text-xs text-[var(--theme-textMuted)]">
                   u/{post.author}
                 </div>
               )}
@@ -148,7 +132,7 @@ const TopFeed = () => {
           ))}
         </main>
       ) : (
-        <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+        <div className="py-24 text-center text-[var(--theme-textMuted)]">
           <p className="text-xl">No top posts available yet.</p>
           <p className="text-sm mt-2">Check back soon!</p>
         </div>

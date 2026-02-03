@@ -11,7 +11,7 @@ import { faArrowLeft, faChevronDown, faUser, faCoffee, faSignOutAlt, faArrowUp, 
 const SubredditFeed = () => {
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const { signedIn, user, accessToken, logout, redirectForAuth } = useReddit();
 
   const [posts, setPosts] = useState<SubredditPost[]>([]);
@@ -94,22 +94,17 @@ const SubredditFeed = () => {
   // Render the header (shared between loading and loaded states)
   const renderHeader = () => (
     <header
-      className={`sticky top-0 z-50 ${
-        themeName === 'light'
-          ? 'bg-white border-b border-gray-200'
-          : 'border-b'
-      }`}
-      style={themeName === 'light' ? undefined : ({
+      className="sticky top-0 z-50 border-b border-[var(--theme-border)]"
+      style={{
         backgroundColor: 'var(--theme-headerBg)',
-        borderColor: 'var(--theme-border)'
-      } as React.CSSProperties)}
+      } as React.CSSProperties}
     >
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 no-underline">
             <img src="/favicon.png" alt="Reddzit" className="w-8 h-8" />
-            <span className={`font-serif text-xl font-bold hidden sm:block ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+            <span className="font-serif text-xl font-bold hidden sm:block text-[var(--theme-text)]">
               Reddzit
             </span>
           </Link>
@@ -119,7 +114,7 @@ const SubredditFeed = () => {
             <button
               onClick={() => navigate('/top')}
               className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
-                themeName === 'light'
+                isLight
                   ? 'text-gray-600 hover:bg-gray-100 bg-transparent'
                   : 'text-gray-300 hover:bg-white/10 bg-transparent'
               }`}
@@ -129,7 +124,7 @@ const SubredditFeed = () => {
             <button
               onClick={() => navigate('/reddit')}
               className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
-                themeName === 'light'
+                isLight
                   ? 'text-gray-600 hover:bg-gray-100 bg-transparent'
                   : 'text-gray-300 hover:bg-white/10 bg-transparent'
               }`}
@@ -140,7 +135,7 @@ const SubredditFeed = () => {
             <button
               onClick={() => navigate('/foryou')}
               className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
-                themeName === 'light'
+                isLight
                   ? 'text-gray-600 hover:bg-gray-100 bg-transparent'
                   : 'text-gray-300 hover:bg-white/10 bg-transparent'
               }`}
@@ -158,7 +153,7 @@ const SubredditFeed = () => {
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer bg-transparent ${
-                  themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
+                  isLight ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
                 }`}
               >
                 <span className="font-medium text-sm max-w-[120px] truncate hidden sm:block">u/{user.name}</span>
@@ -170,17 +165,13 @@ const SubredditFeed = () => {
               </button>
 
               {showUserMenu && (
-                <div className={`absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl py-2 border z-50 ${
-                  themeName === 'light'
-                    ? 'bg-white border-gray-100'
-                    : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]'
-                }`}>
+                <div className="absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl py-2 border z-50 bg-[var(--theme-bg)] border-[var(--theme-border)]">
                   <a
                     href={`https://www.reddit.com/user/${user.name}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                      themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                      isLight ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
                     }`}
                   >
                     <FontAwesomeIcon icon={faUser} className="w-4 text-gray-400" />
@@ -191,13 +182,13 @@ const SubredditFeed = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                      themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+                      isLight ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
                     }`}
                   >
                     <FontAwesomeIcon icon={faCoffee} className="w-4 text-gray-400" />
                     Buy me a coffee
                   </a>
-                  <hr className={`my-2 ${themeName === 'light' ? 'border-gray-100' : 'border-white/10'}`} />
+                  <hr className="my-2 border-[var(--theme-border)]" />
                   <button
                     onClick={logout}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-500/20 text-red-400 text-sm text-left border-none bg-transparent cursor-pointer"
@@ -212,7 +203,7 @@ const SubredditFeed = () => {
             <button
               onClick={redirectForAuth}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer ${
-                themeName === 'light'
+                isLight
                   ? 'bg-orange-600 text-white hover:bg-orange-700'
                   : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
               }`}
@@ -227,7 +218,7 @@ const SubredditFeed = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${themeName === 'light' ? 'bg-[#fcfcfc]' : 'bg-[var(--theme-bg)]'}`}>
+      <div className="min-h-screen bg-[var(--theme-bg)]">
         {renderHeader()}
         <TrendingMarquee />
         <div className="max-w-4xl mx-auto px-4 py-12 text-center">
@@ -239,9 +230,7 @@ const SubredditFeed = () => {
 
   return (
     <div
-      className={`min-h-screen ${
-        themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
-      }`}
+      className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]"
     >
       {renderHeader()}
 
@@ -255,7 +244,7 @@ const SubredditFeed = () => {
             <button
               onClick={() => navigate('/foryou')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer ${
-                themeName === 'light'
+                isLight
                   ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   : 'bg-white/10 text-gray-400 hover:bg-white/20'
               }`}
@@ -264,7 +253,7 @@ const SubredditFeed = () => {
               <span className="hidden sm:inline">Back</span>
             </button>
 
-            <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+            <h1 className="text-2xl font-bold text-[var(--theme-text)]">
               r/{name}
             </h1>
 
@@ -276,10 +265,10 @@ const SubredditFeed = () => {
                   onClick={() => setSort(s)}
                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors border-none cursor-pointer capitalize ${
                     sort === s
-                      ? themeName === 'light'
+                      ? isLight
                         ? 'bg-orange-100 text-orange-700'
                         : 'bg-white/20 text-white'
-                      : themeName === 'light'
+                      : isLight
                         ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                         : 'text-gray-400 hover:bg-white/10 bg-transparent'
                   }`}
@@ -296,7 +285,7 @@ const SubredditFeed = () => {
               <Link
                 to={`/r/${nextSuggestion.name}`}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors no-underline ${
-                  themeName === 'light'
+                  isLight
                     ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                     : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/30'
                 }`}
@@ -311,7 +300,7 @@ const SubredditFeed = () => {
                 onClick={handleNotInterested}
                 disabled={dismissing}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  themeName === 'light'
+                  isLight
                     ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     : 'bg-white/10 text-gray-300 hover:bg-white/20'
                 } border-none cursor-pointer disabled:opacity-50`}
@@ -327,9 +316,7 @@ const SubredditFeed = () => {
       {relatedSubreddits.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 pb-4">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-medium ${
-              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-            }`}>
+            <span className="text-xs font-medium text-[var(--theme-textMuted)]">
               Related:
             </span>
             {relatedSubreddits.map((sub) => (
@@ -337,7 +324,7 @@ const SubredditFeed = () => {
                 key={sub}
                 to={`/r/${sub}`}
                 className={`text-xs px-2 py-1 rounded-full transition-colors no-underline ${
-                  themeName === 'light'
+                  isLight
                     ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     : 'bg-white/10 text-gray-400 hover:bg-white/20'
                 }`}
@@ -362,20 +349,17 @@ const SubredditFeed = () => {
             <article
               key={post.id || index}
               onClick={() => handlePostClick(post)}
-              className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl cursor-pointer transition border ${
-                themeName === 'light'
-                  ? 'bg-white sm:shadow-sm sm:border-gray-100 hover:shadow-md'
-                  : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
+              className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl cursor-pointer transition border border-[var(--theme-border)] sm:shadow-sm ${
+                isLight
+                  ? 'hover:shadow-md'
+                  : 'sm:backdrop-blur-md hover:bg-white/[0.12]'
               } ${index === 0 ? 'lg:col-span-2' : ''}`}
-              style={themeName === 'light' ? undefined : {
+              style={{
                 backgroundColor: 'var(--theme-cardBg)',
-                borderColor: 'var(--theme-border)'
               }}
             >
               {/* Stats row */}
-              <div className={`flex items-center gap-3 mb-2 text-xs ${
-                themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <div className="flex items-center gap-3 mb-2 text-xs text-[var(--theme-textMuted)]">
                 <span className="flex items-center gap-1">
                   <FontAwesomeIcon icon={faArrowUp} className="text-[10px]" />
                   {formatScore(post.score)}
@@ -386,11 +370,11 @@ const SubredditFeed = () => {
                 </span>
               </div>
 
-              <h2 className={`font-light mb-3 leading-tight transition-colors ${
+              <h2 className={`font-light mb-3 leading-tight transition-colors text-[var(--theme-text)] ${
                 index === 0 ? 'text-2xl md:text-3xl' : 'text-lg'
               } ${
-                themeName === 'light'
-                  ? 'text-gray-900 group-hover:text-orange-600'
+                isLight
+                  ? 'group-hover:text-orange-600'
                   : 'group-hover:text-[var(--theme-primary)]'
               }`}>
                 {post.title}
@@ -409,16 +393,14 @@ const SubredditFeed = () => {
                 </div>
               )}
 
-              <div className={`text-xs ${
-                themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <div className="text-xs text-[var(--theme-textMuted)]">
                 by {post.author}
               </div>
             </article>
           ))}
         </main>
       ) : !error && (
-        <div className={`text-center py-12 ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+        <div className="text-center py-12 text-[var(--theme-textMuted)]">
           No posts found
         </div>
       )}

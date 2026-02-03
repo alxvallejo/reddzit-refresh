@@ -10,7 +10,7 @@ const SPEED_OPTIONS = [
 ];
 
 const TrendingMarquee = () => {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [speedIndex, setSpeedIndex] = useState(() => {
@@ -49,22 +49,20 @@ const TrendingMarquee = () => {
 
   if (posts.length === 0) return null;
 
-  // Duplicate posts for seamless loop (2x so -50% translate resets cleanly)
-  const duplicatedPosts = [...posts, ...posts];
+  // Triplicate posts for seamless loop (3x so -33.33% translate resets cleanly)
+  const duplicatedPosts = [...posts, ...posts, ...posts];
 
   return (
-    <div className={`overflow-hidden border-b sticky top-16 z-40 ${
-      themeName === 'light' ? 'bg-gray-50 border-gray-200' : 'bg-white/5 border-white/10'
-    }`}
-    style={themeName === 'light' ? { backgroundColor: '#fcfcfc' } : { backgroundColor: 'var(--theme-headerBg)' }}
+    <div className="overflow-hidden border-b sticky top-16 z-40 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
+    style={{ backgroundColor: 'var(--theme-headerBg)' }}
     >
       <div className="max-w-7xl mx-auto pr-4 flex items-center">
         <div
           className={`flex-shrink-0 px-4 py-2 pr-6 font-bold text-xs uppercase tracking-wider ${
-            themeName === 'light' ? 'text-white' : 'text-[#262129]'
+            isLight ? 'text-white' : 'text-[#262129]'
           }`}
           style={{
-            backgroundColor: themeName === 'light' ? '#ea580c' : 'var(--theme-primary)',
+            backgroundColor: 'var(--theme-primary)',
             clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%)',
           }}
         >
@@ -83,16 +81,14 @@ const TrendingMarquee = () => {
                   handlePostClick(post);
                 }}
                 className={`inline-flex items-center px-4 text-sm hover:underline cursor-pointer bg-transparent border-none ${
-                  themeName === 'light' ? 'text-gray-700 hover:text-orange-600' : 'text-gray-300 hover:text-[var(--theme-primary)]'
+                  isLight ? 'text-gray-700 hover:text-orange-600' : 'text-gray-300 hover:text-[var(--theme-primary)]'
                 }`}
               >
-                <span className={`mr-2 text-xs font-bold ${
-                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                }`}>
+                <span className="mr-2 text-xs font-bold text-[var(--theme-primary)]">
                   r/{post.subreddit}
                 </span>
                 <span>{post.title}</span>
-                <span className={`mx-4 ${themeName === 'light' ? 'text-gray-300' : 'text-gray-600'}`}>•</span>
+                <span className={`mx-4 ${isLight ? 'text-gray-300' : 'text-gray-600'}`}>•</span>
               </button>
             ))}
           </div>
@@ -101,7 +97,7 @@ const TrendingMarquee = () => {
           onClick={cycleSpeed}
           title="Marquee speed"
           className={`flex-shrink-0 ml-2 px-2 py-1 text-xs rounded transition-colors cursor-pointer border-none ${
-            themeName === 'light'
+            isLight
               ? 'text-gray-400 hover:text-gray-600 bg-transparent'
               : 'text-gray-500 hover:text-gray-300 bg-transparent'
           }`}

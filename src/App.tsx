@@ -12,6 +12,8 @@ import QuotesPage from './components/QuotesPage';
 import StoriesPage from './components/StoriesPage';
 import StoryNewPage from './components/StoryNewPage';
 import StoryEditorPage from './components/StoryEditorPage';
+import PromoPage from './components/PromoPage';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
             <Route path='/stories' element={<StoriesPage />} />
             <Route path='/stories/new' element={<StoryNewPage />} />
             <Route path='/stories/:id/edit' element={<StoryEditorPage />} />
+            <Route path='/promo' element={<PromoPage />} />
+            <Route path='/privacy' element={<PrivacyPolicy />} />
             </Routes>
           </div>
         </RedditProvider>

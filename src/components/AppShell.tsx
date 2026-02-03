@@ -24,7 +24,6 @@ const getTabFromPath = (pathname: string): Tab => {
 
 const AppShell = () => {
   const { signedIn, redirectForAuth } = useReddit();
-  const { themeName } = useTheme();
   const location = useLocation();
   const activeTab = getTabFromPath(location.pathname);
   const [email, setEmail] = useState('');
@@ -76,14 +75,11 @@ const AppShell = () => {
 
   return (
     <div
-      className={`min-h-screen ${
-        themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
-      }`}
-      style={themeName === 'light' ? undefined : ({
-        // Provide a fallback for older class-based styles
+      className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]"
+      style={{
         backgroundColor: 'var(--theme-bg)',
         color: 'var(--theme-text)'
-      } as React.CSSProperties)}
+      } as React.CSSProperties}
     >
       {/* Header */}
       <MainHeader pageTitle={showPageTitle ? pageTitles[activeTab] : undefined} />
@@ -173,7 +169,7 @@ const AppShell = () => {
 // Saved Posts content (requires login)
 const SavedContent = () => {
   const { signedIn, redirectForAuth } = useReddit();
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
 
   if (!signedIn) {
     return (
@@ -181,16 +177,16 @@ const SavedContent = () => {
         <TrendingMarquee />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">🔖</div>
-          <h2 className={`text-2xl font-bold mb-3 ${themeName === 'light' ? 'text-gray-900' : ''}`}>Your Saved Posts</h2>
-          <p className={`mb-8 max-w-md ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+          <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">Your Saved Posts</h2>
+          <p className="mb-8 max-w-md text-[var(--theme-textMuted)]">
             Connect your Reddit account to view and manage your saved posts in a clean, distraction-free interface.
           </p>
           <button
             onClick={redirectForAuth}
-            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg ${
-              themeName === 'light'
-                ? 'bg-orange-600 text-white hover:bg-orange-700'
-                : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg bg-[var(--theme-primary)] ${
+              isLight
+                ? 'text-white hover:bg-orange-700'
+                : 'text-[#262129] hover:opacity-90'
             }`}
           >
             Connect with Reddit
@@ -221,7 +217,7 @@ const TopContent = () => {
 // For You content (requires login)
 const ForYouContent = () => {
   const { signedIn, redirectForAuth } = useReddit();
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
 
   if (!signedIn) {
     return (
@@ -229,16 +225,16 @@ const ForYouContent = () => {
         <TrendingMarquee />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">✨</div>
-          <h2 className={`text-2xl font-bold mb-3 ${themeName === 'light' ? 'text-gray-900' : ''}`}>For You</h2>
-          <p className={`mb-8 max-w-md ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+          <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">For You</h2>
+          <p className="mb-8 max-w-md text-[var(--theme-textMuted)]">
             Connect your Reddit account to get personalized content recommendations based on your interests.
           </p>
           <button
             onClick={redirectForAuth}
-            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg ${
-              themeName === 'light'
-                ? 'bg-orange-600 text-white hover:bg-orange-700'
-                : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg bg-[var(--theme-primary)] ${
+              isLight
+                ? 'text-white hover:bg-orange-700'
+                : 'text-[#262129] hover:opacity-90'
             }`}
           >
             Connect with Reddit

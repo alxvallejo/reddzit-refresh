@@ -51,7 +51,7 @@ function mix(color1: string, color2: string, ratio: number): string {
  * Returns the relative luminance (0-1) of a hex color per WCAG 2.0.
  * Useful for deciding whether to use light or dark text on a background.
  */
-function luminance(hex: string): number {
+export function luminance(hex: string): number {
   const { r, g, b } = hexToRgb(hex);
 
   const toLinear = (c: number) => {

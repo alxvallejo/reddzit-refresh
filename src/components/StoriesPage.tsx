@@ -17,7 +17,7 @@ function StoryCard({
   onDelete: (id: string) => Promise<void>;
   onPublishToggle: (story: Story) => Promise<void>;
 }) {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -48,27 +48,21 @@ function StoryCard({
   const quoteCount = story._count?.quotes ?? 0;
 
   return (
-    <div className={`rounded-xl p-4 ${
-      themeName === 'light'
-        ? 'bg-white border border-gray-200 shadow-sm'
-        : 'bg-transparent border border-[var(--theme-border)]'
-    }`}>
+    <div className="rounded-xl p-4 bg-[var(--theme-bg)] border border-[var(--theme-border)]">
       {/* Title + Status */}
       <div className="flex items-center gap-2 mb-2">
         <Link
           to={`/stories/${story.id}/edit`}
-          className={`font-semibold text-lg no-underline hover:underline ${
-            themeName === 'light' ? 'text-gray-900' : 'text-white'
-          }`}
+          className="font-semibold text-lg no-underline hover:underline text-[var(--theme-text)]"
         >
           {story.title}
         </Link>
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
           story.status === 'PUBLISHED'
-            ? themeName === 'light'
+            ? isLight
               ? 'bg-green-100 text-green-700'
               : 'bg-green-500/20 text-green-400'
-            : themeName === 'light'
+            : isLight
               ? 'bg-gray-100 text-gray-600'
               : 'bg-white/10 text-gray-300'
         }`}>
@@ -78,9 +72,7 @@ function StoryCard({
 
       {/* Description */}
       {story.description && (
-        <p className={`mb-3 text-sm ${
-          themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
-        }`}>
+        <p className="mb-3 text-sm text-[var(--theme-textMuted)]">
           {story.description.length > 150
             ? story.description.substring(0, 150) + '...'
             : story.description}
@@ -88,9 +80,7 @@ function StoryCard({
       )}
 
       {/* Metadata + Actions */}
-      <div className={`flex items-center justify-between text-xs ${
-        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-      }`}>
+      <div className="flex items-center justify-between text-xs text-[var(--theme-textMuted)]">
         <div className="flex items-center gap-2">
           <span>Updated {formattedDate}</span>
           <span>·</span>
@@ -112,7 +102,7 @@ function StoryCard({
               <button
                 onClick={() => setConfirmDelete(false)}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -125,7 +115,7 @@ function StoryCard({
               <Link
                 to={`/stories/${story.id}/edit`}
                 className={`p-1.5 rounded transition-colors no-underline ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100'
                     : 'text-gray-400 hover:bg-white/10'
                 }`}
@@ -136,7 +126,7 @@ function StoryCard({
                 onClick={handlePublishToggle}
                 disabled={loading}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -147,7 +137,7 @@ function StoryCard({
               <button
                 onClick={() => setConfirmDelete(true)}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -164,7 +154,7 @@ function StoryCard({
 
 export default function StoriesPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -214,23 +204,23 @@ export default function StoriesPage() {
   if (!signedIn) {
     return (
       <div className={`min-h-screen ${
-        themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
+        'bg-[var(--theme-bg)] text-[var(--theme-text)]'
       }`}>
         <MainHeader />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">
             <FontAwesomeIcon icon={faFileAlt} className="opacity-30" />
           </div>
-          <h2 className={`text-2xl font-bold mb-3 ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+          <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">
             Your Stories
           </h2>
-          <p className={`mb-8 max-w-md ${themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+          <p className="mb-8 max-w-md text-[var(--theme-textMuted)]">
             Sign in to create and manage your stories built from saved quotes.
           </p>
           <button
             onClick={redirectForAuth}
             className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg ${
-              themeName === 'light'
+              isLight
                 ? 'bg-orange-600 text-white hover:bg-orange-700'
                 : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
             }`}
@@ -244,21 +234,17 @@ export default function StoriesPage() {
 
   return (
     <div className={`min-h-screen ${
-      themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'
+      'bg-[var(--theme-bg)] text-[var(--theme-text)]'
     }`}>
       <MainHeader />
 
       {/* Page Header */}
-      <div className={`border-b ${
-        themeName === 'light' ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
-      }`}>
+      <div className="border-b bg-[var(--theme-headerBg)] border-[var(--theme-border)]">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : 'text-white'}`}>
+          <h1 className="font-semibold text-[var(--theme-text)]">
             Your Stories
             {stories.length > 0 && (
-              <span className={`ml-2 text-sm font-normal ${
-                themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-              }`}>
+              <span className="ml-2 text-sm font-normal text-[var(--theme-textMuted)]">
                 ({stories.length})
               </span>
             )}
@@ -266,7 +252,7 @@ export default function StoriesPage() {
           <Link
             to="/stories/new"
             className={`px-4 py-2 rounded-lg font-semibold text-sm no-underline transition-colors border ${
-              themeName === 'light'
+              isLight
                 ? 'bg-transparent border-orange-600 text-orange-600 hover:bg-orange-50'
                 : 'bg-transparent border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-white/5'
             }`}
@@ -290,12 +276,10 @@ export default function StoriesPage() {
             <div className="text-5xl mb-4 opacity-30">
               <FontAwesomeIcon icon={faFileAlt} />
             </div>
-            <h2 className={`text-xl font-semibold mb-2 ${
-              themeName === 'light' ? 'text-gray-800' : 'text-gray-200'
-            }`}>
+            <h2 className="text-xl font-semibold mb-2 text-[var(--theme-text)]">
               No stories yet
             </h2>
-            <p className={themeName === 'light' ? 'text-gray-600' : 'text-gray-400'}>
+            <p className="text-[var(--theme-textMuted)]">
               Create your first story to curate and share your saved quotes.
             </p>
           </div>
@@ -305,7 +289,7 @@ export default function StoriesPage() {
             {drafts.length > 0 && (
               <section>
                 <h2 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-primary)]'
+                  isLight ? 'text-gray-500' : 'text-[var(--theme-primary)]'
                 }`}>
                   Drafts ({drafts.length})
                 </h2>
@@ -326,7 +310,7 @@ export default function StoriesPage() {
             {published.length > 0 && (
               <section>
                 <h2 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-primary)]'
+                  isLight ? 'text-gray-500' : 'text-[var(--theme-primary)]'
                 }`}>
                   Published ({published.length})
                 </h2>

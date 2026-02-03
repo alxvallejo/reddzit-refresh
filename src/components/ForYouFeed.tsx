@@ -16,7 +16,7 @@ const MIN_POSTS_THRESHOLD = 5; // Refresh feed when posts drop below this
 type ActiveView = 'feed' | 'persona' | 'weights';
 
 const ForYouFeed = () => {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const { signedIn, redirectForAuth, accessToken, savePost } = useReddit();
   const navigate = useNavigate();
 
@@ -245,23 +245,19 @@ const ForYouFeed = () => {
   const tabClass = (tab: ActiveView) =>
     `px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
       activeView === tab
-        ? themeName === 'light'
-          ? 'border-orange-600 text-orange-600'
-          : 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
-        : themeName === 'light'
-          ? 'border-transparent text-gray-400 hover:text-gray-700'
-          : 'border-transparent text-gray-400 hover:text-white'
+        ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
+        : `border-transparent text-[var(--theme-textMuted)] ${isLight ? 'hover:text-gray-700' : 'hover:text-white'}`
     }`;
 
   // Not signed in
   if (!signedIn) {
     return (
-      <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+      <div className="py-24 text-center text-[var(--theme-textMuted)]">
         <p className="text-xl mb-4">Sign in to access your personalized feed</p>
         <button
           onClick={() => redirectForAuth()}
           className={`px-6 py-3 rounded-full font-semibold transition ${
-            themeName === 'light'
+            isLight
               ? 'bg-orange-600 text-white hover:bg-orange-700'
               : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
           }`}
@@ -275,7 +271,7 @@ const ForYouFeed = () => {
   // Loading state
   if (loading) {
     return (
-      <div className={`py-24 flex flex-col items-center justify-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+      <div className="py-24 flex flex-col items-center justify-center text-[var(--theme-textMuted)]">
         <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin mb-4 opacity-50" />
         <div className="text-sm">Loading feed...</div>
       </div>
@@ -286,10 +282,10 @@ const ForYouFeed = () => {
   if (!persona) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <h2 className={`text-2xl font-bold mb-4 ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+        <h2 className="text-2xl font-bold mb-4 text-[var(--theme-text)]">
           Build Your Persona
         </h2>
-        <p className={`mb-6 ${themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'}`}>
+        <p className="mb-6 text-[var(--theme-textMuted)]">
           We need to analyze your saved posts to create a personalized feed.
           This will help us understand your interests and preferences.
         </p>
@@ -299,7 +295,7 @@ const ForYouFeed = () => {
           className={`px-8 py-3 rounded-full font-semibold text-lg transition shadow-lg ${
             refreshingPersona ? 'opacity-50 cursor-not-allowed' : ''
           } ${
-            themeName === 'light'
+            isLight
               ? 'bg-orange-600 text-white hover:bg-orange-700'
               : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
           }`}
@@ -314,9 +310,7 @@ const ForYouFeed = () => {
           )}
         </button>
         {refreshingPersona && (
-          <p className={`text-center mt-4 text-sm ${
-            themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-          }`}>
+          <p className="text-center mt-4 text-sm text-[var(--theme-textMuted)]">
             This may take 30-60 seconds...
           </p>
         )}
@@ -327,21 +321,15 @@ const ForYouFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header className={`px-4 pb-2 sticky top-16 z-40 ${
-        themeName === 'light' ? 'bg-white' : 'bg-[var(--theme-bg)]'
-      }`}>
-        <div className={`max-w-7xl mx-auto border-b-2 ${
-          themeName === 'light' ? 'border-gray-900' : 'border-white/20'
-        }`}>
+      <header className="px-4 pb-2 sticky top-16 z-40 bg-[var(--theme-bg)]">
+        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4">
             <div>
-              <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+              <h1 className="text-2xl font-bold text-[var(--theme-text)]">
                 For You
               </h1>
               {personaRefreshedAt && (
-                <div className={`text-xs ${
-                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <div className="text-xs text-[var(--theme-textMuted)]">
                   Last refreshed: {formatTimeAgo(personaRefreshedAt)}
                 </div>
               )}
@@ -357,19 +345,15 @@ const ForYouFeed = () => {
               <button
                 onClick={handleRefreshPersona}
                 disabled={refreshingPersona}
-                className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                  themeName === 'light'
-                    ? 'text-orange-600 hover:bg-orange-50'
-                    : 'text-[var(--theme-primary)] hover:bg-white/10'
+                className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors text-[var(--theme-primary)] ${
+                  isLight ? 'hover:bg-orange-50' : 'hover:bg-white/10'
                 }`}
               >
                 {refreshingPersona ? <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : 'Refresh'}
               </button>
             </div>
           </div>
-          <div className={`text-xs pb-2 text-right ${
-            themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-          }`}>
+          <div className="text-xs pb-2 text-right text-[var(--theme-textMuted)]">
             {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
             {' '}
             {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
@@ -390,7 +374,7 @@ const ForYouFeed = () => {
       {refreshingPersona && (
         <div className="max-w-7xl mx-auto px-4 mt-4">
           <div className={`p-4 rounded-lg ${
-            themeName === 'light' ? 'bg-orange-50 text-orange-700' : 'bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]'
+            isLight ? 'bg-orange-50 text-orange-700' : 'bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]'
           }`}>
             Refreshing feed... This may take 30-60 seconds.
           </div>
@@ -404,16 +388,14 @@ const ForYouFeed = () => {
           {suggestions.length > 0 && (
             <div className="max-w-7xl mx-auto px-4 pb-4 pt-4">
               <div className="flex items-center flex-wrap gap-2">
-                <span className={`text-xs font-medium whitespace-nowrap ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <span className="text-xs font-medium whitespace-nowrap text-[var(--theme-textMuted)]">
                   Discover:
                 </span>
                 {suggestions.map((sub) => (
                   <div
                     key={sub.name}
                     className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                      themeName === 'light'
+                      isLight
                         ? 'bg-gray-100 text-gray-600'
                         : 'bg-white/10 text-gray-400'
                     }`}
@@ -422,7 +404,7 @@ const ForYouFeed = () => {
                       to={`/r/${sub.name}`}
                       title={sub.category}
                       className={`no-underline ${
-                        themeName === 'light'
+                        isLight
                           ? 'text-gray-600 hover:text-gray-900'
                           : 'text-gray-400 hover:text-white'
                       }`}
@@ -432,7 +414,7 @@ const ForYouFeed = () => {
                     <button
                       onClick={() => handleDismissSuggestion(sub.name)}
                       className={`ml-1 leading-none ${
-                        themeName === 'light'
+                        isLight
                           ? 'text-gray-400 hover:text-gray-600'
                           : 'text-gray-500 hover:text-gray-300'
                       }`}
@@ -452,10 +434,8 @@ const ForYouFeed = () => {
               {posts.map((post) => (
                 <article
                   key={post.id}
-                  className={`group relative p-3 rounded-lg transition border flex gap-3 ${
-                    themeName === 'light'
-                      ? 'bg-transparent border-gray-200 hover:border-orange-600'
-                      : 'bg-transparent border-white/10 hover:border-[var(--theme-primary)]'
+                  className={`group relative p-3 rounded-lg transition border flex gap-3 bg-transparent border-[var(--theme-border)] ${
+                    isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
                   }`}
                 >
                   {/* Post content - clickable */}
@@ -464,25 +444,19 @@ const ForYouFeed = () => {
                     onClick={() => handlePostClick(post)}
                   >
                     <div className="flex items-baseline gap-2 mb-1">
-                      <span className={`text-xs font-normal uppercase tracking-wide ${
-                        themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                      }`}>
+                      <span className="text-xs font-normal uppercase tracking-wide text-[var(--theme-primary)]">
                         r/{post.subreddit}
                       </span>
-                      <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+                      <span className="text-xs text-[var(--theme-textMuted)]">
                         {formatTimeAgo(post.createdUtc)}
                       </span>
                     </div>
 
-                    <h2 className={`font-light my-2 leading-snug text-base ${
-                      themeName === 'light' ? 'text-gray-900' : ''
-                    }`}>
+                    <h2 className="font-light my-2 leading-snug text-base text-[var(--theme-text)]">
                       {post.title}
                     </h2>
 
-                    <div className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                    }`}>
+                    <div className="text-xs text-[var(--theme-textMuted)]">
                       {formatScore(post.score)} pts | {post.numComments} comments
                     </div>
                   </div>
@@ -496,7 +470,7 @@ const ForYouFeed = () => {
                       }}
                       title="Save to Reddit"
                       className={`p-1.5 rounded transition ${
-                        themeName === 'light'
+                        isLight
                           ? 'text-green-600 hover:bg-green-100'
                           : 'text-green-400 hover:bg-green-500/20'
                       }`}
@@ -510,7 +484,7 @@ const ForYouFeed = () => {
                       }}
                       title="Skip (already read)"
                       className={`p-1.5 rounded transition ${
-                        themeName === 'light'
+                        isLight
                           ? 'text-blue-600 hover:bg-blue-100'
                           : 'text-blue-400 hover:bg-blue-500/20'
                       }`}
@@ -524,7 +498,7 @@ const ForYouFeed = () => {
                       }}
                       title="Hide (not interested)"
                       className={`p-1.5 rounded transition ${
-                        themeName === 'light'
+                        isLight
                           ? 'text-gray-500 hover:bg-gray-100'
                           : 'text-gray-400 hover:bg-white/10'
                       }`}
@@ -536,7 +510,7 @@ const ForYouFeed = () => {
               ))}
             </main>
           ) : (
-            <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+            <div className="py-24 text-center text-[var(--theme-textMuted)]">
               <p className="text-xl">No posts available</p>
               <p className="text-sm mt-2">Try refreshing your persona to get new recommendations.</p>
             </div>
@@ -549,36 +523,28 @@ const ForYouFeed = () => {
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
           {/* Persona description & tags */}
           <section className={`p-6 rounded-2xl border ${
-            themeName === 'light'
+            isLight
               ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
               : 'bg-gradient-to-br from-white/5 to-white/10 border-white/10'
           }`}>
             <div className="flex items-center justify-between mb-2">
-              <h2 className={`text-sm font-semibold uppercase tracking-wide ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--theme-primary)]">
                 Your Persona
               </h2>
               {personaRefreshedAt && (
-                <span className={`text-xs ${
-                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <span className="text-xs text-[var(--theme-textMuted)]">
                   Last refreshed: {formatTimeAgo(personaRefreshedAt)}
                 </span>
               )}
             </div>
-            <p className={`text-xs mb-4 ${
-              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-            }`}>
+            <p className="text-xs mb-4 text-[var(--theme-textMuted)]">
               Your persona is built by analyzing your saved Reddit posts with AI. It extracts the topics you care about and the types of content you engage with, then uses that to curate your For You feed. Hit "Refresh" to update it with your latest saves.
             </p>
 
             {/* Keywords */}
             {persona.keywords && persona.keywords.length > 0 && (
               <div className="mb-4">
-                <h3 className={`text-xs font-medium mb-2 ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <h3 className="text-xs font-medium mb-2 text-[var(--theme-textMuted)]">
                   Keywords
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -586,7 +552,7 @@ const ForYouFeed = () => {
                     <span
                       key={i}
                       className={`text-xs px-2 py-1 rounded-full ${
-                        themeName === 'light'
+                        isLight
                           ? 'bg-orange-100 text-orange-700'
                           : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)]'
                       }`}
@@ -601,9 +567,7 @@ const ForYouFeed = () => {
             {/* Content Preferences */}
             {persona.contentPreferences && persona.contentPreferences.length > 0 && (
               <div>
-                <h3 className={`text-xs font-medium mb-2 ${
-                  themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <h3 className="text-xs font-medium mb-2 text-[var(--theme-textMuted)]">
                   Content Preferences
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -611,7 +575,7 @@ const ForYouFeed = () => {
                     <span
                       key={i}
                       className={`text-xs px-2 py-1 rounded-full ${
-                        themeName === 'light'
+                        isLight
                           ? 'bg-blue-100 text-blue-700'
                           : 'bg-blue-500/20 text-blue-300'
                       }`}
@@ -626,19 +590,11 @@ const ForYouFeed = () => {
 
           {/* Top Subreddits with star toggle */}
           {subreddits.length > 0 && (
-            <section className={`p-6 rounded-2xl border ${
-              themeName === 'light'
-                ? 'bg-white border-slate-200'
-                : 'bg-white/5 border-white/10'
-            }`}>
-              <h2 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
+            <section className="p-6 rounded-2xl border bg-[var(--theme-cardBg)] border-[var(--theme-border)]">
+              <h2 className="text-sm font-semibold uppercase tracking-wide mb-4 text-[var(--theme-primary)]">
                 Top Subreddits
               </h2>
-              <p className={`text-xs mb-4 ${
-                themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <p className="text-xs mb-4 text-[var(--theme-textMuted)]">
                 Star subreddits to boost their priority in your feed.
               </p>
               <div className="space-y-2">
@@ -646,7 +602,7 @@ const ForYouFeed = () => {
                   <div
                     key={sub.name}
                     className={`flex items-center justify-between p-3 rounded-lg ${
-                      themeName === 'light'
+                      isLight
                         ? 'bg-gray-50 hover:bg-gray-100'
                         : 'bg-white/5 hover:bg-white/10'
                     } transition`}
@@ -657,7 +613,7 @@ const ForYouFeed = () => {
                         className={`text-xl transition-colors ${
                           sub.starred
                             ? 'text-yellow-500'
-                            : themeName === 'light'
+                            : isLight
                               ? 'text-gray-300 hover:text-yellow-400'
                               : 'text-gray-600 hover:text-yellow-400'
                         }`}
@@ -665,15 +621,11 @@ const ForYouFeed = () => {
                       >
                         {sub.starred ? '\u2605' : '\u2606'}
                       </button>
-                      <span className={`font-medium ${
-                        themeName === 'light' ? 'text-gray-900' : ''
-                      }`}>
+                      <span className="font-medium text-[var(--theme-text)]">
                         r/{sub.name}
                       </span>
                     </div>
-                    <span className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                    }`}>
+                    <span className="text-xs text-[var(--theme-textMuted)]">
                       {sub.postCount} posts
                     </span>
                   </div>
@@ -684,19 +636,11 @@ const ForYouFeed = () => {
 
           {/* AI Recommended Subreddits */}
           {recommendedSubreddits.length > 0 && (
-            <section className={`p-6 rounded-2xl border ${
-              themeName === 'light'
-                ? 'bg-white border-slate-200'
-                : 'bg-white/5 border-white/10'
-            }`}>
-              <h2 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
+            <section className="p-6 rounded-2xl border bg-[var(--theme-cardBg)] border-[var(--theme-border)]">
+              <h2 className="text-sm font-semibold uppercase tracking-wide mb-4 text-[var(--theme-primary)]">
                 AI Recommended Subreddits
               </h2>
-              <p className={`text-xs mb-4 ${
-                themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <p className="text-xs mb-4 text-[var(--theme-textMuted)]">
                 Based on your interests, you might also like these subreddits.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -704,7 +648,7 @@ const ForYouFeed = () => {
                   <span
                     key={i}
                     className={`text-sm px-3 py-1.5 rounded-full ${
-                      themeName === 'light'
+                      isLight
                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         : 'bg-white/10 text-gray-300 hover:bg-white/20'
                     } cursor-pointer transition`}
@@ -721,17 +665,11 @@ const ForYouFeed = () => {
       {/* === WEIGHTS VIEW === */}
       {activeView === 'weights' && persona?.subredditAffinities && (
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <section className={`p-6 rounded-2xl border ${
-            themeName === 'light'
-              ? 'bg-white border-slate-200'
-              : 'bg-white/5 border-white/10'
-          }`}>
-            <h2 className={`text-sm font-semibold uppercase tracking-wide mb-2 ${
-              themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-            }`}>
+          <section className="p-6 rounded-2xl border bg-[var(--theme-cardBg)] border-[var(--theme-border)]">
+            <h2 className="text-sm font-semibold uppercase tracking-wide mb-2 text-[var(--theme-primary)]">
               Subreddit Weights
             </h2>
-            <p className={`text-sm mb-6 ${themeName === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p className="text-sm mb-6 text-[var(--theme-textMuted)]">
               Higher weights mean more posts from that subreddit in your feed.
             </p>
 
@@ -746,19 +684,17 @@ const ForYouFeed = () => {
                     return (
                       <div key={i} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
-                          <span className={themeName === 'light' ? 'text-gray-700' : 'text-gray-200'}>
+                          <span className="text-[var(--theme-text)]">
                             r/{sub.name}
                           </span>
-                          <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <span className="text-xs text-[var(--theme-textMuted)]">
                             {sub.weight.toFixed(1)}
                           </span>
                         </div>
-                        <div className={`h-2 rounded-full overflow-hidden ${
-                          themeName === 'light' ? 'bg-gray-100' : 'bg-white/10'
-                        }`}>
+                        <div className="h-2 rounded-full overflow-hidden bg-[var(--theme-bgSecondary)]">
                           <div
                             className={`h-full rounded-full transition-all duration-300 ${
-                              themeName === 'light'
+                              isLight
                                 ? 'bg-gradient-to-r from-orange-400 to-orange-600'
                                 : 'bg-gradient-to-r from-[var(--theme-primary)] to-purple-500'
                             }`}

@@ -23,7 +23,7 @@ export default function QuoteModal({
   postTitle,
   accessToken
 }: QuoteModalProps) {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const [note, setNote] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -127,24 +127,16 @@ export default function QuoteModal({
       />
 
       {/* Modal */}
-      <div className={`relative w-full sm:max-w-lg rounded-t-xl sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col ${
-        themeName === 'light'
-          ? 'bg-white'
-          : 'bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]'
-      }`}>
+      <div className={`relative w-full sm:max-w-lg rounded-t-xl sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]`}>
         {/* Header */}
-        <div className={`flex items-center justify-between px-5 py-4 border-b flex-shrink-0 ${
-          themeName === 'light' ? 'border-gray-200' : 'border-white/10'
-        }`}>
-          <h2 className={`text-lg font-semibold ${
-            themeName === 'light' ? 'text-gray-900' : 'text-white'
-          }`}>
+        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0 border-[var(--theme-border)]">
+          <h2 className="text-lg font-semibold text-[var(--theme-text)]">
             Save Quote
           </h2>
           <button
             onClick={handleClose}
             className={`p-1 rounded-lg transition-colors border-none cursor-pointer ${
-              themeName === 'light'
+              isLight
                 ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                 : 'text-gray-400 hover:bg-white/10 bg-transparent'
             }`}
@@ -158,9 +150,7 @@ export default function QuoteModal({
           {/* Story — moved to top */}
           {accessToken && (
             <div ref={dropdownRef} className="relative">
-              <label className={`block text-sm font-medium mb-2 ${
-                themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-              }`}>
+              <label className="block text-sm font-medium mb-2 text-[var(--theme-text)]">
                 Assign to Story (optional)
               </label>
               {/* Trigger */}
@@ -169,11 +159,11 @@ export default function QuoteModal({
                 onClick={() => setDropdownOpen(prev => !prev)}
                 disabled={storiesLoading}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left transition-colors border cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'bg-white border-gray-300 text-gray-900 hover:border-gray-400'
                     : 'bg-white/5 border-white/20 text-white hover:border-white/40'
                 } ${dropdownOpen
-                    ? themeName === 'light' ? 'ring-2 ring-orange-500/50' : 'ring-2 ring-[var(--theme-border)]'
+                    ? isLight ? 'ring-2 ring-orange-500/50' : 'ring-2 ring-[var(--theme-border)]'
                     : ''
                 }`}
               >
@@ -184,7 +174,7 @@ export default function QuoteModal({
                       {stories.find(s => s.id === selectedStoryId)?.title}
                     </>
                   ) : (
-                    <span className={themeName === 'light' ? 'text-gray-400' : 'text-gray-500'}>
+                    <span className={isLight ? 'text-gray-400' : 'text-gray-500'}>
                       No story
                     </span>
                   )}
@@ -197,18 +187,14 @@ export default function QuoteModal({
 
               {/* Dropdown menu */}
               {dropdownOpen && (
-                <div className={`absolute z-10 left-0 right-0 mt-1 rounded-lg shadow-xl overflow-hidden border ${
-                  themeName === 'light'
-                    ? 'bg-white border-gray-200'
-                    : 'bg-[#2d2554] border-white/15'
-                }`}>
+                <div className="absolute z-10 left-0 right-0 mt-1 rounded-lg shadow-xl overflow-hidden border bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]">
                   <div className="max-h-48 overflow-y-auto">
                     {/* No story option */}
                     <button
                       type="button"
                       onClick={() => { setSelectedStoryId(''); setDropdownOpen(false); }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
-                        themeName === 'light'
+                        isLight
                           ? `bg-transparent hover:bg-gray-50 ${!selectedStoryId ? 'text-orange-600 font-medium' : 'text-gray-600'}`
                           : `bg-transparent hover:bg-white/5 ${!selectedStoryId ? 'text-[var(--theme-primary)] font-medium' : 'text-gray-300'}`
                       }`}
@@ -224,7 +210,7 @@ export default function QuoteModal({
                         type="button"
                         onClick={() => { setSelectedStoryId(s.id); setDropdownOpen(false); }}
                         className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
-                          themeName === 'light'
+                          isLight
                             ? `bg-transparent hover:bg-gray-50 ${selectedStoryId === s.id ? 'text-orange-600 font-medium' : 'text-gray-900'}`
                             : `bg-transparent hover:bg-white/5 ${selectedStoryId === s.id ? 'text-[var(--theme-primary)] font-medium' : 'text-gray-200'}`
                         }`}
@@ -233,7 +219,7 @@ export default function QuoteModal({
                           <FontAwesomeIcon icon={faBook} className="text-xs opacity-40" />
                           {s.title}
                           {s._count?.quotes != null && (
-                            <span className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <span className={`text-xs ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
                               ({s._count.quotes})
                             </span>
                           )}
@@ -244,7 +230,7 @@ export default function QuoteModal({
                   </div>
 
                   {/* New story section */}
-                  <div className={`border-t ${themeName === 'light' ? 'border-gray-100' : 'border-white/10'}`}>
+                  <div className="border-t border-[var(--theme-border)]">
                     {creatingStory ? (
                       <div className="flex items-center gap-2 p-2">
                         <input
@@ -258,7 +244,7 @@ export default function QuoteModal({
                           placeholder="Story title..."
                           autoFocus
                           className={`flex-1 px-2.5 py-1.5 rounded text-sm focus:outline-none focus:ring-1 ${
-                            themeName === 'light'
+                            isLight
                               ? 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
                               : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
                           }`}
@@ -268,7 +254,7 @@ export default function QuoteModal({
                           onClick={handleCreateStory}
                           disabled={newStorySaving || !newStoryTitle.trim()}
                           className={`p-1.5 rounded text-xs transition-colors border-none cursor-pointer disabled:opacity-40 ${
-                            themeName === 'light'
+                            isLight
                               ? 'bg-orange-600 text-white hover:bg-orange-700'
                               : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
                           }`}
@@ -279,7 +265,7 @@ export default function QuoteModal({
                           type="button"
                           onClick={() => { setCreatingStory(false); setNewStoryTitle(''); }}
                           className={`p-1.5 rounded text-xs transition-colors border-none cursor-pointer ${
-                            themeName === 'light'
+                            isLight
                               ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                               : 'bg-white/10 text-gray-400 hover:bg-white/20'
                           }`}
@@ -292,7 +278,7 @@ export default function QuoteModal({
                         type="button"
                         onClick={() => setCreatingStory(true)}
                         className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
-                          themeName === 'light'
+                          isLight
                             ? 'bg-transparent text-orange-600 hover:bg-orange-50'
                             : 'bg-transparent text-[var(--theme-primary)] hover:bg-white/5'
                         }`}
@@ -309,32 +295,22 @@ export default function QuoteModal({
 
           {/* Quoted Text */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-[var(--theme-text)]">
               <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-60" />
               Selected Text
             </label>
-            <div className={`p-3 rounded-lg text-sm max-h-32 overflow-y-auto ${
-              themeName === 'light'
-                ? 'bg-gray-50 text-gray-700 border border-gray-200'
-                : 'bg-white/5 text-gray-300 border border-white/10'
-            }`}>
+            <div className="p-3 rounded-lg text-sm max-h-32 overflow-y-auto bg-[var(--theme-bgSecondary)] text-[var(--theme-text)] border border-[var(--theme-border)]">
               {displayText}
             </div>
           </div>
 
           {/* Source */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-[var(--theme-text)]">
               <FontAwesomeIcon icon={faLink} className="mr-2 opacity-60" />
               Source
             </label>
-            <div className={`text-sm ${
-              themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
-            }`}>
+            <div className="text-sm text-[var(--theme-textMuted)]">
               <div className="font-medium truncate">{postTitle}</div>
               <a
                 href={sourceUrl}
@@ -349,9 +325,7 @@ export default function QuoteModal({
 
           {/* Note */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-[var(--theme-text)]">
               Your Note (optional)
             </label>
             <textarea
@@ -360,7 +334,7 @@ export default function QuoteModal({
               placeholder="Add your thoughts..."
               rows={3}
               className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
-                themeName === 'light'
+                isLight
                   ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
                   : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
               }`}
@@ -369,9 +343,7 @@ export default function QuoteModal({
 
           {/* Tags */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-[var(--theme-text)]">
               Tags (optional, comma-separated)
             </label>
             <input
@@ -380,7 +352,7 @@ export default function QuoteModal({
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="e.g., programming, inspiration, todo"
               className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                themeName === 'light'
+                isLight
                   ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
                   : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
               }`}
@@ -394,14 +366,12 @@ export default function QuoteModal({
         </div>
 
         {/* Footer */}
-        <div className={`flex justify-end gap-3 px-5 py-4 border-t flex-shrink-0 ${
-          themeName === 'light' ? 'border-gray-200' : 'border-white/10'
-        }`}>
+        <div className="flex justify-end gap-3 px-5 py-4 border-t flex-shrink-0 border-[var(--theme-border)]">
           <button
             onClick={handleClose}
             disabled={saving}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer ${
-              themeName === 'light'
+              isLight
                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
@@ -412,7 +382,7 @@ export default function QuoteModal({
             onClick={handleSave}
             disabled={saving}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer disabled:opacity-50 ${
-              themeName === 'light'
+              isLight
                 ? 'bg-orange-600 text-white hover:bg-orange-700'
                 : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
             }`}

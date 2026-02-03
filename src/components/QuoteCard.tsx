@@ -22,7 +22,7 @@ interface QuoteCardProps {
 }
 
 export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps) {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editNote, setEditNote] = useState(quote.note || '');
@@ -65,15 +65,9 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
   });
 
   return (
-    <div className={`rounded-xl p-4 ${
-      themeName === 'light'
-        ? 'bg-white border border-gray-200 shadow-sm'
-        : 'bg-transparent border border-[var(--theme-border)]'
-    }`}>
+    <div className="rounded-xl p-4 bg-[var(--theme-bg)] border border-[var(--theme-border)]">
       {/* Metadata */}
-      <div className={`flex items-center justify-between text-xs mb-3 ${
-        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-      }`}>
+      <div className="flex items-center justify-between text-xs mb-3 text-[var(--theme-textMuted)]">
         <div className="flex items-center gap-2">
           <span className="font-medium text-[#ff4500]">r/{quote.subreddit}</span>
           <span>·</span>
@@ -82,18 +76,14 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
               href={quote.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`hover:underline truncate max-w-[200px] ${
-                themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
-              }`}
+              className="hover:underline truncate max-w-[200px] text-[var(--theme-textMuted)]"
             >
               {quote.postTitle}
             </a>
           ) : (
             <Link
               to={postLink}
-              className={`hover:underline truncate max-w-[200px] ${
-                themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
-              }`}
+              className="hover:underline truncate max-w-[200px] text-[var(--theme-textMuted)]"
             >
               {quote.postTitle}
             </Link>
@@ -110,7 +100,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
                 onClick={handleSave}
                 disabled={loading}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-green-600 hover:bg-green-50 bg-transparent'
                     : 'text-green-400 hover:bg-green-500/20 bg-transparent'
                 }`}
@@ -124,7 +114,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
                   setEditTags(quote.tags.join(', '));
                 }}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -145,7 +135,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
               <button
                 onClick={() => setConfirmDelete(false)}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -158,7 +148,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
               <button
                 onClick={() => setEditing(true)}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -168,7 +158,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
               <button
                 onClick={() => setConfirmDelete(true)}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
                     : 'text-gray-400 hover:bg-white/10 bg-transparent'
                 }`}
@@ -181,7 +171,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
       </div>
 
       {/* Quoted Text */}
-      <div className={`mb-3 ${themeName === 'light' ? 'text-gray-800' : 'text-gray-200'}`}>
+      <div className="mb-3 text-[var(--theme-text)]">
         {isImageUrl(quote.text) ? (
           <img
             src={quote.text}
@@ -196,9 +186,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
             {quote.text.length > 200 && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className={`ml-2 text-sm font-medium border-none bg-transparent cursor-pointer ${
-                  themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                }`}
+                className="ml-2 text-sm font-medium border-none bg-transparent cursor-pointer text-[var(--theme-primary)]"
               >
                 {expanded ? 'Show less' : 'Show more'}
               </button>
@@ -216,7 +204,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
             placeholder="Your note..."
             rows={2}
             className={`w-full px-3 py-2 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 ${
-              themeName === 'light'
+              isLight
                 ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
                 : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
             }`}
@@ -227,16 +215,14 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
             onChange={(e) => setEditTags(e.target.value)}
             placeholder="Tags (comma-separated)"
             className={`w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 ${
-              themeName === 'light'
+              isLight
                 ? 'bg-gray-50 border border-gray-300 text-gray-900 focus:ring-orange-500/50'
                 : 'bg-white/5 border border-white/20 text-white focus:ring-[var(--theme-border)]'
             }`}
           />
         </div>
       ) : quote.note ? (
-        <div className={`mb-3 pl-4 border-l-2 ${
-          themeName === 'light' ? 'border-orange-300 text-gray-600' : 'border-[var(--theme-border)] text-gray-400'
-        }`}>
+        <div className="mb-3 pl-4 border-l-2 border-[var(--theme-border)] text-[var(--theme-textMuted)]">
           {quote.note}
         </div>
       ) : null}
@@ -248,7 +234,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
             <span
               key={i}
               className={`px-2 py-0.5 rounded-full text-xs ${
-                themeName === 'light'
+                isLight
                   ? 'bg-gray-100 text-gray-600'
                   : 'bg-white/10 text-gray-300'
               }`}

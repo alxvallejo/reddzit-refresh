@@ -9,7 +9,7 @@ interface QuoteSelectionButtonProps {
 }
 
 export default function QuoteSelectionButton({ position, onClick }: QuoteSelectionButtonProps) {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
 
   return (
     <button
@@ -22,7 +22,7 @@ export default function QuoteSelectionButton({ position, onClick }: QuoteSelecti
         zIndex: 60
       }}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg transition-all border-none cursor-pointer ${
-        themeName === 'light'
+        isLight
           ? 'bg-orange-600 text-white hover:bg-orange-700'
           : 'bg-[var(--theme-primary)] text-[var(--theme-bgSecondary)] hover:opacity-90'
       }`}

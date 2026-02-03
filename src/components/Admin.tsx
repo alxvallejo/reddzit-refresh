@@ -98,7 +98,7 @@ interface CacheStats {
 }
 
 const Admin = () => {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const { user } = useReddit();
   const navigate = useNavigate();
 
@@ -339,15 +339,9 @@ const Admin = () => {
   // Login form
   if (!authenticated) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 ${
-        themeName === 'light' ? 'bg-gray-100' : 'bg-[var(--theme-bg)]'
-      }`}>
-        <form onSubmit={handleLogin} className={`p-8 rounded-2xl shadow-lg max-w-sm w-full ${
-          themeName === 'light' ? 'bg-white' : 'bg-[var(--theme-cardBg)]'
-        }`}>
-          <h1 className={`text-2xl font-bold mb-6 ${
-            themeName === 'light' ? 'text-gray-900' : 'text-white'
-          }`}>Admin Login</h1>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--theme-bgSecondary)]">
+        <form onSubmit={handleLogin} className="p-8 rounded-2xl shadow-lg max-w-sm w-full bg-[var(--theme-cardBg)]">
+          <h1 className="text-2xl font-bold mb-6 text-[var(--theme-text)]">Admin Login</h1>
           
           {error && (
             <div className="mb-4 p-3 rounded bg-red-500/20 text-red-400 text-sm">
@@ -360,17 +354,13 @@ const Admin = () => {
             placeholder="Admin Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={`w-full p-3 rounded-lg mb-4 border ${
-              themeName === 'light'
-                ? 'bg-gray-50 border-gray-200 text-gray-900'
-                : 'bg-white/5 border-white/10 text-white'
-            }`}
+            className="w-full p-3 rounded-lg mb-4 border bg-[var(--theme-bgSecondary)] border-[var(--theme-border)] text-[var(--theme-text)]"
           />
           
           <button
             type="submit"
             className={`w-full py-3 rounded-lg font-semibold transition ${
-              themeName === 'light'
+              isLight
                 ? 'bg-orange-600 text-white hover:bg-orange-700'
                 : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
             }`}
@@ -381,9 +371,7 @@ const Admin = () => {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className={`w-full mt-4 py-2 text-sm ${
-              themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-            }`}
+            className="w-full mt-4 py-2 text-sm text-[var(--theme-textMuted)]"
           >
             ← Back to Home
           </button>
@@ -393,19 +381,15 @@ const Admin = () => {
   }
 
   return (
-    <div className={`min-h-screen p-4 md:p-8 ${
-      themeName === 'light' ? 'bg-gray-100' : 'bg-[var(--theme-bg)]'
-    }`}>
+    <div className="min-h-screen p-4 md:p-8 bg-[var(--theme-bgSecondary)]">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className={`text-3xl font-bold ${
-            themeName === 'light' ? 'text-gray-900' : 'text-white'
-          }`}>Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-[var(--theme-text)]">Admin Dashboard</h1>
           <button
             onClick={() => navigate('/')}
             className={`text-sm px-4 py-2 rounded-lg ${
-              themeName === 'light'
+              isLight
                 ? 'text-gray-600 hover:bg-gray-200'
                 : 'text-gray-300 hover:bg-white/10'
             }`}
@@ -415,19 +399,17 @@ const Admin = () => {
         </div>
 
         {/* Tabs */}
-        <div className={`flex gap-1 p-1 rounded-xl mb-8 ${
-          themeName === 'light' ? 'bg-gray-200' : 'bg-white/5'
-        }`}>
+        <div className="flex gap-1 p-1 rounded-xl mb-8 bg-[var(--theme-bgSecondary)]">
           {(['stats', 'users', 'briefings', 'jobs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
                 activeTab === tab
-                  ? themeName === 'light'
+                  ? isLight
                     ? 'bg-white text-orange-600 shadow'
                     : 'bg-[var(--theme-primary)] text-[#262129]'
-                  : themeName === 'light'
+                  : isLight
                     ? 'text-gray-600 hover:text-gray-900'
                     : 'text-gray-400 hover:text-white'
               }`}
@@ -448,22 +430,16 @@ const Admin = () => {
           <div className="space-y-6">
             {/* Reddit API Usage Card */}
             {redditUsage && (
-              <div className={`p-6 rounded-xl ${
-                themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
-              }`}>
+              <div className="p-6 rounded-xl bg-[var(--theme-bg)] shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`font-bold text-lg ${
-                    themeName === 'light' ? 'text-gray-900' : 'text-white'
-                  }`}>
+                  <h3 className="font-bold text-lg text-[var(--theme-text)]">
                     Reddit API Usage
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${
                       redditUsage.apiStatus?.isHealthy ? 'bg-green-500' : 'bg-red-500'
                     }`} />
-                    <span className={`text-sm ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <span className="text-sm text-[var(--theme-textMuted)]">
                       {redditUsage.apiStatus?.isHealthy ? 'Healthy' : 'Unhealthy'}
                     </span>
                   </div>
@@ -472,7 +448,7 @@ const Admin = () => {
                 {/* Progress Bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className={themeName === 'light' ? 'text-gray-600' : 'text-gray-300'}>
+                    <span className="text-[var(--theme-textMuted)]">
                       {redditUsage.lastHour} / {redditUsage.limit} requests this hour
                     </span>
                     <span className={`font-medium ${
@@ -480,14 +456,12 @@ const Admin = () => {
                         ? 'text-red-500'
                         : redditUsage.percentUsed >= 50
                           ? 'text-yellow-500'
-                          : themeName === 'light' ? 'text-green-600' : 'text-green-400'
+                          : 'text-green-500'
                     }`}>
                       {redditUsage.remaining} remaining
                     </span>
                   </div>
-                  <div className={`h-3 rounded-full overflow-hidden ${
-                    themeName === 'light' ? 'bg-gray-200' : 'bg-white/10'
-                  }`}>
+                  <div className="h-3 rounded-full overflow-hidden bg-[var(--theme-bgSecondary)]">
                     <div
                       className={`h-full rounded-full transition-all ${
                         redditUsage.percentUsed >= 80
@@ -504,26 +478,18 @@ const Admin = () => {
                 {/* Stats Row */}
                 <div className="grid grid-cols-3 gap-4 text-center mb-4">
                   <div>
-                    <p className={`text-2xl font-bold ${
-                      themeName === 'light' ? 'text-gray-900' : 'text-white'
-                    }`}>
+                    <p className="text-2xl font-bold text-[var(--theme-text)]">
                       {redditUsage.lastHour}
                     </p>
-                    <p className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-xs text-[var(--theme-textMuted)]">
                       Last Hour
                     </p>
                   </div>
                   <div>
-                    <p className={`text-2xl font-bold ${
-                      themeName === 'light' ? 'text-gray-900' : 'text-white'
-                    }`}>
+                    <p className="text-2xl font-bold text-[var(--theme-text)]">
                       {redditUsage.last24Hours}
                     </p>
-                    <p className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-xs text-[var(--theme-textMuted)]">
                       Last 24h
                     </p>
                   </div>
@@ -531,13 +497,11 @@ const Admin = () => {
                     <p className={`text-2xl font-bold ${
                       redditUsage.percentUsed >= 80
                         ? 'text-red-500'
-                        : themeName === 'light' ? 'text-gray-900' : 'text-white'
+                        : 'text-[var(--theme-text)]'
                     }`}>
                       {redditUsage.percentUsed}%
                     </p>
-                    <p className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-xs text-[var(--theme-textMuted)]">
                       Used
                     </p>
                   </div>
@@ -551,7 +515,7 @@ const Admin = () => {
                       if (!showLogs) fetchRedditLogs();
                     }}
                     className={`text-sm px-4 py-2 rounded-lg transition ${
-                      themeName === 'light'
+                      isLight
                         ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         : 'bg-white/10 text-gray-300 hover:bg-white/20'
                     }`}
@@ -570,46 +534,28 @@ const Admin = () => {
 
                 {/* Logs List */}
                 {showLogs && (
-                  <div className={`mt-4 rounded-lg overflow-hidden ${
-                    themeName === 'light' ? 'bg-gray-50' : 'bg-white/5'
-                  }`}>
+                  <div className="mt-4 rounded-lg overflow-hidden bg-[var(--theme-bgSecondary)]">
                     {redditLogs.length === 0 ? (
-                      <p className={`p-4 text-sm ${
-                        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                      }`}>
+                      <p className="p-4 text-sm text-[var(--theme-textMuted)]">
                         No requests in the last hour
                       </p>
                     ) : (
                       <div className="max-h-64 overflow-y-auto">
                         <table className="w-full text-sm">
-                          <thead className={`sticky top-0 ${
-                            themeName === 'light' ? 'bg-gray-100' : 'bg-white/10'
-                          }`}>
+                          <thead className="sticky top-0 bg-[var(--theme-bgSecondary)]">
                             <tr>
-                              <th className={`text-left p-2 font-medium ${
-                                themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
-                              }`}>Time</th>
-                              <th className={`text-left p-2 font-medium ${
-                                themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
-                              }`}>Endpoint</th>
-                              <th className={`text-center p-2 font-medium ${
-                                themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
-                              }`}>Status</th>
+                              <th className="text-left p-2 font-medium text-[var(--theme-textMuted)]">Time</th>
+                              <th className="text-left p-2 font-medium text-[var(--theme-textMuted)]">Endpoint</th>
+                              <th className="text-center p-2 font-medium text-[var(--theme-textMuted)]">Status</th>
                             </tr>
                           </thead>
                           <tbody>
                             {redditLogs.map((log) => (
-                              <tr key={log.id} className={
-                                themeName === 'light' ? 'border-t border-gray-200' : 'border-t border-white/5'
-                              }>
-                                <td className={`p-2 ${
-                                  themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                                }`}>
+                              <tr key={log.id} className="border-t border-[var(--theme-border)]">
+                                <td className="p-2 text-[var(--theme-textMuted)]">
                                   {new Date(log.createdAt).toLocaleTimeString()}
                                 </td>
-                                <td className={`p-2 font-mono text-xs truncate max-w-[200px] ${
-                                  themeName === 'light' ? 'text-gray-700' : 'text-gray-300'
-                                }`}>
+                                <td className="p-2 font-mono text-xs truncate max-w-[200px] text-[var(--theme-text)]">
                                   {log.endpoint}
                                 </td>
                                 <td className="p-2 text-center">
@@ -636,18 +582,12 @@ const Admin = () => {
 
             {/* Share Preview Cache */}
             {cacheStats && (
-              <div className={`p-6 rounded-xl ${
-                themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
-              }`}>
+              <div className="p-6 rounded-xl bg-[var(--theme-bg)] shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`font-bold text-lg ${
-                    themeName === 'light' ? 'text-gray-900' : 'text-white'
-                  }`}>
+                  <h3 className="font-bold text-lg text-[var(--theme-text)]">
                     Share Preview Cache
                   </h3>
-                  <span className={`text-sm ${
-                    themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                  }`}>
+                  <span className="text-sm text-[var(--theme-textMuted)]">
                     {cacheStats.size} / {cacheStats.max} entries
                   </span>
                 </div>
@@ -655,12 +595,12 @@ const Admin = () => {
                 {/* Hit Rate Bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className={themeName === 'light' ? 'text-gray-600' : 'text-gray-300'}>
+                    <span className="text-[var(--theme-textMuted)]">
                       {cacheStats.hits + cacheStats.misses} total requests
                     </span>
                     <span className={`font-medium ${
                       cacheStats.hitRate >= 70
-                        ? themeName === 'light' ? 'text-green-600' : 'text-green-400'
+                        ? 'text-green-500'
                         : cacheStats.hitRate >= 40
                           ? 'text-yellow-500'
                           : 'text-red-500'
@@ -668,9 +608,7 @@ const Admin = () => {
                       {cacheStats.hitRate}% hit rate
                     </span>
                   </div>
-                  <div className={`h-3 rounded-full overflow-hidden ${
-                    themeName === 'light' ? 'bg-gray-200' : 'bg-white/10'
-                  }`}>
+                  <div className="h-3 rounded-full overflow-hidden bg-[var(--theme-bgSecondary)]">
                     <div
                       className={`h-full rounded-full transition-all ${
                         cacheStats.hitRate >= 70
@@ -687,38 +625,26 @@ const Admin = () => {
                 {/* Stats Row */}
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <p className={`text-2xl font-bold ${
-                      themeName === 'light' ? 'text-green-600' : 'text-green-400'
-                    }`}>
+                    <p className="text-2xl font-bold text-green-500">
                       {cacheStats.hits}
                     </p>
-                    <p className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-xs text-[var(--theme-textMuted)]">
                       Cache Hits
                     </p>
                   </div>
                   <div>
-                    <p className={`text-2xl font-bold ${
-                      themeName === 'light' ? 'text-gray-900' : 'text-white'
-                    }`}>
+                    <p className="text-2xl font-bold text-[var(--theme-text)]">
                       {cacheStats.misses}
                     </p>
-                    <p className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-xs text-[var(--theme-textMuted)]">
                       Cache Misses
                     </p>
                   </div>
                   <div>
-                    <p className={`text-2xl font-bold ${
-                      themeName === 'light' ? 'text-green-600' : 'text-green-400'
-                    }`}>
+                    <p className="text-2xl font-bold text-green-500">
                       {cacheStats.hits}
                     </p>
-                    <p className={`text-xs ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-xs text-[var(--theme-textMuted)]">
                       API Calls Saved
                     </p>
                   </div>
@@ -731,23 +657,19 @@ const Admin = () => {
               <StatCard
                 title="Total Users"
                 value={stats.users.total}
-                themeName={themeName}
               />
               <StatCard
                 title="Pro Users"
                 value={stats.users.pro}
-                themeName={themeName}
                 highlight
               />
               <StatCard
                 title="New This Week"
                 value={stats.users.newThisWeek}
-                themeName={themeName}
               />
               <StatCard
                 title="Global Briefings"
                 value={stats.content.globalBriefings}
-                themeName={themeName}
               />
             </div>
           </div>
@@ -765,25 +687,17 @@ const Admin = () => {
                   setUserSearch(e.target.value);
                   fetchUsers(e.target.value);
                 }}
-                className={`w-full md:w-64 p-3 rounded-lg border ${
-                  themeName === 'light'
-                    ? 'bg-white border-gray-200 text-gray-900'
-                    : 'bg-white/5 border-white/10 text-white'
-                }`}
+                className="w-full md:w-64 p-3 rounded-lg border bg-[var(--theme-bg)] border-[var(--theme-border)] text-[var(--theme-text)]"
               />
             </div>
             
             {loading ? (
               <div className="text-center py-8">Loading...</div>
             ) : (
-              <div className={`rounded-xl overflow-hidden ${
-                themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
-              }`}>
+              <div className="rounded-xl overflow-hidden bg-[var(--theme-bg)] shadow">
                 <table className="w-full">
                   <thead>
-                    <tr className={
-                      themeName === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'
-                    }>
+                    <tr className="bg-[var(--theme-bgSecondary)] text-[var(--theme-textMuted)]">
                       <th className="text-left p-4 font-semibold">Username</th>
                       <th className="text-left p-4 font-semibold hidden md:table-cell">Joined</th>
                       <th className="text-center p-4 font-semibold">Pro</th>
@@ -792,12 +706,8 @@ const Admin = () => {
                   </thead>
                   <tbody>
                     {users.map((u) => (
-                      <tr key={u.id} className={
-                        themeName === 'light' ? 'border-t border-gray-100' : 'border-t border-white/5'
-                      }>
-                        <td className={`p-4 font-medium ${
-                          themeName === 'light' ? 'text-gray-900' : 'text-white'
-                        }`}>
+                      <tr key={u.id} className="border-t border-[var(--theme-border)]">
+                        <td className="p-4 font-medium text-[var(--theme-text)]">
                           u/{u.redditUsername}
                           {u.isAdmin && (
                             <span className="ml-2 text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">
@@ -805,9 +715,7 @@ const Admin = () => {
                             </span>
                           )}
                         </td>
-                        <td className={`p-4 text-sm hidden md:table-cell ${
-                          themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                        }`}>
+                        <td className="p-4 text-sm hidden md:table-cell text-[var(--theme-textMuted)]">
                           {formatDate(u.createdAt)}
                         </td>
                         <td className="p-4 text-center">
@@ -825,7 +733,7 @@ const Admin = () => {
                             className={`text-sm px-3 py-1 rounded-lg transition ${
                               u.isPro
                                 ? 'text-red-400 hover:bg-red-500/20'
-                                : themeName === 'light'
+                                : isLight
                                   ? 'text-green-600 hover:bg-green-50'
                                   : 'text-green-400 hover:bg-green-500/20'
                             }`}
@@ -851,20 +759,14 @@ const Admin = () => {
               briefings.map((b) => (
                 <div
                   key={b.id}
-                  className={`p-6 rounded-xl ${
-                    themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
-                  }`}
+                  className="p-6 rounded-xl bg-[var(--theme-bg)] shadow"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className={`font-bold text-lg ${
-                        themeName === 'light' ? 'text-gray-900' : 'text-white'
-                      }`}>
+                      <h3 className="font-bold text-lg text-[var(--theme-text)]">
                         {b.title}
                       </h3>
-                      <p className={`text-sm ${
-                        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                      }`}>
+                      <p className="text-sm text-[var(--theme-textMuted)]">
                         {formatDate(b.briefingTime)} · {b._count.stories} stories
                       </p>
                     </div>
@@ -879,7 +781,7 @@ const Admin = () => {
                       <button
                         onClick={() => regenerateBriefing(b.id)}
                         className={`text-sm px-3 py-1 rounded-lg transition ${
-                          themeName === 'light'
+                          isLight
                             ? 'text-orange-600 hover:bg-orange-50'
                             : 'text-[var(--theme-primary)] hover:bg-white/10'
                         }`}
@@ -889,9 +791,7 @@ const Admin = () => {
                     </div>
                   </div>
                   {b.executiveSummary && (
-                    <p className={`text-sm line-clamp-2 ${
-                      themeName === 'light' ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
+                    <p className="text-sm line-clamp-2 text-[var(--theme-textMuted)]">
                       {b.executiveSummary.slice(0, 200)}...
                     </p>
                   )}
@@ -910,16 +810,12 @@ const Admin = () => {
               jobs.map((job) => (
                 <div
                   key={job.id}
-                  className={`p-6 rounded-xl ${
-                    themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
-                  }`}
+                  className="p-6 rounded-xl bg-[var(--theme-bg)] shadow"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className={`font-bold text-lg ${
-                          themeName === 'light' ? 'text-gray-900' : 'text-white'
-                        }`}>
+                        <h3 className="font-bold text-lg text-[var(--theme-text)]">
                           {job.displayName}
                         </h3>
                         <span className={`text-xs px-2 py-1 rounded-full ${
@@ -939,9 +835,7 @@ const Admin = () => {
                           </span>
                         )}
                       </div>
-                      <p className={`text-sm ${
-                        themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                      }`}>
+                      <p className="text-sm text-[var(--theme-textMuted)]">
                         {job.description}
                       </p>
                     </div>
@@ -949,9 +843,7 @@ const Admin = () => {
 
                   {/* Cron Expression Editor */}
                   <div className="flex items-center gap-4 mb-4">
-                    <span className={`text-sm ${
-                      themeName === 'light' ? 'text-gray-600' : 'text-gray-300'
-                    }`}>
+                    <span className="text-sm text-[var(--theme-textMuted)]">
                       Schedule:
                     </span>
                     {editingCron?.name === job.name ? (
@@ -960,11 +852,7 @@ const Admin = () => {
                           type="text"
                           value={editingCron.value}
                           onChange={(e) => setEditingCron({ name: job.name, value: e.target.value })}
-                          className={`px-3 py-1 rounded border text-sm font-mono ${
-                            themeName === 'light'
-                              ? 'bg-gray-50 border-gray-200 text-gray-900'
-                              : 'bg-white/5 border-white/10 text-white'
-                          }`}
+                          className="px-3 py-1 rounded border text-sm font-mono bg-[var(--theme-bgSecondary)] border-[var(--theme-border)] text-[var(--theme-text)]"
                         />
                         <button
                           onClick={() => updateCronExpression(job.name, editingCron.value)}
@@ -981,16 +869,12 @@ const Admin = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <code className={`text-sm px-2 py-1 rounded ${
-                          themeName === 'light' ? 'bg-gray-100 text-gray-800' : 'bg-white/10 text-gray-200'
-                        }`}>
+                        <code className="text-sm px-2 py-1 rounded bg-[var(--theme-bgSecondary)] text-[var(--theme-text)]">
                           {job.cronExpression}
                         </code>
                         <button
                           onClick={() => setEditingCron({ name: job.name, value: job.cronExpression })}
-                          className={`text-sm ${
-                            themeName === 'light' ? 'text-blue-600' : 'text-blue-400'
-                          }`}
+                          className="text-sm text-blue-500"
                         >
                           Edit
                         </button>
@@ -1000,9 +884,7 @@ const Admin = () => {
 
                   {/* Last Run Info */}
                   {job.lastRunAt && (
-                    <p className={`text-sm mb-4 ${
-                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
+                    <p className="text-sm mb-4 text-[var(--theme-textMuted)]">
                       Last run: {formatDate(job.lastRunAt)}
                       {job.lastRunStatus && (
                         <span className={`ml-2 ${
@@ -1034,7 +916,7 @@ const Admin = () => {
                     <button
                       onClick={() => triggerJobManually(job.name)}
                       className={`text-sm px-4 py-2 rounded-lg transition ${
-                        themeName === 'light'
+                        isLight
                           ? 'bg-orange-100 text-orange-600 hover:bg-orange-200'
                           : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/30'
                       }`}
@@ -1053,24 +935,19 @@ const Admin = () => {
 };
 
 // Stat Card component
-const StatCard = ({ title, value, themeName, highlight = false }: {
+const StatCard = ({ title, value, highlight = false }: {
   title: string;
   value: number;
-  themeName: string;
   highlight?: boolean;
 }) => (
-  <div className={`p-6 rounded-xl ${
-    themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
-  }`}>
-    <h3 className={`text-sm font-medium mb-1 ${
-      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
-    }`}>
+  <div className="p-6 rounded-xl bg-[var(--theme-bg)] shadow">
+    <h3 className="text-sm font-medium mb-1 text-[var(--theme-textMuted)]">
       {title}
     </h3>
     <p className={`text-3xl font-bold ${
       highlight
-        ? themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-        : themeName === 'light' ? 'text-gray-900' : 'text-white'
+        ? 'text-[var(--theme-primary)]'
+        : 'text-[var(--theme-text)]'
     }`}>
       {value.toLocaleString()}
     </p>

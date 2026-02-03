@@ -17,7 +17,7 @@ const fontOptions: { key: FontFamily; label: string }[] = [
 ];
 
 const ThemeSwitcher = () => {
-  const { themeName, setTheme, fontFamily, setFontFamily, theme, bgShade, setBgShade, accentShade, setAccentShade } = useTheme();
+  const { themeName, setTheme, fontFamily, setFontFamily, theme, bgShade, setBgShade, accentShade, setAccentShade, isLight } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [palettes, setPalettes] = useState<SavedPalette[]>(loadPalettes);
@@ -35,8 +35,6 @@ const ThemeSwitcher = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const isLight = themeName === 'light';
 
   const hasOverrides = bgShade !== null || accentShade !== null;
 
@@ -104,10 +102,8 @@ const ThemeSwitcher = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer ${
-          isLight
-            ? 'text-gray-700 hover:bg-gray-100 bg-transparent'
-            : 'text-gray-200 hover:bg-white/10 bg-transparent'
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer text-[var(--theme-text)] bg-transparent ${
+          isLight ? 'hover:bg-gray-100' : 'hover:bg-white/10'
         }`}
         aria-label="Change theme"
       >
@@ -116,15 +112,9 @@ const ThemeSwitcher = () => {
 
       {isOpen && (
         <div
-          className={`absolute right-0 top-full mt-2 w-60 rounded-xl shadow-xl py-2 border z-50 ${
-            isLight
-              ? 'bg-white border-gray-100'
-              : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]'
-          }`}
+          className="absolute right-0 top-full mt-2 w-60 rounded-xl shadow-xl py-2 border z-50 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
         >
-          <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${
-            isLight ? 'text-gray-400' : 'text-gray-400'
-          }`}>
+          <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-textMuted)]">
             Theme
           </div>
           {(Object.keys(themes) as ThemeName[]).map((key) => {
@@ -161,8 +151,8 @@ const ThemeSwitcher = () => {
 
           {palettes.length > 0 && (
             <>
-              <hr className={`my-2 ${isLight ? 'border-gray-100' : 'border-white/10'}`} />
-              <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400`}>
+              <hr className="my-2 border-[var(--theme-border)]" />
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-textMuted)]">
                 Saved Palettes
               </div>
               {palettes.map((p) => {
@@ -185,9 +175,7 @@ const ThemeSwitcher = () => {
                   </button>
                   <button
                     onClick={() => handleDeletePalette(p.name)}
-                    className={`px-2 py-1 mr-2 text-xs border-none cursor-pointer bg-transparent transition-colors ${
-                      isLight ? 'text-gray-400 hover:text-red-500' : 'text-gray-500 hover:text-red-400'
-                    }`}
+                    className="px-2 py-1 mr-2 text-xs border-none cursor-pointer bg-transparent transition-colors text-[var(--theme-textMuted)] hover:text-red-400"
                   >
                     <FontAwesomeIcon icon={faTimes} />
                   </button>
@@ -197,11 +185,9 @@ const ThemeSwitcher = () => {
             </>
           )}
 
-          <hr className={`my-2 ${isLight ? 'border-gray-100' : 'border-white/10'}`} />
+          <hr className="my-2 border-[var(--theme-border)]" />
 
-          <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${
-            isLight ? 'text-gray-400' : 'text-gray-400'
-          }`}>
+          <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-textMuted)]">
             Font
           </div>
           {fontOptions.map((font) => {
@@ -227,32 +213,32 @@ const ThemeSwitcher = () => {
             );
           })}
 
-          <hr className={`my-2 ${isLight ? 'border-gray-100' : 'border-white/10'}`} />
-          <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400`}>
+          <hr className="my-2 border-[var(--theme-border)]" />
+          <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-textMuted)]">
             Customize Colors
           </div>
           {/* Background picker */}
           <div className="px-4 py-1.5 flex items-center gap-2">
             <input type="color" value={bgShade ?? theme.colors.bg} onChange={(e) => setBgShade(e.target.value)} className="w-7 h-7 rounded cursor-pointer border-none bg-transparent p-0" />
-            <span className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>BG</span>
-            <span className={`flex-1 text-xs font-mono ${isLight ? 'text-gray-700' : 'text-gray-200'}`}>{bgShade ?? theme.colors.bg}</span>
+            <span className="text-xs text-[var(--theme-textMuted)]">BG</span>
+            <span className="flex-1 text-xs font-mono text-[var(--theme-text)]">{bgShade ?? theme.colors.bg}</span>
           </div>
           {/* Accent picker */}
           <div className="px-4 py-1.5 flex items-center gap-2">
             <input type="color" value={accentShade ?? theme.colors.primary} onChange={(e) => setAccentShade(e.target.value)} className="w-7 h-7 rounded cursor-pointer border-none bg-transparent p-0" />
-            <span className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>Accent</span>
-            <span className={`flex-1 text-xs font-mono ${isLight ? 'text-gray-700' : 'text-gray-200'}`}>{accentShade ?? theme.colors.primary}</span>
+            <span className="text-xs text-[var(--theme-textMuted)]">Accent</span>
+            <span className="flex-1 text-xs font-mono text-[var(--theme-text)]">{accentShade ?? theme.colors.primary}</span>
           </div>
 
           {hasOverrides && (
             <div className="px-4 py-2 flex items-center gap-2">
-              <button onClick={() => setShowSaveInput(!showSaveInput)} className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded cursor-pointer border-none transition-colors ${isLight ? 'text-orange-600 hover:bg-orange-50 bg-transparent' : 'text-[var(--theme-primary)] hover:bg-white/10 bg-transparent'}`}>
+              <button onClick={() => setShowSaveInput(!showSaveInput)} className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded cursor-pointer border-none transition-colors text-[var(--theme-primary)] bg-transparent ${isLight ? 'hover:bg-orange-50' : 'hover:bg-white/10'}`}>
                 <FontAwesomeIcon icon={faSave} /> Save
               </button>
-              <button onClick={handleCopyAsCode} className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded cursor-pointer border-none transition-colors ${isLight ? 'text-orange-600 hover:bg-orange-50 bg-transparent' : 'text-[var(--theme-primary)] hover:bg-white/10 bg-transparent'}`}>
+              <button onClick={handleCopyAsCode} className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded cursor-pointer border-none transition-colors text-[var(--theme-primary)] bg-transparent ${isLight ? 'hover:bg-orange-50' : 'hover:bg-white/10'}`}>
                 <FontAwesomeIcon icon={faCopy} /> Copy
               </button>
-              <button onClick={handleReset} className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded cursor-pointer border-none transition-colors ${isLight ? 'text-gray-500 hover:bg-gray-100 bg-transparent' : 'text-gray-300 hover:bg-white/10 bg-transparent'}`}>
+              <button onClick={handleReset} className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded cursor-pointer border-none transition-colors text-[var(--theme-textMuted)] bg-transparent ${isLight ? 'hover:bg-gray-100' : 'hover:bg-white/10'}`}>
                 Reset
               </button>
             </div>
@@ -265,10 +251,10 @@ const ThemeSwitcher = () => {
                 onChange={(e) => setSaveName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSavePalette()}
                 placeholder="Palette name..."
-                className={`flex-1 text-xs px-2 py-1.5 rounded border ${isLight ? 'bg-white border-gray-200 text-gray-700' : 'bg-white/10 border-white/20 text-gray-200'}`}
+                className="flex-1 text-xs px-2 py-1.5 rounded border bg-[var(--theme-bgSecondary)] border-[var(--theme-border)] text-[var(--theme-text)]"
                 autoFocus
               />
-              <button onClick={handleSavePalette} className={`text-xs px-2 py-1.5 rounded cursor-pointer border-none ${isLight ? 'bg-orange-500 text-white' : 'bg-[var(--theme-primary)] text-[var(--theme-bg)]'}`}>
+              <button onClick={handleSavePalette} className="text-xs px-2 py-1.5 rounded cursor-pointer border-none bg-[var(--theme-primary)] text-[var(--theme-bg)]">
                 Save
               </button>
             </div>
@@ -277,7 +263,7 @@ const ThemeSwitcher = () => {
       )}
 
       {toast && (
-        <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-5 py-2.5 rounded-full text-sm font-medium shadow-lg ${isLight ? 'bg-orange-500 text-white' : ''}`} style={!isLight ? { backgroundColor: 'var(--theme-primary)', color: 'var(--theme-bg)' } : undefined}>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]" style={{ backgroundColor: 'var(--theme-primary)', color: 'var(--theme-bg)' }}>
           {toast}
         </div>
       )}

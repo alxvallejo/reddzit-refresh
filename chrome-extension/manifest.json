@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Reddzit - Save Quotes from Any Page",
   "description": "Highlight text on any webpage and save it to your Reddzit quote library",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": "Reddzit Team",
 
   "action": {
@@ -27,7 +27,7 @@
       "css": ["content.css"]
     },
     {
-      "matches": ["https://reddzit.com/*", "http://localhost:5173/*"],
+      "matches": ["https://reddzit.com/*"],
       "js": ["auth-content.js"]
     }
   ],
@@ -39,8 +39,7 @@
 
   "host_permissions": [
     "https://reddzit.com/*",
-    "https://read-api.reddzit.com/*",
-    "http://localhost:3000/*"
+    "https://read-api.reddzit.com/*"
   ],
 
   "icons": {

@@ -12,7 +12,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [loading, setLoading] = useState(true);
   const { redirectForAuth, signedIn } = useReddit();
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const navigate = useNavigate();
@@ -56,8 +56,8 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${themeName === 'light' ? 'bg-gray-50' : ''}`}>
-        <div className={`animate-pulse text-xl ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>Loading Hourly Pulse...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--theme-bgSecondary)]">
+        <div className="animate-pulse text-xl text-[var(--theme-textMuted)]">Loading Hourly Pulse...</div>
       </div>
     );
   }
@@ -65,13 +65,13 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   if (!report) {
     // Fallback if no report available
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${themeName === 'light' ? 'bg-gray-50' : ''}`}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[var(--theme-bgSecondary)]">
         <h1 className="text-3xl font-serif mb-4">Hourly Pulse</h1>
-        <p className={`mb-8 ${themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'}`}>No report available for today yet.</p>
+        <p className="mb-8 text-[var(--theme-textMuted)]">No report available for today yet.</p>
         <button  
           onClick={redirectForAuth} 
           className={`px-6 py-3 rounded-full font-bold ${
-            themeName === 'light' ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
+            isLight ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
           }`}
         >
           Log in with Reddit
@@ -81,28 +81,20 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
   }
 
   return (
-    <div className={`${embedded ? '' : 'min-h-screen'} font-sans ${
-      themeName === 'light' ? 'bg-[#fcfcfc] text-gray-900' : ''
-    }`}>
+    <div className={`${embedded ? '' : 'min-h-screen'} font-sans bg-[var(--theme-bg)] text-[var(--theme-text)]`}>
       {/* Header / Hero - only show when not embedded */}
       {!embedded && (
         <header className="px-4 pb-2">
-          <div className={`max-w-7xl mx-auto border-b-2 ${
-            themeName === 'light' ? 'border-gray-900' : 'border-white/20'
-          }`}>
+          <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
             {/* Masthead */}
             <div className="flex items-center justify-between py-4 sm:py-4 text-left">
               {/* Date (Left) */}
-              <div className={`text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[var(--theme-textMuted)]">
                 {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
 
               {/* Updated Time (Right) */}
-              <div className={`text-xs sm:text-sm font-bold uppercase tracking-wider text-right ${
-                themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-right text-[var(--theme-textMuted)]">
                 Updated {new Date((report as any).reportHour || report.reportDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
               </div>
             </div>
@@ -116,22 +108,20 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
           <article 
             key={story.id} 
             className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition ${
-              themeName === 'light' 
+              isLight 
                 ? 'bg-white sm:shadow-sm sm:border sm:border-gray-100 hover:shadow-md' 
                 : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
             } ${index === 0 ? 'lg:col-span-2' : ''}`}
-            style={themeName === 'light' ? undefined : ({
+            style={{
               backgroundColor: 'var(--theme-cardBg)',
               borderColor: 'var(--theme-border)'
-            } as React.CSSProperties)}
+            }}
           >
             <div className="flex items-baseline justify-between mb-2">
-              <span className={`text-xs font-bold uppercase tracking-wide ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
+              <span className="text-xs font-bold uppercase tracking-wide text-[var(--theme-primary)]">
                 r/{story.subreddit}
               </span>
-              <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+              <div className="text-xs text-[var(--theme-textMuted)]">
                 {story.score > 1000 ? `${(story.score/1000).toFixed(1)}k` : story.score} pts • {story.numComments} comments
               </div>
             </div>
@@ -139,7 +129,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
             <h2 className={`font-bold mb-3 leading-tight transition-colors ${
               index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
             } ${
-              themeName === 'light' 
+              isLight 
                 ? 'text-gray-900 group-hover:text-orange-600' 
                 : 'group-hover:text-[var(--theme-primary)]'
             }`}>
@@ -154,40 +144,34 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
             {/* AI Summary */}
             <div 
               className={`p-4 rounded-xl mb-4 border ${
-                themeName === 'light' 
+                isLight 
                   ? 'bg-slate-50 border-slate-100' 
                   : 'backdrop-blur-sm'
               }`}
-              style={themeName === 'light' ? undefined : ({
+              style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 borderColor: 'var(--theme-border)'
-              } as React.CSSProperties)}
+              }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs font-semibold uppercase ${
-                  themeName === 'light' ? 'text-slate-500' : 'text-[var(--theme-textMuted)]'
-                }`}>Analysis</span>
+                <span className="text-xs font-semibold uppercase text-[var(--theme-textMuted)]">Analysis</span>
                 {story.sentimentLabel && (
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                     story.sentimentLabel === 'DIVIDED' 
-                      ? themeName === 'light' ? 'bg-red-100 text-red-700' : 'bg-red-500/20 text-red-300'
+                      ? isLight ? 'bg-red-100 text-red-700' : 'bg-red-500/20 text-red-300'
                       : story.sentimentLabel === 'CONSENSUS' 
-                        ? themeName === 'light' ? 'bg-green-100 text-green-700' : 'bg-green-500/20 text-green-300'
-                        : themeName === 'light' ? 'bg-gray-100 text-gray-700' : 'bg-white/10 text-gray-300'
+                        ? isLight ? 'bg-green-100 text-green-700' : 'bg-green-500/20 text-green-300'
+                        : isLight ? 'bg-gray-100 text-gray-700' : 'bg-white/10 text-gray-300'
                   }`}>
                     {story.sentimentLabel}
                   </span>
                 )}
               </div>
-              <p className={`text-sm leading-relaxed mb-3 ${
-                themeName === 'light' ? 'text-gray-700' : 'text-[var(--theme-text)]'
-              }`}>
+              <p className="text-sm leading-relaxed mb-3 text-[var(--theme-text)]">
                 {story.summary}
               </p>
               {index === 0 && story.takeaways && Array.isArray(story.takeaways) && (
-                <ul className={`list-disc list-inside text-xs space-y-1 pl-1 ${
-                  themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <ul className="list-disc list-inside text-xs space-y-1 pl-1 text-[var(--theme-textMuted)]">
                   {story.takeaways.map((point: string, i: number) => (
                     <li key={i}>{point}</li>
                   ))}
@@ -204,14 +188,12 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
                   : [];
               return comments.length > 0 && (
                 <div className={`space-y-3 pl-4 border-l-2 ${
-                  themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
+                  isLight ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
                 }`}>
                   {comments.slice(0, index === 0 ? 3 : 1).map((comment: any) => (
                     <div key={comment.id}>
-                      <p className={`text-sm italic mb-1 ${
-                        themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
-                      }`}>"{comment.body.slice(0, 140)}{comment.body.length > 140 ? '...' : ''}"</p>
-                      <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>— u/{comment.author}</div>
+                      <p className="text-sm italic mb-1 text-[var(--theme-textMuted)]">"{comment.body.slice(0, 140)}{comment.body.length > 140 ? '...' : ''}"</p>
+                      <div className="text-xs text-[var(--theme-textMuted)]">— u/{comment.author}</div>
                     </div>
                   ))}
                 </div>
@@ -219,13 +201,11 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
             })()}
             
             {signedIn && (
-              <div className={`mt-4 flex gap-4 pt-4 border-t ${
-                themeName === 'light' ? 'border-gray-50' : 'border-white/10'
-              }`}>
+              <div className="mt-4 flex gap-4 pt-4 border-t border-[var(--theme-border)]">
                  <button 
                   onClick={() => handleInterest(story.id)}
                   className={`text-sm font-medium flex items-center gap-1 ${
-                    themeName === 'light' ? 'text-gray-500 hover:text-orange-600' : 'text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)]'
+                    isLight ? 'text-gray-500 hover:text-orange-600' : 'text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)]'
                   }`}
                  >
                    🔖 Save

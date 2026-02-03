@@ -16,7 +16,7 @@ const MAX_CATEGORIES = 3;
 type ViewState = 'briefing' | 'setup' | 'report';
 
 const DiscoverFeed = () => {
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const { user, redirectForAuth } = useReddit();
   const navigate = useNavigate();
   
@@ -179,7 +179,7 @@ const DiscoverFeed = () => {
 
   if (loading) {
     return (
-      <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+      <div className="py-24 text-center text-[var(--theme-textMuted)]">
         <div className="animate-pulse text-xl">Loading Discover...</div>
       </div>
     );
@@ -194,19 +194,13 @@ const DiscoverFeed = () => {
 
         {/* Header */}
         <header className="px-4 pb-2">
-          <div className={`max-w-7xl mx-auto border-b-2 ${
-            themeName === 'light' ? 'border-gray-900' : 'border-white/20'
-          }`}>
+          <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
             <div className="flex items-center justify-between py-4">
               <div>
-                <h1 className={`text-2xl font-bold ${
-                  themeName === 'light' ? 'text-gray-900' : ''
-                }`}>
+                <h1 className="text-2xl font-bold text-[var(--theme-text)]">
                   {globalBriefing?.title || 'Reddit Briefing'}
                 </h1>
-                <span className={`text-xs ${
-                  themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-                }`}>
+                <span className="text-xs text-[var(--theme-textMuted)]">
                   As of {globalBriefing ? new Date(globalBriefing.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''}
                 </span>
               </div>
@@ -214,7 +208,7 @@ const DiscoverFeed = () => {
                 <button
                   onClick={() => setViewState('setup')}
                   className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-                    themeName === 'light'
+                    isLight
                       ? 'bg-orange-600 text-white hover:bg-orange-700'
                       : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
                   }`}
@@ -230,18 +224,14 @@ const DiscoverFeed = () => {
         {globalBriefing?.executiveSummary && (
           <div className="max-w-4xl mx-auto px-4 py-6">
             <div className={`p-6 rounded-2xl border ${
-              themeName === 'light'
+              isLight
                 ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
                 : 'bg-gradient-to-br from-white/5 to-white/10 border-white/10'
             }`}>
-              <h2 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
+              <h2 className="text-sm font-semibold uppercase tracking-wide mb-3 text-[var(--theme-primary)]">
                 Executive Summary
               </h2>
-              <div className={`text-base leading-relaxed whitespace-pre-wrap ${
-                themeName === 'light' ? 'text-gray-700' : 'text-gray-200'
-              }`}>
+              <div className="text-base leading-relaxed whitespace-pre-wrap text-[var(--theme-text)]">
                 {globalBriefing.executiveSummary}
               </div>
             </div>
@@ -252,25 +242,21 @@ const DiscoverFeed = () => {
         {!isPro && (
           <div className="max-w-4xl mx-auto px-4 pb-6">
             <div className={`p-4 rounded-xl border flex items-center justify-between ${
-              themeName === 'light'
+              isLight
                 ? 'bg-orange-50 border-orange-200'
                 : 'bg-[var(--theme-primary)]/10 border-[var(--theme-primary)]/30'
             }`}>
               <div>
-                <p className={`font-medium ${
-                  themeName === 'light' ? 'text-orange-800' : 'text-[var(--theme-primary)]'
-                }`}>
+                <p className="font-medium text-[var(--theme-primary)]">
                   🎯 Want personalized reports?
                 </p>
-                <p className={`text-sm ${
-                  themeName === 'light' ? 'text-orange-600' : 'text-gray-400'
-                }`}>
+                <p className="text-sm text-[var(--theme-textMuted)]">
                   {isLoggedIn ? 'Upgrade to Pro to customize your categories and generate tailored reports.' : 'Log in and upgrade to Pro to customize your feed.'}
                 </p>
               </div>
               <button
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-                  themeName === 'light'
+                  isLight
                     ? 'bg-orange-600 text-white hover:bg-orange-700'
                     : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
                 }`}
@@ -295,42 +281,37 @@ const DiscoverFeed = () => {
             {globalBriefing.stories.map((story, index) => (
               <article
                 key={story.id}
-                className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition cursor-pointer ${
-                  themeName === 'light'
-                    ? 'bg-white sm:shadow-sm sm:border sm:border-gray-100 hover:shadow-md'
-                    : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
+                className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition cursor-pointer border border-[var(--theme-border)] sm:shadow-sm ${
+                  isLight
+                    ? 'hover:shadow-md'
+                    : 'sm:backdrop-blur-md hover:bg-white/[0.12]'
                 } ${index === 0 ? 'lg:col-span-2' : ''}`}
-                style={themeName === 'light' ? undefined : {
+                style={{
                   backgroundColor: 'var(--theme-cardBg)',
-                  borderColor: 'var(--theme-border)'
                 }}
                 onClick={() => handleStoryClick(story)}
               >
                 <div className="flex items-baseline justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold uppercase tracking-wide ${
-                      themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-                    }`}>
+                    <span className="text-xs font-bold uppercase tracking-wide text-[var(--theme-primary)]">
                       r/{story.subreddit}
                     </span>
                     {story.category && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        themeName === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-white/10 text-gray-400'
-                      }`}>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--theme-bgSecondary)] text-[var(--theme-textMuted)]">
                         {story.category.name}
                       </span>
                     )}
                   </div>
-                  <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+                  <div className="text-xs text-[var(--theme-textMuted)]">
                     {formatScore(story.score)} pts • {story.numComments} comments
                   </div>
                 </div>
 
-                <h2 className={`font-light mb-3 leading-tight transition-colors ${
+                <h2 className={`font-light mb-3 leading-tight transition-colors text-[var(--theme-text)] ${
                   index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
                 } ${
-                  themeName === 'light'
-                    ? 'text-gray-900 group-hover:text-orange-600'
+                  isLight
+                    ? 'group-hover:text-orange-600'
                     : 'group-hover:text-[var(--theme-primary)]'
                 }`}>
                   {story.title}
@@ -351,19 +332,9 @@ const DiscoverFeed = () => {
                 {/* AI Summary */}
                 {story.summary && (
                   <div
-                    className={`p-4 rounded-xl mb-4 border ${
-                      themeName === 'light'
-                        ? 'bg-slate-50 border-slate-100'
-                        : 'backdrop-blur-sm'
-                    }`}
-                    style={themeName === 'light' ? undefined : {
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      borderColor: 'var(--theme-border)'
-                    }}
+                    className="p-4 rounded-xl mb-4 border border-[var(--theme-border)] bg-[var(--theme-bgSecondary)]"
                   >
-                    <p className={`text-sm leading-relaxed ${
-                      themeName === 'light' ? 'text-gray-700' : 'text-[var(--theme-text)]'
-                    }`}>
+                    <p className="text-sm leading-relaxed text-[var(--theme-text)]">
                       {story.summary}
                     </p>
                   </div>
@@ -371,16 +342,12 @@ const DiscoverFeed = () => {
 
                 {/* Top Comment */}
                 {story.topCommentBody && (
-                  <div className={`space-y-3 pl-4 border-l-2 mb-4 ${
-                    themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
-                  }`}>
+                  <div className="space-y-3 pl-4 border-l-2 mb-4 border-[var(--theme-border)]">
                     <div>
-                      <p className={`text-sm italic mb-1 ${
-                        themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
-                      }`}>
+                      <p className="text-sm italic mb-1 text-[var(--theme-textMuted)]">
                         "{story.topCommentBody.slice(0, 200)}{story.topCommentBody.length > 200 ? '...' : ''}"
                       </p>
-                      <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>
+                      <div className="text-xs text-[var(--theme-textMuted)]">
                         — u/{story.topCommentAuthor}
                       </div>
                     </div>
@@ -390,7 +357,7 @@ const DiscoverFeed = () => {
             ))}
           </main>
         ) : (
-          <div className={`py-24 text-center ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+          <div className="py-24 text-center text-[var(--theme-textMuted)]">
             <p className="text-xl">No briefing available yet.</p>
             <p className="text-sm mt-2">Check back in a few hours!</p>
           </div>
@@ -409,10 +376,10 @@ const DiscoverFeed = () => {
         <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h2 className={`text-2xl font-bold mb-2 ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+          <h2 className="text-2xl font-bold mb-2 text-[var(--theme-text)]">
             Discover
           </h2>
-          <p className={`${themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'}`}>
+          <p className="text-[var(--theme-textMuted)]">
             Select up to {MAX_CATEGORIES} categories to generate a personalized AI-curated report.
           </p>
         </div>
@@ -425,9 +392,7 @@ const DiscoverFeed = () => {
 
         {/* Category Selection */}
         <div className="mb-8">
-          <h3 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-            themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-          }`}>
+          <h3 className="text-sm font-semibold uppercase tracking-wide mb-4 text-[var(--theme-textMuted)]">
             Categories ({selectedCategoryIds.size}/{MAX_CATEGORIES})
           </h3>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -441,27 +406,25 @@ const DiscoverFeed = () => {
                   disabled={isDisabled}
                   className={`p-4 rounded-xl text-left transition border-2 ${
                     isSelected
-                      ? themeName === 'light'
+                      ? isLight
                         ? 'border-orange-500 bg-orange-50'
                         : 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10'
                       : isDisabled
                         ? 'opacity-50 cursor-not-allowed border-transparent'
-                        : themeName === 'light'
+                        : isLight
                           ? 'border-gray-200 hover:border-orange-300 bg-white'
                           : 'border-[var(--theme-border)] hover:border-[var(--theme-primary)]/50 bg-[var(--theme-cardBg)]'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`font-semibold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+                    <span className="font-semibold text-[var(--theme-text)]">
                       {cat.name}
                     </span>
                     {isSelected && (
-                      <span className={`text-lg ${
-                        themeName === 'light' ? 'text-orange-500' : 'text-[var(--theme-primary)]'
-                      }`}>✓</span>
+                      <span className="text-lg text-[var(--theme-primary)]">✓</span>
                     )}
                   </div>
-                  <p className={`text-sm ${themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'}`}>
+                  <p className="text-sm text-[var(--theme-textMuted)]">
                     {cat.subreddits.length} subreddits
                   </p>
                 </button>
@@ -473,14 +436,12 @@ const DiscoverFeed = () => {
         {/* Subreddit Toggles for Selected Categories */}
         {selectedCategories.length > 0 && (
           <div className="mb-8">
-            <h3 className={`text-sm font-semibold uppercase tracking-wide mb-4 ${
-              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-            }`}>
+            <h3 className="text-sm font-semibold uppercase tracking-wide mb-4 text-[var(--theme-textMuted)]">
               Subreddits
             </h3>
             {selectedCategories.map(cat => (
               <div key={cat.id} className="mb-6">
-                <h4 className={`font-medium mb-3 ${themeName === 'light' ? 'text-gray-700' : ''}`}>
+                <h4 className="font-medium mb-3 text-[var(--theme-text)]">
                   {cat.name}
                 </h4>
                 <div className="flex flex-wrap gap-2">
@@ -492,10 +453,10 @@ const DiscoverFeed = () => {
                         onClick={() => toggleSubreddit(sub.id, !isEnabled)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
                           isEnabled
-                            ? themeName === 'light'
+                            ? isLight
                               ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                               : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/30'
-                            : themeName === 'light'
+                            : isLight
                               ? 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                               : 'bg-white/5 text-gray-500 hover:bg-white/10'
                         }`}
@@ -520,7 +481,7 @@ const DiscoverFeed = () => {
                 ? 'opacity-50 cursor-not-allowed'
                 : ''
             } ${
-              themeName === 'light'
+              isLight
                 ? 'bg-orange-600 text-white hover:bg-orange-700'
                 : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
             }`}
@@ -537,9 +498,7 @@ const DiscoverFeed = () => {
         </div>
 
         {generating && (
-          <p className={`text-center mt-4 text-sm ${
-            themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-          }`}>
+          <p className="text-center mt-4 text-sm text-[var(--theme-textMuted)]">
             This may take 30-60 seconds...
           </p>
         )}
@@ -550,7 +509,7 @@ const DiscoverFeed = () => {
             <button
               onClick={() => setViewState('briefing')}
               className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-                themeName === 'light'
+                isLight
                   ? 'text-gray-600 hover:bg-gray-100'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
@@ -561,7 +520,7 @@ const DiscoverFeed = () => {
               <button
                 onClick={() => setViewState('report')}
                 className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-orange-600 hover:bg-orange-50'
                     : 'text-[var(--theme-primary)] hover:bg-white/10'
                 }`}
@@ -589,25 +548,19 @@ const DiscoverFeed = () => {
 
       {/* Header */}
       <header className="px-4 pb-2">
-        <div className={`max-w-7xl mx-auto border-b-2 ${
-          themeName === 'light' ? 'border-gray-900' : 'border-white/20'
-        }`}>
+        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4">
-            <div className={`text-xs sm:text-sm font-bold uppercase tracking-wider ${
-              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
-            }`}>
+            <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[var(--theme-textMuted)]">
               {sourceCategories.join(' • ')}
             </div>
             <div className="flex items-center gap-3">
-              <span className={`text-xs ${
-                themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
-              }`}>
+              <span className="text-xs text-[var(--theme-textMuted)]">
                 As of {new Date(report.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
               </span>
               <button
                 onClick={() => setViewState('setup')}
                 className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-gray-600 hover:bg-gray-100'
                     : 'text-gray-300 hover:bg-white/10'
                 }`}
@@ -618,7 +571,7 @@ const DiscoverFeed = () => {
                 onClick={handleGenerate}
                 disabled={generating}
                 className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                  themeName === 'light'
+                  isLight
                     ? 'text-orange-600 hover:bg-orange-50'
                     : 'text-[var(--theme-primary)] hover:bg-white/10'
                 }`}
@@ -643,33 +596,30 @@ const DiscoverFeed = () => {
         {report.stories.map((story, index) => (
           <article
             key={story.id}
-            className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition cursor-pointer ${
-              themeName === 'light'
-                ? 'bg-white sm:shadow-sm sm:border sm:border-gray-100 hover:shadow-md'
-                : 'sm:backdrop-blur-md sm:border hover:bg-white/[0.12]'
+            className={`group relative p-4 sm:p-6 rounded-xl sm:rounded-2xl transition cursor-pointer border border-[var(--theme-border)] sm:shadow-sm ${
+              isLight
+                ? 'hover:shadow-md'
+                : 'sm:backdrop-blur-md hover:bg-white/[0.12]'
             } ${index === 0 ? 'lg:col-span-2' : ''}`}
-            style={themeName === 'light' ? undefined : {
+            style={{
               backgroundColor: 'var(--theme-cardBg)',
-              borderColor: 'var(--theme-border)'
             }}
             onClick={() => handleStoryClick(story)}
           >
             <div className="flex items-baseline justify-between mb-2">
-              <span className={`text-xs font-bold uppercase tracking-wide ${
-                themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
-              }`}>
+              <span className="text-xs font-bold uppercase tracking-wide text-[var(--theme-primary)]">
                 r/{story.subreddit}
               </span>
-              <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'}`}>
+              <div className="text-xs text-[var(--theme-textMuted)]">
                 {formatScore(story.score)} pts • {story.numComments} comments
               </div>
             </div>
 
-            <h2 className={`font-light mb-3 leading-tight transition-colors ${
+            <h2 className={`font-light mb-3 leading-tight transition-colors text-[var(--theme-text)] ${
               index === 0 ? 'text-3xl md:text-4xl' : 'text-xl'
             } ${
-              themeName === 'light'
-                ? 'text-gray-900 group-hover:text-orange-600'
+              isLight
+                ? 'group-hover:text-orange-600'
                 : 'group-hover:text-[var(--theme-primary)]'
             }`}>
               {story.title}
@@ -689,47 +639,29 @@ const DiscoverFeed = () => {
 
             {/* AI Summary */}
             <div
-              className={`p-4 rounded-xl mb-4 border ${
-                themeName === 'light'
-                  ? 'bg-slate-50 border-slate-100'
-                  : 'backdrop-blur-sm'
-              }`}
-              style={themeName === 'light' ? undefined : {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                borderColor: 'var(--theme-border)'
-              }}
+              className="p-4 rounded-xl mb-4 border border-[var(--theme-border)] bg-[var(--theme-bgSecondary)]"
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs font-semibold uppercase ${
-                  themeName === 'light' ? 'text-slate-500' : 'text-[var(--theme-textMuted)]'
-                }`}>Analysis</span>
+                <span className="text-xs font-semibold uppercase text-[var(--theme-textMuted)]">Analysis</span>
                 {story.sentimentLabel && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                    themeName === 'light' ? 'bg-gray-100 text-gray-700' : 'bg-white/10 text-gray-300'
-                  }`}>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase bg-[var(--theme-bgSecondary)] text-[var(--theme-text)]">
                     {story.sentimentLabel}
                   </span>
                 )}
               </div>
-              <p className={`text-sm leading-relaxed ${
-                themeName === 'light' ? 'text-gray-700' : 'text-[var(--theme-text)]'
-              }`}>
+              <p className="text-sm leading-relaxed text-[var(--theme-text)]">
                 {story.summary}
               </p>
             </div>
 
             {/* Top Comment */}
             {story.topCommentBody && (
-              <div className={`space-y-3 pl-4 border-l-2 mb-4 ${
-                themeName === 'light' ? 'border-orange-100' : 'border-[var(--theme-primary)]/30'
-              }`}>
+              <div className="space-y-3 pl-4 border-l-2 mb-4 border-[var(--theme-border)]">
                 <div>
-                  <p className={`text-sm italic mb-1 ${
-                    themeName === 'light' ? 'text-gray-600' : 'text-[var(--theme-textMuted)]'
-                  }`}>
+                  <p className="text-sm italic mb-1 text-[var(--theme-textMuted)]">
                     "{story.topCommentBody.slice(0, 200)}{story.topCommentBody.length > 200 ? '...' : ''}"
                   </p>
-                  <div className={`text-xs ${themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]/70'}`}>
+                  <div className="text-xs text-[var(--theme-textMuted)]">
                     — u/{story.topCommentAuthor}
                   </div>
                 </div>
@@ -742,11 +674,7 @@ const DiscoverFeed = () => {
                 {story.topicTags.map((tag, i) => (
                   <span
                     key={i}
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      themeName === 'light'
-                        ? 'bg-gray-100 text-gray-600'
-                        : 'bg-white/10 text-gray-400'
-                    }`}
+                    className="text-xs px-2 py-1 rounded-full bg-[var(--theme-bgSecondary)] text-[var(--theme-textMuted)]"
                   >
                     {tag}
                   </span>

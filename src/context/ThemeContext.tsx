@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { deriveColors } from '../utils/deriveColors';
+import { deriveColors, luminance } from '../utils/deriveColors';
 
 export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
 export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans' | 'cactus-classical' | 'noto-znamenny';
@@ -199,6 +199,7 @@ interface ThemeContextType {
   setBgShade: (color: string | null) => void;
   accentShade: string | null;
   setAccentShade: (color: string | null) => void;
+  isLight: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -223,6 +224,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const theme = themes[themeName];
+  const effectiveBg = bgShade ?? theme.colors.bg;
+  const isLight = luminance(effectiveBg) >= 0.2;
 
   useEffect(() => {
     localStorage.setItem('reddzit_theme', themeName);
@@ -293,7 +296,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, bgShade, setBgShade, accentShade, setAccentShade }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, bgShade, setBgShade, accentShade, setAccentShade, isLight }}>
       {children}
     </ThemeContext.Provider>
   );

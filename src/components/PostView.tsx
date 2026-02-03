@@ -144,9 +144,8 @@ export default function PostView() {
     return () => { cancelled = true; };
   }, [fullname, location.state]);
 
-  const { themeName } = useTheme();
-  const isLight = themeName === 'light';
-  const bgColor = isLight ? 'bg-white text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
+  const { isLight } = useTheme();
+  const bgColor = 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
   const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
   const articleClass = !isLight
     ? 'prose-invert prose-p:text-[var(--theme-textMuted)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-textMuted)] prose-li:font-light prose-ul:text-[var(--theme-textMuted)] prose-ol:text-[var(--theme-textMuted)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-white'
@@ -399,12 +398,8 @@ export default function PostView() {
         {/* Toast */}
         {toast && (
           <div
-            className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg ${
-              isLight
-                ? 'bg-orange-600 text-white'
-                : 'text-[var(--theme-bg)]'
-            }`}
-            style={!isLight ? { backgroundColor: 'var(--theme-primary)' } : undefined}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]"
+            style={{ backgroundColor: 'var(--theme-primary)' }}
           >
             {toast}
           </div>

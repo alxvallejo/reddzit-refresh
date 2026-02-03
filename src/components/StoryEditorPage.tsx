@@ -10,7 +10,7 @@ import { faArrowLeft, faQuoteLeft, faCheck, faChevronRight, faChevronLeft } from
 
 export default function StoryEditorPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
-  const { themeName } = useTheme();
+  const { isLight } = useTheme();
   const { id } = useParams<{ id: string }>();
 
   const [story, setStory] = useState<Story | null>(null);
@@ -133,8 +133,6 @@ export default function StoryEditorPage() {
     }
   };
 
-  const isLight = themeName === 'light';
-
   // Auth guard (after all hooks)
   if (!signedIn) {
     redirectForAuth();
@@ -143,7 +141,7 @@ export default function StoryEditorPage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${isLight ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
+      <div className={`min-h-screen ${'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
         <div className="flex justify-center py-24">
           <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
         </div>
@@ -153,20 +151,18 @@ export default function StoryEditorPage() {
 
   if (error) {
     return (
-      <div className={`min-h-screen ${isLight ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
+      <div className={`min-h-screen ${'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
         <div className="text-center py-24 text-red-500">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${isLight ? 'bg-[#fcfcfc] text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
+    <div className={`min-h-screen ${'bg-[var(--theme-bg)] text-[var(--theme-text)]'}`}>
       <MainHeader />
 
       {/* Editor Header */}
-      <div className={`border-b ${
-        isLight ? 'bg-white border-gray-200' : 'bg-[var(--theme-headerBg)] border-[var(--theme-border)]'
-      }`}>
+      <div className="border-b bg-[var(--theme-headerBg)] border-[var(--theme-border)]">
         <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -252,11 +248,9 @@ export default function StoryEditorPage() {
 
         {/* Sidebar */}
         {showSidebar && (
-          <aside className={`w-80 sticky top-28 h-[calc(100vh-7rem)] overflow-y-auto px-4 py-4 ${
-            isLight ? 'border-l border-gray-200' : 'border-l border-[var(--theme-border)]'
-          }`}>
+          <aside className="w-80 sticky top-28 h-[calc(100vh-7rem)] overflow-y-auto px-4 py-4 border-l border-[var(--theme-border)]">
             {/* Assigned quotes */}
-            <h3 className={`text-sm font-semibold mb-3 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+            <h3 className="text-sm font-semibold mb-3 text-[var(--theme-text)]">
               Research ({assignedQuotes.length})
             </h3>
 
@@ -265,7 +259,7 @@ export default function StoryEditorPage() {
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin opacity-50" />
               </div>
             ) : assignedQuotes.length === 0 ? (
-              <p className={`text-xs mb-4 ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
+              <p className="text-xs mb-4 text-[var(--theme-textMuted)]">
                 No quotes assigned yet. Assign quotes from below.
               </p>
             ) : (
@@ -273,15 +267,13 @@ export default function StoryEditorPage() {
                 {assignedQuotes.map(quote => (
                   <div
                     key={quote.id}
-                    className={`p-2 rounded text-xs ${
-                      isLight ? 'bg-gray-50 border border-gray-200' : 'bg-gray-800/50 border border-[var(--theme-border)]'
-                    }`}
+                    className="p-2 rounded text-xs bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]"
                   >
-                    <p className={`mb-1 leading-relaxed ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                    <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
                       "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
                     </p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className={isLight ? 'text-gray-400' : 'text-gray-500'}>
+                      <span className="text-[var(--theme-textMuted)]">
                         r/{quote.subreddit}
                       </span>
                       <button
@@ -301,9 +293,7 @@ export default function StoryEditorPage() {
             {/* All quotes (collapsed by default) */}
             <button
               onClick={() => setShowAllQuotes(!showAllQuotes)}
-              className={`w-full flex items-center justify-between text-sm font-semibold py-2 border-none cursor-pointer bg-transparent ${
-                isLight ? 'text-gray-700' : 'text-gray-300'
-              }`}
+              className="w-full flex items-center justify-between text-sm font-semibold py-2 border-none cursor-pointer bg-transparent text-[var(--theme-text)]"
             >
               <span>All Quotes ({allQuotes.length})</span>
               <FontAwesomeIcon
@@ -315,22 +305,20 @@ export default function StoryEditorPage() {
             {showAllQuotes && (
               <div className="space-y-2 mt-2">
                 {allQuotes.length === 0 ? (
-                  <p className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
+                  <p className="text-xs text-[var(--theme-textMuted)]">
                     No other quotes available.
                   </p>
                 ) : (
                   allQuotes.map(quote => (
                     <div
                       key={quote.id}
-                      className={`p-2 rounded text-xs ${
-                        isLight ? 'bg-gray-50 border border-gray-200' : 'bg-gray-800/50 border border-[var(--theme-border)]'
-                      }`}
+                      className="p-2 rounded text-xs bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]"
                     >
-                      <p className={`mb-1 leading-relaxed ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                      <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
                         "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
                       </p>
                       <div className="flex items-center justify-between mt-1">
-                        <span className={isLight ? 'text-gray-400' : 'text-gray-500'}>
+                        <span className="text-[var(--theme-textMuted)]">
                           r/{quote.subreddit}
                         </span>
                         <button

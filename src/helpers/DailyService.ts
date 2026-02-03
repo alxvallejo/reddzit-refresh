@@ -135,8 +135,11 @@ const DailyService = {
 
       // Fetch from multiple Reddit feeds in parallel
       const feeds = [
-        'https://www.reddit.com/r/all/hot.json?limit=25',
+        'https://www.reddit.com/r/all/hot.json?limit=50',
         'https://www.reddit.com/r/all/rising.json?limit=25',
+        'https://www.reddit.com/r/all/top.json?t=day&limit=25',
+        'https://www.reddit.com/r/popular/hot.json?limit=25',
+        'https://www.reddit.com/r/popular/top.json?t=day&limit=25',
       ];
 
       const responses = await Promise.allSettled(feeds.map(url => fetch(url)));
