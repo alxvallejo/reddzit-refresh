@@ -7,7 +7,6 @@ import AppShell from './components/AppShell';
 import About from './components/About';
 import PostView from './components/PostView';
 import Admin from './components/Admin';
-import ForYouSettings from './components/ForYouSettings';
 import SubredditFeed from './components/SubredditFeed';
 import QuotesPage from './components/QuotesPage';
 import StoriesPage from './components/StoriesPage';
@@ -24,7 +23,6 @@ function App() {
             <Route index path='/' element={<AppShell />} />
             <Route path='/top' element={<AppShell />} />
             <Route path='/foryou' element={<AppShell />} />
-            <Route path='/foryou/settings' element={<ForYouSettings />} />
             <Route path='/reddit' element={<AppShell />} />
             <Route path='/r/:name' element={<SubredditFeed />} />
             <Route path='/about' element={<About />} />
