@@ -40,7 +40,7 @@ function FeatureSection({
         <FontAwesomeIcon icon={icon} />
       </div>
       <h2
-        className="text-3xl font-bold"
+        className="text-2xl md:text-3xl font-bold"
         style={{ color: 'var(--theme-text)' }}
       >
         {headline}
@@ -72,7 +72,7 @@ function FeatureSection({
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-20 grid grid-cols-2 gap-16 items-center">
+    <div className="max-w-6xl mx-auto px-6 md:px-8 py-12 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
       {reverse ? (
         <>
           {imageBlock}
@@ -105,17 +105,17 @@ export default function PromoPage() {
     >
       {/* Hero Section */}
       <section
-        className="relative flex flex-col items-center justify-center text-center px-8"
-        style={{ height: '800px', background: heroGlow }}
+        className="relative flex flex-col items-center justify-center text-center px-6 md:px-8 min-h-screen md:min-h-0"
+        style={{ height: 'auto', minHeight: '100dvh', background: heroGlow }}
       >
         <div className="flex items-center gap-4 mb-6">
           <img
             src="/favicon.png"
             alt="Reddzit"
-            className="w-20 h-20"
+            className="w-14 h-14 md:w-20 md:h-20"
           />
           <h1
-            className="text-6xl font-bold"
+            className="text-4xl md:text-6xl font-bold"
             style={{
               fontFamily: '"Brygada 1918", serif',
               color: 'var(--theme-text)',
@@ -126,14 +126,14 @@ export default function PromoPage() {
         </div>
 
         <p
-          className="text-3xl font-semibold mb-4"
+          className="text-2xl md:text-3xl font-semibold mb-4"
           style={{ color: 'var(--theme-text)' }}
         >
           Reddit is massive. Your time isn't.
         </p>
 
         <p
-          className="text-lg max-w-2xl mb-10 leading-relaxed"
+          className="text-base md:text-lg max-w-2xl mb-10 leading-relaxed"
           style={{ color: 'var(--theme-textMuted)' }}
         >
           A smarter Reddit client that learns what you care about, saves what
@@ -153,8 +153,8 @@ export default function PromoPage() {
           Install Free Extension
         </a>
 
-        {/* Floating popup preview */}
-        <div className="absolute bottom-12 right-32 opacity-80">
+        {/* Floating popup preview — hidden on mobile */}
+        <div className="hidden md:block absolute bottom-12 right-32 opacity-80">
           <img
             src="/promo-assets/popup.png"
             alt="Extension popup preview"
@@ -232,9 +232,9 @@ export default function PromoPage() {
       />
 
       {/* Bottom CTA */}
-      <section className="flex flex-col items-center justify-center text-center py-24 px-8">
+      <section className="flex flex-col items-center justify-center text-center py-16 md:py-24 px-6 md:px-8">
         <h2
-          className="text-4xl font-bold mb-6"
+          className="text-2xl md:text-4xl font-bold mb-6"
           style={{ color: 'var(--theme-text)' }}
         >
           Ready to take control of your feed?
