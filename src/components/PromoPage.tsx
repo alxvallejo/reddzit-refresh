@@ -156,7 +156,7 @@ export default function PromoPage() {
         {/* Floating popup preview */}
         <div className="absolute bottom-12 right-32 opacity-80">
           <img
-            src="/promo/popup.png"
+            src="/promo-assets/popup.png"
             alt="Extension popup preview"
             className="rounded-xl shadow-xl rotate-2"
             style={{ height: '200px' }}
@@ -178,7 +178,7 @@ export default function PromoPage() {
         icon={faQuoteLeft}
         headline="Save Quotes from Anywhere"
         copy="Highlight any text on any webpage and save it with one click. Organize quotes into stories, add personal notes, and tag them for easy retrieval. Your personal knowledge base, built as you browse."
-        imageSrc="/promo/save-quote.png"
+        imageSrc="/promo-assets/save-quote.png"
         imageAlt="Save Quote modal"
         isLight={isLight}
       />
@@ -197,7 +197,7 @@ export default function PromoPage() {
         icon={faBookmark}
         headline="Review Saved Posts"
         copy="Browse your Reddit saved posts in a clean, distraction-free reader view with full article content. No ads, no sidebar, no infinite scroll into irrelevance — just the content you already chose to keep."
-        imageSrc="/promo/saved-posts.png"
+        imageSrc="/promo-assets/saved-posts.png"
         imageAlt="Saved posts feed"
         reverse
         isLight={isLight}
@@ -217,7 +217,7 @@ export default function PromoPage() {
         icon={faBinoculars}
         headline="Discover What Matters"
         copy="An AI-powered For You feed that analyzes your saved posts to understand your real interests. Plus a trending marquee and top posts across all of Reddit, so you never miss what's worth reading."
-        imageSrc="/promo/reader.png"
+        imageSrc="/promo-assets/reader.png"
         imageAlt="Article reader view"
         isLight={isLight}
       />
