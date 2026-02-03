@@ -16,6 +16,7 @@ const ForYouSettings = () => {
   // Ref to track component mount state for async cleanup
   const isMounted = useRef(true);
   useEffect(() => {
+    isMounted.current = true;
     return () => { isMounted.current = false; };
   }, []);
 
@@ -232,7 +233,7 @@ const ForYouSettings = () => {
               ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
               : 'bg-gradient-to-br from-white/5 to-white/10 border-white/10'
           }`}>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2">
               <h2 className={`text-sm font-semibold uppercase tracking-wide ${
                 themeName === 'light' ? 'text-orange-600' : 'text-[var(--theme-primary)]'
               }`}>
@@ -246,6 +247,11 @@ const ForYouSettings = () => {
                 </span>
               )}
             </div>
+            <p className={`text-xs mb-4 ${
+              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
+            }`}>
+              Your persona is built by analyzing your saved Reddit posts with AI. It extracts the topics you care about and the types of content you engage with, then uses that to curate your For You feed. Hit "Refresh Persona" to update it with your latest saves.
+            </p>
 
             {/* Keywords */}
             {persona.keywords && persona.keywords.length > 0 && (

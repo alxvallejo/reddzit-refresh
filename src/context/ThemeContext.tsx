@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeName = 'classic' | 'violet' | 'indigo' | 'light';
+export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'light';
 export type FontFamily = 'brygada' | 'outfit';
 
 const fontFamilies: Record<FontFamily, string> = {
@@ -104,6 +104,30 @@ export const themes: Record<ThemeName, Theme> = {
       bannerInputBg: 'rgba(255, 255, 255, 0.15)',
       bannerInputText: '#eaf5f5',
       bannerInputPlaceholder: '#80b3b3',
+    },
+  },
+  dusk: {
+    name: 'dusk',
+    label: 'Dusk',
+    colors: {
+      bg: '#1e1e4a',
+      bgSecondary: '#16163a',
+      text: '#f5efe8',
+      textMuted: '#cc9aab',
+      primary: '#f08aab',
+      primaryHover: '#e06e92',
+      accent: '#e87da0',
+      border: 'rgba(240, 138, 171, 0.3)',
+      cardBg: 'rgba(255, 255, 255, 0.08)',
+      headerBg: 'rgba(20, 20, 50, 0.85)',
+      bannerBg: '#16163a',
+      bannerText: '#f5efe8',
+      bannerButtonBg: '#f08aab',
+      bannerButtonText: '#1e1e4a',
+      bannerErrorText: '#e8b4b4',
+      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
+      bannerInputText: '#f5efe8',
+      bannerInputPlaceholder: '#b38090',
     },
   },
   light: {

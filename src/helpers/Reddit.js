@@ -33,6 +33,9 @@ class Reddit {
   };
 
   getSaved = async (params = {}) => {
+    if (!this.me) {
+      await this.getMe();
+    }
     let fetchUrl = API_BASE_URL + '/api/reddit/user/' + this.me.name + '/saved';
 
     if (params !== {}) {

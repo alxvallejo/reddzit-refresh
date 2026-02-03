@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
@@ -28,6 +28,12 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
   const location = useLocation();
   const activeTab = getTabFromPath(location.pathname);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const tabClass = (tab: Tab) =>
     `px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
@@ -42,7 +48,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
 
   return (
     <header
-      className={`sticky top-0 z-50 ${
+      className={`sticky top-0 z-50 backdrop-blur-md ${
         themeName === 'light'
           ? 'bg-white border-b border-gray-200'
           : 'border-b'
@@ -72,6 +78,15 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
               Reddzit
             </span>
           </Link>
+
+          {/* Date/Time */}
+          <span className={`text-xs whitespace-nowrap ml-3 hidden sm:block ${
+            themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+          }`}>
+            {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+            {' '}
+            {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+          </span>
 
           {/* Tabs */}
           <nav className="flex gap-1 overflow-x-auto ml-auto mr-48 scrollbar-hide">
