@@ -4,9 +4,9 @@ import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 
 const SPEED_OPTIONS = [
-  { label: '1x', duration: 90 },
-  { label: '2x', duration: 60 },
-  { label: '3x', duration: 30 },
+  { label: '1x', duration: 45 },
+  { label: '2x', duration: 30 },
+  { label: '3x', duration: 15 },
 ];
 
 const TrendingMarquee = () => {
