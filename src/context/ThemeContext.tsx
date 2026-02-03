@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { deriveColors } from '../utils/deriveColors';
 
 export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
-export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans';
+export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans' | 'cactus-classical' | 'noto-znamenny';
 
 const fontFamilies: Record<FontFamily, string> = {
   'brygada': '"Brygada 1918", "Outfit", system-ui, serif',
@@ -11,6 +11,8 @@ const fontFamilies: Record<FontFamily, string> = {
   'tirra': '"Tirra", "Outfit", system-ui, serif',
   'reddit-sans': '"Reddit Sans", "Outfit", system-ui, sans-serif',
   'zalando-sans': '"Zalando Sans", "Outfit", system-ui, sans-serif',
+  'cactus-classical': '"Cactus Classical Serif", "Outfit", system-ui, serif',
+  'noto-znamenny': '"Noto Znamenny Musical Notation", "Outfit", system-ui, serif',
 };
 
 interface Theme {

@@ -13,6 +13,7 @@ const fontOptions: { key: FontFamily; label: string }[] = [
   { key: 'reddit-sans', label: 'Reddit Sans' },
   { key: 'zalando-sans', label: 'Zalando Sans' },
   { key: 'cactus-classical', label: 'Cactus Classical' },
+  { key: 'noto-znamenny', label: 'Noto Znamenny' },
 ];
 
 const ThemeSwitcher = () => {

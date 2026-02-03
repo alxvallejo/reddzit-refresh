@@ -46,6 +46,33 @@ body {
   font-family: "Libertinus Math", "Outfit", system-ui, serif !important;
 }
 
+:root[data-font="tirra"] body,
+:root[data-font="tirra"] * {
+  font-family: "Tirra", "Outfit", system-ui, serif !important;
+}
+
+:root[data-font="reddit-sans"] body,
+:root[data-font="reddit-sans"] * {
+  font-family: "Reddit Sans", "Outfit", system-ui, sans-serif !important;
+}
+
+:root[data-font="zalando-sans"] body,
+:root[data-font="zalando-sans"] * {
+  font-family: "Zalando Sans", "Outfit", system-ui, sans-serif !important;
+  font-weight: 200 !important;
+}
+
+:root[data-font="cactus-classical"] body,
+:root[data-font="cactus-classical"] * {
+  font-family: "Cactus Classical Serif", "Outfit", system-ui, serif !important;
+}
+
+:root[data-font="noto-znamenny"] body,
+:root[data-font="noto-znamenny"] * {
+  font-family: "Noto Znamenny Musical Notation", "Outfit", system-ui, serif !important;
+  font-weight: 200 !important;
+}
+
 /* Marquee Animation */
 @keyframes marquee {
   0% {
