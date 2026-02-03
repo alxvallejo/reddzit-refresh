@@ -74,7 +74,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
           </Link>
 
           {/* Tabs */}
-          <nav className="flex flex-1 justify-evenly sm:justify-end sm:flex-none sm:gap-1 sm:ml-auto sm:mr-4">
+          <nav className="flex flex-1 justify-evenly sm:justify-end sm:flex-none sm:gap-1 sm:ml-auto sm:mr-48">
             <button onClick={() => navigate('/top')} className={tabClass('top')}>
               <FontAwesomeIcon icon={faArrowUp} />
             </button>
