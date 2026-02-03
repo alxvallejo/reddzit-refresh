@@ -41,6 +41,11 @@ body {
   font-family: "Outfit", "Open Sans", system-ui, sans-serif !important;
 }
 
+:root[data-font="libertinus"] body,
+:root[data-font="libertinus"] * {
+  font-family: "Libertinus Math", "Outfit", system-ui, serif !important;
+}
+
 /* Marquee Animation */
 @keyframes marquee {
   0% {

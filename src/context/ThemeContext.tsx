@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
-export type FontFamily = 'brygada' | 'outfit';
+export type FontFamily = 'brygada' | 'outfit' | 'libertinus';
 
 const fontFamilies: Record<FontFamily, string> = {
   'brygada': '"Brygada 1918", "Outfit", system-ui, serif',
   'outfit': '"Outfit", "Open Sans", system-ui, sans-serif',
+  'libertinus': '"Libertinus Math", "Outfit", system-ui, serif',
 };
 
 interface Theme {

@@ -63,7 +63,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-1 sm:px-4">
         <div className="flex items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 no-underline">
@@ -74,7 +74,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
           </Link>
 
           {/* Tabs */}
-          <nav className="flex gap-1 overflow-x-auto ml-auto mr-48 scrollbar-hide">
+          <nav className="flex flex-1 justify-evenly sm:justify-end sm:flex-none sm:gap-1 sm:ml-auto sm:mr-4">
             <button onClick={() => navigate('/top')} className={tabClass('top')}>
               <FontAwesomeIcon icon={faArrowUp} />
             </button>
@@ -90,94 +90,61 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
             <button onClick={() => navigate('/quotes')} className={tabClass('quotes')}>
               <FontAwesomeIcon icon={faQuoteLeft} />
             </button>
+
+            {/* Theme & user inline on mobile, absolute on desktop */}
+            <div className="flex items-center sm:hidden">
+              <ThemeSwitcher />
+            </div>
+            <div className="flex items-center sm:hidden">
+              {signedIn && user ? (
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className={`flex items-center gap-1 px-2 py-2 rounded-lg transition-colors border-none cursor-pointer bg-transparent ${
+                    themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faUser} className="text-sm" />
+                  <FontAwesomeIcon icon={faChevronDown} className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                </button>
+              ) : (
+                <button
+                  onClick={redirectForAuth}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border-none cursor-pointer ${
+                    themeName === 'light'
+                      ? 'bg-orange-600 text-white hover:bg-orange-700'
+                      : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+                  }`}
+                >
+                  Log in
+                </button>
+              )}
+            </div>
           </nav>
         </div>
       </div>
 
-      {/* Right-side controls (aligned with card grid) */}
-      <div className="absolute right-0 left-0 top-0 h-16 flex items-center pointer-events-none">
+      {/* Right-side controls - desktop only */}
+      <div className="absolute right-0 left-0 top-0 h-16 hidden sm:flex items-center pointer-events-none">
         <div className="max-w-7xl mx-auto px-4 w-full flex justify-end gap-2">
           <div className="pointer-events-auto">
             <ThemeSwitcher />
           </div>
 
-          {/* User Menu / Login */}
+          {/* User Menu / Login - desktop */}
           <div className="pointer-events-auto">
             {signedIn && user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer bg-transparent ${
-                    themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
-                  }`}
-                >
-                  <span className="font-medium text-sm max-w-[120px] truncate hidden sm:block">u/{user.name}</span>
-                  <span className="font-medium text-sm sm:hidden"><FontAwesomeIcon icon={faUser} /></span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
-                  />
-                </button>
-
-                {showUserMenu && (
-                  <div className={`absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl py-2 border z-50 ${
-                    themeName === 'light'
-                      ? 'bg-white border-gray-100'
-                      : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]'
-                  }`}>
-                    <a
-                      href={`https://www.reddit.com/user/${user.name}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faUser} className={`w-4 ${themeName === 'light' ? 'text-gray-400' : 'text-gray-400'}`} />
-                      Reddit Profile
-                    </a>
-                    <Link
-                      to="/quotes"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <FontAwesomeIcon icon={faQuoteLeft} className="w-4 text-gray-400" />
-                      Your Quotes
-                    </Link>
-                    <Link
-                      to="/stories"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <FontAwesomeIcon icon={faBookOpen} className="w-4 text-gray-400" />
-                      Your Stories
-                    </Link>
-                    <a
-                      href="https://www.buymeacoffee.com/reddzit"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
-                        themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faCoffee} className="w-4 text-gray-400" />
-                      Buy me a coffee
-                    </a>
-                    <hr className={`my-2 ${themeName === 'light' ? 'border-gray-100' : 'border-white/10'}`} />
-                    <button
-                      onClick={logout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-500/20 text-red-400 text-sm text-left border-none bg-transparent cursor-pointer"
-                    >
-                      <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border-none cursor-pointer bg-transparent ${
+                  themeName === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'
+                }`}
+              >
+                <span className="font-medium text-sm max-w-[120px] truncate">u/{user.name}</span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                />
+              </button>
             ) : (
               <button
                 onClick={redirectForAuth}
@@ -193,6 +160,66 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* User dropdown menu - shared between mobile and desktop */}
+      {showUserMenu && signedIn && user && (
+        <div className={`absolute right-4 top-full mt-0 w-52 rounded-xl shadow-xl py-2 border z-50 ${
+          themeName === 'light'
+            ? 'bg-white border-gray-100'
+            : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]'
+        }`}>
+          <a
+            href={`https://www.reddit.com/user/${user.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+              themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+            }`}
+          >
+            <FontAwesomeIcon icon={faUser} className="w-4 text-gray-400" />
+            Reddit Profile
+          </a>
+          <Link
+            to="/quotes"
+            className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+              themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+            }`}
+            onClick={() => setShowUserMenu(false)}
+          >
+            <FontAwesomeIcon icon={faQuoteLeft} className="w-4 text-gray-400" />
+            Your Quotes
+          </Link>
+          <Link
+            to="/stories"
+            className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+              themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+            }`}
+            onClick={() => setShowUserMenu(false)}
+          >
+            <FontAwesomeIcon icon={faBookOpen} className="w-4 text-gray-400" />
+            Your Stories
+          </Link>
+          <a
+            href="https://www.buymeacoffee.com/reddzit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline ${
+              themeName === 'light' ? 'hover:bg-gray-50 text-gray-700' : 'hover:bg-white/10 text-gray-200'
+            }`}
+          >
+            <FontAwesomeIcon icon={faCoffee} className="w-4 text-gray-400" />
+            Buy me a coffee
+          </a>
+          <hr className={`my-2 ${themeName === 'light' ? 'border-gray-100' : 'border-white/10'}`} />
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-500/20 text-red-400 text-sm text-left border-none bg-transparent cursor-pointer"
+          >
+            <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
+            Logout
+          </button>
+        </div>
+      )}
     </header>
   );
 }

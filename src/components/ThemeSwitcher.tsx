@@ -6,6 +6,7 @@ import { faPalette, faCheck } from '@fortawesome/free-solid-svg-icons';
 const fontOptions: { key: FontFamily; label: string }[] = [
   { key: 'brygada', label: 'Brygada 1918' },
   { key: 'outfit', label: 'Outfit' },
+  { key: 'libertinus', label: 'Libertinus Math' },
 ];
 
 const ThemeSwitcher = () => {

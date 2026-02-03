@@ -11,6 +11,9 @@ import API_BASE_URL from '../config/api';
 import QuoteSelectionButton from './QuoteSelectionButton';
 import QuoteModal from './QuoteModal';
 import QuoteService from '../helpers/QuoteService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -31,11 +34,15 @@ export default function PostView() {
   const [loading, setLoading] = useState(!location.state?.post);
   const [error, setError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [selectedText, setSelectedText] = useState('');
   const [selectionPosition, setSelectionPosition] = useState<{ top: number; left: number } | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [quoteSaved, setQuoteSaved] = useState(false);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2000);
+  };
 
   // Scroll to top on mount/navigation
   useEffect(() => {
@@ -142,14 +149,13 @@ export default function PostView() {
   const bgColor = isLight ? 'bg-white text-gray-900' : 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
   const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
   const articleClass = !isLight
-    ? 'prose-invert prose-p:text-[var(--theme-text)] prose-p:font-light prose-headings:text-[var(--theme-text)] prose-headings:font-normal prose-strong:text-[var(--theme-text)] prose-strong:font-medium prose-li:text-[var(--theme-text)] prose-li:font-light prose-ul:text-[var(--theme-text)] prose-ol:text-[var(--theme-text)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-[var(--theme-text)]'
+    ? 'prose-invert prose-p:text-[var(--theme-textMuted)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-textMuted)] prose-li:font-light prose-ul:text-[var(--theme-textMuted)] prose-ol:text-[var(--theme-textMuted)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-white'
     : 'prose-gray prose-p:font-light prose-headings:font-normal prose-strong:font-medium prose-li:font-light';
   
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      showToast('Link copied!');
     } catch (err) {
       console.error('Failed to copy:', err);
     }
@@ -172,8 +178,7 @@ export default function PostView() {
 
     setSelectedText('');
     setSelectionPosition(null);
-    setQuoteSaved(true);
-    setTimeout(() => setQuoteSaved(false), 2000);
+    showToast('Quote saved!');
   };
 
   const openQuoteModal = () => {
@@ -265,59 +270,69 @@ export default function PostView() {
         </main>
         
         {/* Sticky Footer Actions */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none flex justify-center pb-8">
-            <div className={`pointer-events-auto flex gap-4 backdrop-blur-xl border px-6 py-3 rounded-full shadow-2xl items-center ${
+        <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pointer-events-none flex justify-center">
+            <div className={`pointer-events-auto flex w-full sm:w-auto justify-evenly sm:justify-center gap-0 sm:gap-4 backdrop-blur-xl border px-2 sm:px-6 py-3 rounded-full shadow-2xl items-center ${
               !isLight
                 ? 'bg-white/10 border-white/20 text-white'
                 : 'bg-gray-900/90 border-gray-700 text-white'
             }`}>
                  <button
                     onClick={() => navigate(-1)}
-                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                    title="Back"
+                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
                  >
-                     ← Back
+                     <FontAwesomeIcon icon={faArrowLeft} className="sm:mr-1.5" />
+                     <span className="hidden sm:inline">Back</span>
                  </button>
-                 <span className="opacity-30">|</span>
+                 <span className="opacity-30 hidden sm:inline">|</span>
                  {signedIn ? (
                      <button
                         onClick={async () => {
                           if (post.saved) {
                             await unsavePost(post.name);
                             setPost((prev: any) => ({ ...prev, saved: false }));
+                            showToast('Post unsaved');
                           } else {
                             await savePost(post.name);
                             setPost((prev: any) => ({ ...prev, saved: true }));
+                            showToast('Post saved!');
                           }
                         }}
-                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                        title={post.saved ? 'Unsave' : 'Save'}
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
                      >
-                         {post.saved ? 'Unsave' : 'Save'}
+                         <FontAwesomeIcon icon={post.saved ? faBookmarkSolid : faBookmarkRegular} className="sm:mr-1.5" />
+                         <span className="hidden sm:inline">{post.saved ? 'Unsave' : 'Save'}</span>
                      </button>
                  ) : (
                      <button
                         onClick={redirectForAuth}
-                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                        title="Login to Save"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
                      >
-                         Login to Save
+                         <FontAwesomeIcon icon={faSignInAlt} className="sm:mr-1.5" />
+                         <span className="hidden sm:inline">Login to Save</span>
                      </button>
                  )}
                  {signedIn && isComment(post) && (
                    <>
-                     <span className="opacity-30">|</span>
+                     <span className="opacity-30 hidden sm:inline">|</span>
                      <button
                         onClick={() => {
                           setSelectedText(post.body);
                           openQuoteModal();
                         }}
-                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                        title="Save as Quote"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
                      >
-                         Save as Quote
+                         <FontAwesomeIcon icon={faQuoteLeft} className="sm:mr-1.5" />
+                         <span className="hidden sm:inline">Save as Quote</span>
                      </button>
                    </>
                  )}
                  {signedIn && getArticlePreviewImage(post) && !getVideoUrl(post) && (
                    <>
-                     <span className="opacity-30">|</span>
+                     <span className="opacity-30 hidden sm:inline">|</span>
                      <button
                         onClick={async () => {
                           if (!accessToken) return;
@@ -329,30 +344,35 @@ export default function PostView() {
                             postTitle: post.link_title || post.title,
                             author: post.author,
                           });
-                          setQuoteSaved(true);
-                          setTimeout(() => setQuoteSaved(false), 2000);
+                          showToast('Image saved!');
                         }}
-                        className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                        title="Save Image"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
                      >
-                         Save Image
+                         <FontAwesomeIcon icon={faImage} className="sm:mr-1.5" />
+                         <span className="hidden sm:inline">Save Image</span>
                      </button>
                    </>
                  )}
-                 <span className="opacity-30">|</span>
+                 <span className="opacity-30 hidden sm:inline">|</span>
                  <button
                     onClick={handleShare}
-                    className="font-bold hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit"
+                    title="Share"
+                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
                  >
-                     {copied ? 'Copied!' : 'Share'}
+                     <FontAwesomeIcon icon={faShareNodes} className="sm:mr-1.5" />
+                     <span className="hidden sm:inline">Share</span>
                  </button>
-                 <span className="opacity-30">|</span>
+                 <span className="opacity-30 hidden sm:inline">|</span>
                  <a
                     href={`https://www.reddit.com${post.permalink}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-bold hover:text-[#ff4500] transition-colors text-inherit no-underline"
+                    title="View on Reddit"
+                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors text-inherit no-underline font-bold"
                  >
-                     View on Reddit
+                     <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="sm:mr-1.5" />
+                     <span className="hidden sm:inline">View on Reddit</span>
                  </a>
             </div>
         </div>
@@ -376,10 +396,17 @@ export default function PostView() {
           accessToken={accessToken || undefined}
         />
 
-        {/* Quote Saved Toast */}
-        {quoteSaved && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-green-500 text-white text-sm font-medium shadow-lg">
-            Quote saved!
+        {/* Toast */}
+        {toast && (
+          <div
+            className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg ${
+              isLight
+                ? 'bg-orange-600 text-white'
+                : 'text-[var(--theme-bg)]'
+            }`}
+            style={!isLight ? { backgroundColor: 'var(--theme-primary)' } : undefined}
+          >
+            {toast}
           </div>
         )}
     </div>
