@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { deriveColors } from '../utils/deriveColors';
 
 export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
-export type FontFamily = 'brygada' | 'outfit' | 'libertinus';
+export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans';
 
 const fontFamilies: Record<FontFamily, string> = {
   'brygada': '"Brygada 1918", "Outfit", system-ui, serif',
   'outfit': '"Outfit", "Open Sans", system-ui, sans-serif',
   'libertinus': '"Libertinus Math", "Outfit", system-ui, serif',
+  'tirra': '"Tirra", "Outfit", system-ui, serif',
+  'reddit-sans': '"Reddit Sans", "Outfit", system-ui, sans-serif',
+  'zalando-sans': '"Zalando Sans", "Outfit", system-ui, sans-serif',
 };
 
 interface Theme {
@@ -191,6 +195,8 @@ interface ThemeContextType {
   toggleFont: () => void;
   bgShade: string | null;
   setBgShade: (color: string | null) => void;
+  accentShade: string | null;
+  setAccentShade: (color: string | null) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -210,23 +216,33 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return localStorage.getItem('reddzit_bg_shade');
   });
 
+  const [accentShade, setAccentShadeState] = useState<string | null>(() => {
+    return localStorage.getItem('reddzit_accent_shade');
+  });
+
   const theme = themes[themeName];
 
   useEffect(() => {
     localStorage.setItem('reddzit_theme', themeName);
-
-    // Apply CSS variables to document root
     const root = document.documentElement;
-    Object.entries(theme.colors).forEach(([key, value]) => {
-      root.style.setProperty(`--theme-${key}`, value);
-    });
 
-    // Apply bgShade override if set
-    const effectiveBg = bgShade ?? theme.colors.bg;
-    root.style.setProperty('--theme-bg', effectiveBg);
-    document.body.style.backgroundColor = effectiveBg;
-    document.body.style.color = theme.colors.text;
-  }, [themeName, theme, bgShade]);
+    if (accentShade || bgShade) {
+      const effectiveBg = bgShade ?? theme.colors.bg;
+      const effectiveAccent = accentShade ?? theme.colors.primary;
+      const derived = deriveColors(effectiveBg, effectiveAccent);
+      Object.entries(derived).forEach(([key, value]) => {
+        root.style.setProperty(`--theme-${key}`, value);
+      });
+      document.body.style.backgroundColor = effectiveBg;
+      document.body.style.color = derived.text;
+    } else {
+      Object.entries(theme.colors).forEach(([key, value]) => {
+        root.style.setProperty(`--theme-${key}`, value);
+      });
+      document.body.style.backgroundColor = theme.colors.bg;
+      document.body.style.color = theme.colors.text;
+    }
+  }, [themeName, theme, bgShade, accentShade]);
 
   useEffect(() => {
     localStorage.setItem('reddzit_font', fontFamily);
@@ -237,6 +253,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setTheme = (name: ThemeName) => {
     if (themes[name]) {
       setBgShade(null);
+      setAccentShade(null);
       setThemeName(name);
     }
   };
@@ -264,8 +281,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const setAccentShade = (color: string | null) => {
+    setAccentShadeState(color);
+    if (color) {
+      localStorage.setItem('reddzit_accent_shade', color);
+    } else {
+      localStorage.removeItem('reddzit_accent_shade');
+    }
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, bgShade, setBgShade }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, bgShade, setBgShade, accentShade, setAccentShade }}>
       {children}
     </ThemeContext.Provider>
   );
