@@ -89,6 +89,14 @@ interface RedditApiLog {
   createdAt: string;
 }
 
+interface CacheStats {
+  size: number;
+  max: number;
+  hits: number;
+  misses: number;
+  hitRate: number;
+}
+
 const Admin = () => {
   const { themeName } = useTheme();
   const { user } = useReddit();
@@ -102,6 +110,7 @@ const Admin = () => {
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [redditUsage, setRedditUsage] = useState<RedditUsage | null>(null);
   const [redditLogs, setRedditLogs] = useState<RedditApiLog[]>([]);
+  const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [editingCron, setEditingCron] = useState<{name: string; value: string} | null>(null);
   const [userSearch, setUserSearch] = useState('');
@@ -155,6 +164,18 @@ const Admin = () => {
       setRedditLogs(response.data.logs);
     } catch {
       console.error('Failed to fetch Reddit logs');
+    }
+  }, [getAuthHeaders]);
+
+  // Fetch cache stats
+  const fetchCacheStats = useCallback(async () => {
+    try {
+      const response = await axios.get<CacheStats>(`${API_BASE_URL}/api/admin/cache-stats`, {
+        headers: getAuthHeaders(),
+      });
+      setCacheStats(response.data);
+    } catch {
+      console.error('Failed to fetch cache stats');
     }
   }, [getAuthHeaders]);
 
@@ -302,12 +323,12 @@ const Admin = () => {
   // Load data when authenticated
   useEffect(() => {
     if (authenticated) {
-      if (activeTab === 'stats') fetchRedditUsage();
+      if (activeTab === 'stats') { fetchRedditUsage(); fetchCacheStats(); }
       if (activeTab === 'users') fetchUsers(userSearch);
       if (activeTab === 'briefings') fetchBriefings();
       if (activeTab === 'jobs') fetchJobs();
     }
-  }, [authenticated, activeTab, fetchUsers, fetchBriefings, fetchJobs, fetchRedditUsage, userSearch]);
+  }, [authenticated, activeTab, fetchUsers, fetchBriefings, fetchJobs, fetchRedditUsage, fetchCacheStats, userSearch]);
 
   // Format date
   const formatDate = (dateStr: string | null) => {
@@ -610,6 +631,98 @@ const Admin = () => {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Share Preview Cache */}
+            {cacheStats && (
+              <div className={`p-6 rounded-xl ${
+                themeName === 'light' ? 'bg-white shadow' : 'bg-white/5'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`font-bold text-lg ${
+                    themeName === 'light' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    Share Preview Cache
+                  </h3>
+                  <span className={`text-sm ${
+                    themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                  }`}>
+                    {cacheStats.size} / {cacheStats.max} entries
+                  </span>
+                </div>
+
+                {/* Hit Rate Bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className={themeName === 'light' ? 'text-gray-600' : 'text-gray-300'}>
+                      {cacheStats.hits + cacheStats.misses} total requests
+                    </span>
+                    <span className={`font-medium ${
+                      cacheStats.hitRate >= 70
+                        ? themeName === 'light' ? 'text-green-600' : 'text-green-400'
+                        : cacheStats.hitRate >= 40
+                          ? 'text-yellow-500'
+                          : 'text-red-500'
+                    }`}>
+                      {cacheStats.hitRate}% hit rate
+                    </span>
+                  </div>
+                  <div className={`h-3 rounded-full overflow-hidden ${
+                    themeName === 'light' ? 'bg-gray-200' : 'bg-white/10'
+                  }`}>
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        cacheStats.hitRate >= 70
+                          ? 'bg-green-500'
+                          : cacheStats.hitRate >= 40
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                      }`}
+                      style={{ width: `${cacheStats.hitRate}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className={`text-2xl font-bold ${
+                      themeName === 'light' ? 'text-green-600' : 'text-green-400'
+                    }`}>
+                      {cacheStats.hits}
+                    </p>
+                    <p className={`text-xs ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      Cache Hits
+                    </p>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${
+                      themeName === 'light' ? 'text-gray-900' : 'text-white'
+                    }`}>
+                      {cacheStats.misses}
+                    </p>
+                    <p className={`text-xs ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      Cache Misses
+                    </p>
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${
+                      themeName === 'light' ? 'text-green-600' : 'text-green-400'
+                    }`}>
+                      {cacheStats.hits}
+                    </p>
+                    <p className={`text-xs ${
+                      themeName === 'light' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
+                      API Calls Saved
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 

@@ -9,6 +9,12 @@ const TopFeed = () => {
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     loadTopPosts();
@@ -82,12 +88,19 @@ const TopFeed = () => {
         <div className={`max-w-7xl mx-auto border-b-2 ${
           themeName === 'light' ? 'border-gray-900' : 'border-white/20'
         }`}>
-          <div className="flex items-center justify-between py-4 pl-4">
+          <div className="flex items-center justify-between py-4 pl-4 pr-4">
             <div>
               <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
                 Top Posts on Reddit
               </h1>
             </div>
+            <span className={`text-sm whitespace-nowrap ${
+              themeName === 'light' ? 'text-gray-500' : 'text-[var(--theme-textMuted)]'
+            }`}>
+              {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+              {' '}
+              {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+            </span>
           </div>
         </div>
       </header>
