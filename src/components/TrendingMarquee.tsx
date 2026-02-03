@@ -3,10 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 
+const SPEED_OPTIONS = [
+  { label: '1x', duration: 90 },
+  { label: '2x', duration: 60 },
+  { label: '3x', duration: 30 },
+];
+
 const TrendingMarquee = () => {
   const { themeName } = useTheme();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
+  const [speedIndex, setSpeedIndex] = useState(() => {
+    const saved = localStorage.getItem('rdz_marquee_speed');
+    return saved ? Number(saved) : 1;
+  });
+
+  const cycleSpeed = () => {
+    setSpeedIndex(prev => {
+      const next = (prev + 1) % SPEED_OPTIONS.length;
+      localStorage.setItem('rdz_marquee_speed', String(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     DailyService.getTrendingRSS().then(setPosts);
@@ -53,7 +71,10 @@ const TrendingMarquee = () => {
           Trending
         </div>
         <div className="overflow-hidden flex-1">
-          <div className="animate-marquee flex whitespace-nowrap py-2">
+          <div
+            className="animate-marquee flex whitespace-nowrap py-2"
+            style={{ animationDuration: `${SPEED_OPTIONS[speedIndex].duration}s` }}
+          >
             {duplicatedPosts.map((post, index) => (
               <button
                 key={`${post.id}-${index}`}
@@ -70,12 +91,23 @@ const TrendingMarquee = () => {
                 }`}>
                   r/{post.subreddit}
                 </span>
-                <span className="truncate max-w-md">{post.title}</span>
+                <span>{post.title}</span>
                 <span className={`mx-4 ${themeName === 'light' ? 'text-gray-300' : 'text-gray-600'}`}>•</span>
               </button>
             ))}
           </div>
         </div>
+        <button
+          onClick={cycleSpeed}
+          title="Marquee speed"
+          className={`flex-shrink-0 ml-2 px-2 py-1 text-xs rounded transition-colors cursor-pointer border-none ${
+            themeName === 'light'
+              ? 'text-gray-400 hover:text-gray-600 bg-transparent'
+              : 'text-gray-500 hover:text-gray-300 bg-transparent'
+          }`}
+        >
+          {SPEED_OPTIONS[speedIndex].label}
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'light';
+export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
 export type FontFamily = 'brygada' | 'outfit';
 
 const fontFamilies: Record<FontFamily, string> = {
@@ -128,6 +128,30 @@ export const themes: Record<ThemeName, Theme> = {
       bannerInputBg: 'rgba(255, 255, 255, 0.15)',
       bannerInputText: '#f5efe8',
       bannerInputPlaceholder: '#b38090',
+    },
+  },
+  lavender: {
+    name: 'lavender',
+    label: 'Lavender',
+    colors: {
+      bg: '#a5a4e5',
+      bgSecondary: '#9593d1',
+      text: '#1a1740',
+      textMuted: '#3d3870',
+      primary: '#2d2a6e',
+      primaryHover: '#1e1b55',
+      accent: '#6c3fa0',
+      border: 'rgba(30, 27, 64, 0.2)',
+      cardBg: 'rgba(255, 255, 255, 0.2)',
+      headerBg: 'rgba(147, 145, 205, 0.95)',
+      bannerBg: '#9593d1',
+      bannerText: '#1a1740',
+      bannerButtonBg: '#2d2a6e',
+      bannerButtonText: '#e8e7f5',
+      bannerErrorText: '#8b2020',
+      bannerInputBg: 'rgba(255, 255, 255, 0.3)',
+      bannerInputText: '#1a1740',
+      bannerInputPlaceholder: '#5a5690',
     },
   },
   light: {

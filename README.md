@@ -1,6 +1,22 @@
-# React + TypeScript + Vite
+# Reddzit
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personalized Reddit client built with React, TypeScript, and Vite.
+
+## Product Features
+
+- **For You Feed** -- AI-powered personalized feed built from your Reddit saved posts. Analyzes your interests to surface posts you'll care about.
+- **Save for Later** -- Bookmark posts directly to your Reddit saved posts for read-it-later.
+- **Persona & Weights** -- View and tune the AI-generated persona that drives your feed, including subreddit affinity weights and keyword tags.
+- **Subreddit Discovery** -- AI-recommended subreddits based on your interests, with inline dismiss/follow.
+- **Top Posts** -- Browse top posts across subreddits with multiple time ranges.
+- **Themes** -- Multiple color themes including light, dark, and dusk modes.
+- **Share Previews** -- Dynamic Open Graph/Twitter meta tags via SSR so shared links render rich previews on Slack, Discord, and social platforms.
+
+---
+
+## Development
+
+This project uses Vite with HMR and ESLint rules.
 
 Currently, two official plugins are available:
 

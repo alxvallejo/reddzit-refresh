@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +9,12 @@ const SavedFeed = () => {
   const { loading, saved, after, fetchSaved } = useReddit();
   const { themeName } = useTheme();
   const navigate = useNavigate();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handlePostClick = (post: any) => {
     const title = getDisplayTitle(post) || post.title || '';
@@ -59,16 +66,23 @@ const SavedFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header id="page-header" className="px-4 pb-2">
+      <header id="page-header" className={`px-4 pb-2 sticky top-16 z-40 ${
+        themeName === 'light' ? 'bg-white' : 'bg-[var(--theme-bg)]'
+      }`}>
         <div className={`max-w-7xl mx-auto border-b-2 ${
           themeName === 'light' ? 'border-gray-900' : 'border-white/20'
         }`}>
           <div className="flex items-center justify-between py-4 pl-4">
-            <div>
-              <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
-                Saved Posts
-              </h1>
-            </div>
+            <h1 className={`text-2xl font-bold ${themeName === 'light' ? 'text-gray-900' : ''}`}>
+              Saved Posts
+            </h1>
+            <span className={`text-xs whitespace-nowrap ${
+              themeName === 'light' ? 'text-gray-400' : 'text-[var(--theme-textMuted)]'
+            }`}>
+              {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+              {' '}
+              {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+            </span>
           </div>
         </div>
       </header>
@@ -80,8 +94,8 @@ const SavedFeed = () => {
             onClick={() => handlePostClick(post)}
             className={`group relative p-4 rounded-xl transition cursor-pointer border ${
               themeName === 'light'
-                ? 'bg-white border-gray-100 hover:shadow-md'
-                : 'bg-transparent border-white/10 hover:bg-white/[0.08]'
+                ? 'bg-white border-gray-100 hover:border-orange-600'
+                : 'bg-transparent border-white/10 hover:border-[var(--theme-primary)]'
             }`}
           >
             <div className="flex gap-4">
@@ -94,10 +108,8 @@ const SavedFeed = () => {
                   </span>
                 </div>
 
-                <h2 className={`font-light text-base my-2 leading-tight transition-colors ${
-                  themeName === 'light'
-                    ? 'text-gray-900 group-hover:text-orange-600'
-                    : ''
+                <h2 className={`font-light text-base my-2 leading-tight ${
+                  themeName === 'light' ? 'text-gray-900' : ''
                 }`}>
                   {getDisplayTitle(post)}
                 </h2>
