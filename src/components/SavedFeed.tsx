@@ -102,8 +102,8 @@ const SavedFeed = () => {
           <article
             key={post.id}
             onClick={() => handlePostClick(post)}
-            className={`group relative p-4 rounded-xl transition cursor-pointer border bg-[var(--theme-cardBg)] border-[var(--theme-border)] ${
-              isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
+            className={`group relative p-4 rounded-xl transition cursor-pointer border border-[var(--theme-border)] ${
+              isLight ? 'bg-[var(--theme-cardBg)] hover:border-orange-600' : 'bg-transparent hover:border-[var(--theme-primary)]'
             }`}
           >
             <div className="flex gap-4">

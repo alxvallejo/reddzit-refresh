@@ -5,8 +5,9 @@ import { useTheme } from '../context/ThemeContext';
 import StoryService, { Story } from '../helpers/StoryService';
 import QuoteService, { Quote } from '../helpers/QuoteService';
 import MainHeader from './MainHeader';
+import TiptapEditor, { TiptapEditorHandle } from './TiptapEditor';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faQuoteLeft, faCheck, faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faQuoteLeft, faCheck, faChevronRight, faChevronLeft, faXmark, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 export default function StoryEditorPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
@@ -38,7 +39,10 @@ export default function StoryEditorPage() {
         setStory(story);
         setTitle(story.title);
         setDescription(story.description || '');
-        setBodyText(story.content?.text || '');
+        const rawText = story.content?.text || '';
+        // Migrate plain text to HTML paragraphs if not already HTML
+        const isHTML = /<[a-z][\s\S]*>/i.test(rawText);
+        setBodyText(isHTML ? rawText : rawText.split('\n').filter(Boolean).map(line => `<p>${line}</p>`).join(''));
       } catch (err) {
         console.error('Failed to load story:', err);
         setError('Failed to load story');
@@ -93,7 +97,21 @@ export default function StoryEditorPage() {
     }, 1500);
   }, [accessToken, id]);
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+
+  const resizeTitle = () => {
+    const el = titleRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+  };
+
+  useEffect(() => {
+    resizeTitle();
+  }, [title]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setTitle(val);
     debouncedSave(val, description, bodyText);
@@ -105,10 +123,19 @@ export default function StoryEditorPage() {
     debouncedSave(title, val, bodyText);
   };
 
-  const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setBodyText(val);
-    debouncedSave(title, description, val);
+  const titleDescRef = useRef({ title, description });
+  titleDescRef.current = { title, description };
+
+  const handleBodyUpdate = useCallback((html: string) => {
+    setBodyText(html);
+    debouncedSave(titleDescRef.current.title, titleDescRef.current.description, html);
+  }, [debouncedSave]);
+
+  const bodyRef = useRef<TiptapEditorHandle>(null);
+
+  const handleInsertQuote = (quote: Quote) => {
+    const isReddit = /reddit\.com/i.test(quote.sourceUrl);
+    bodyRef.current?.insertQuote(quote.text, quote.sourceUrl, isReddit ? `r/${quote.subreddit}` : undefined);
   };
 
   const handleAssignQuote = async (quoteId: string) => {
@@ -177,7 +204,7 @@ export default function StoryEditorPage() {
             {/* Save status */}
             <span className={`text-xs flex items-center gap-1 ${
               saveStatus === 'saved'
-                ? 'text-green-500'
+                ? (isLight ? 'text-green-600' : 'text-[var(--theme-primary)]')
                 : saveStatus === 'saving'
                 ? (isLight ? 'text-gray-500' : 'text-gray-400')
                 : 'text-yellow-500'
@@ -218,13 +245,15 @@ export default function StoryEditorPage() {
       <div className="flex max-w-6xl mx-auto">
         {/* Main editor */}
         <main className="flex-1 px-8 py-6">
-          <input
-            type="text"
+          <textarea
+            ref={titleRef}
             value={title}
             onChange={handleTitleChange}
+            onInput={resizeTitle}
+            rows={1}
             placeholder="Story title"
-            className={`w-full text-3xl font-bold bg-transparent border-none outline-none mb-2 ${
-              isLight ? 'text-gray-900 placeholder-gray-400' : 'text-white placeholder-gray-600'
+            className={`w-full text-3xl font-bold bg-transparent border-none outline-none mb-2 resize-none overflow-hidden ${
+              isLight ? 'text-gray-900 placeholder-gray-400' : 'text-white placeholder-gray-500'
             }`}
           />
           <input
@@ -233,16 +262,15 @@ export default function StoryEditorPage() {
             onChange={handleDescriptionChange}
             placeholder="Short description (optional)"
             className={`w-full text-sm bg-transparent border-none outline-none mb-6 ${
-              isLight ? 'text-gray-600 placeholder-gray-400' : 'text-gray-400 placeholder-gray-600'
+              isLight ? 'text-gray-600 placeholder-gray-400' : 'text-gray-400 placeholder-gray-500'
             }`}
           />
-          <textarea
-            value={bodyText}
-            onChange={handleBodyChange}
+          <TiptapEditor
+            ref={bodyRef}
+            content={bodyText}
+            onUpdate={handleBodyUpdate}
             placeholder="Start writing your story..."
-            className={`w-full min-h-[60vh] bg-transparent border-none outline-none resize-none text-base leading-relaxed ${
-              isLight ? 'text-gray-800 placeholder-gray-400' : 'text-gray-200 placeholder-gray-600'
-            }`}
+            className={isLight ? 'text-gray-800' : 'text-gray-200'}
           />
         </main>
 
@@ -267,7 +295,10 @@ export default function StoryEditorPage() {
                 {assignedQuotes.map(quote => (
                   <div
                     key={quote.id}
-                    className="p-2 rounded text-xs bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]"
+                    onClick={() => handleInsertQuote(quote)}
+                    className={`p-2 rounded-xl text-xs cursor-pointer border transition-colors bg-transparent border-[var(--theme-border)] ${
+                      isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
+                    }`}
                   >
                     <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
                       "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
@@ -277,12 +308,13 @@ export default function StoryEditorPage() {
                         r/{quote.subreddit}
                       </span>
                       <button
-                        onClick={() => handleUnassignQuote(quote.id)}
-                        className={`border-none cursor-pointer bg-transparent px-1 ${
-                          isLight ? 'text-red-500 hover:text-red-700' : 'text-red-400 hover:text-red-300'
+                        onClick={(e) => { e.stopPropagation(); handleUnassignQuote(quote.id); }}
+                        title="Remove from story"
+                        className={`border-none cursor-pointer bg-transparent p-0 ${
+                          isLight ? 'text-gray-400 hover:text-red-500' : 'text-gray-500 hover:text-red-400'
                         }`}
                       >
-                        Remove
+                        <FontAwesomeIcon icon={faXmark} />
                       </button>
                     </div>
                   </div>
@@ -312,7 +344,10 @@ export default function StoryEditorPage() {
                   allQuotes.map(quote => (
                     <div
                       key={quote.id}
-                      className="p-2 rounded text-xs bg-[var(--theme-bgSecondary)] border border-[var(--theme-border)]"
+                      onClick={() => handleAssignQuote(quote.id)}
+                      className={`p-2 rounded-xl text-xs cursor-pointer border transition-colors bg-transparent border-[var(--theme-border)] ${
+                        isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
+                      }`}
                     >
                       <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
                         "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
@@ -322,12 +357,13 @@ export default function StoryEditorPage() {
                           r/{quote.subreddit}
                         </span>
                         <button
-                          onClick={() => handleAssignQuote(quote.id)}
-                          className={`border-none cursor-pointer bg-transparent px-1 ${
-                            isLight ? 'text-blue-500 hover:text-blue-700' : 'text-blue-400 hover:text-blue-300'
+                          onClick={(e) => { e.stopPropagation(); handleAssignQuote(quote.id); }}
+                          title="Assign to story"
+                          className={`border-none cursor-pointer bg-transparent p-0 ${
+                            isLight ? 'text-gray-400 hover:text-orange-600' : 'text-gray-500 hover:text-[var(--theme-primary)]'
                           }`}
                         >
-                          Assign
+                          <FontAwesomeIcon icon={faPlus} />
                         </button>
                       </div>
                     </div>
