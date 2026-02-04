@@ -13,6 +13,7 @@ import StoriesPage from './components/StoriesPage';
 import StoryNewPage from './components/StoryNewPage';
 import StoryEditorPage from './components/StoryEditorPage';
 import PromoPage from './components/PromoPage';
+import LandingPage from './components/LandingPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
         <RedditProvider>
           <div className='App'>
           <Routes>
-            <Route index path='/' element={<AppShell />} />
+            <Route index path='/' element={<LandingPage />} />
             <Route path='/top' element={<AppShell />} />
             <Route path='/foryou' element={<AppShell />} />
             <Route path='/reddit' element={<AppShell />} />

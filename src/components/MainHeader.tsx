@@ -13,7 +13,7 @@ const getTabFromPath = (pathname: string): Tab => {
   if (pathname === '/foryou') return 'foryou';
   if (pathname.startsWith('/stories')) return 'stories';
   if (pathname.startsWith('/quotes')) return 'quotes';
-  if (pathname === '/' || pathname === '/top') return 'top';
+  if (pathname === '/top') return 'top';
   return null;
 };
 

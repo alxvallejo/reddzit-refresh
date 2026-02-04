@@ -106,8 +106,8 @@ const TopFeed = () => {
           {posts.map((post) => (
             <article
               key={post.id}
-              className={`group relative p-4 rounded-xl transition cursor-pointer border bg-[var(--theme-cardBg)] border-[var(--theme-border)] ${
-                isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
+              className={`group relative p-4 rounded-xl transition cursor-pointer border border-[var(--theme-border)] ${
+                isLight ? 'bg-[var(--theme-cardBg)] hover:border-orange-600' : 'bg-transparent hover:border-[var(--theme-primary)]'
               }`}
               onClick={() => handlePostClick(post)}
             >
