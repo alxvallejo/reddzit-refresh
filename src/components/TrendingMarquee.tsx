@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
+import { getDisplayTitle } from '../helpers/RedditUtils';
 
 const SPEED_OPTIONS = [
   { label: '1x', duration: 45 },
@@ -87,7 +88,7 @@ const TrendingMarquee = () => {
                 <span className="mr-2 text-xs font-bold text-[var(--theme-primary)]">
                   r/{post.subreddit}
                 </span>
-                <span>{post.title}</span>
+                <span>{getDisplayTitle(post)}</span>
                 <span className={`mx-4 ${isLight ? 'text-gray-300' : 'text-gray-600'}`}>•</span>
               </button>
             ))}

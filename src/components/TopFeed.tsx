@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
+import { getDisplayTitle } from '../helpers/RedditUtils';
 
 const TopFeed = () => {
   const { isLight } = useTheme();
@@ -120,7 +121,7 @@ const TopFeed = () => {
               </div>
 
               <h2 className="font-light text-base my-2 leading-tight text-[var(--theme-text)]">
-                {post.title}
+                {getDisplayTitle(post)}
               </h2>
 
               {post.author && (
