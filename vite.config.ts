@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true, // Allow network access
-    port: 5173
+    port: 5175
   },
   css: {
     preprocessorOptions: {

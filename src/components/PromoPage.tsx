@@ -2,7 +2,7 @@ import { useTheme } from '../context/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft, faBookmark, faBinoculars } from '@fortawesome/free-solid-svg-icons';
 
-const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/reddzit/your-extension-id';
+const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/reddzit-save-quotes-from/pphbloclmhhppmiknfjpddkefnialknl';
 
 function FeatureSection({
   icon,

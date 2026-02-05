@@ -12,7 +12,8 @@ import QuoteSelectionButton from './QuoteSelectionButton';
 import QuoteModal from './QuoteModal';
 import QuoteService from '../helpers/QuoteService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt, faBook, faPlus, faCheck, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import StoryService, { Story } from '../helpers/StoryService';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
 export default function PostView() {
@@ -38,6 +39,13 @@ export default function PostView() {
   const [selectedText, setSelectedText] = useState('');
   const [selectionPosition, setSelectionPosition] = useState<{ top: number; left: number } | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showStoryPicker, setShowStoryPicker] = useState(false);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [storiesLoading, setStoriesLoading] = useState(false);
+  const [creatingStory, setCreatingStory] = useState(false);
+  const [newStoryTitle, setNewStoryTitle] = useState('');
+  const [newStorySaving, setNewStorySaving] = useState(false);
+  const storyPickerRef = useRef<HTMLDivElement>(null);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -185,6 +193,66 @@ export default function PostView() {
     setSelectionPosition(null);
   };
 
+  // Story picker logic
+  const openStoryPicker = async () => {
+    setShowStoryPicker(true);
+    if (!accessToken || stories.length > 0) return;
+    setStoriesLoading(true);
+    try {
+      const { stories: s } = await StoryService.listStories(accessToken);
+      setStories(s);
+    } catch {}
+    finally { setStoriesLoading(false); }
+  };
+
+  const handleAddToStory = async (storyId: string) => {
+    if (!accessToken || !post) return;
+    const postTitle = post.link_title || post.title;
+    const sourceUrl = post.url || `https://www.reddit.com${post.permalink}`;
+    const bodyText = isComment(post) ? post.body : (post.selftext || postTitle);
+    await QuoteService.createQuote(accessToken, {
+      postId: post.name || `t3_${post.id}`,
+      text: bodyText,
+      sourceUrl,
+      subreddit: post.subreddit,
+      postTitle,
+      author: post.author,
+      storyId,
+    });
+    setShowStoryPicker(false);
+    showToast('Added to story!');
+  };
+
+  const handleCreateStoryInline = async () => {
+    if (!accessToken || !newStoryTitle.trim()) return;
+    setNewStorySaving(true);
+    try {
+      const { story } = await StoryService.createStory(accessToken, { title: newStoryTitle.trim() });
+      setStories(prev => [...prev, story]);
+      setNewStoryTitle('');
+      setCreatingStory(false);
+      await handleAddToStory(story.id);
+    } catch {
+      showToast('Failed to create story');
+    } finally {
+      setNewStorySaving(false);
+    }
+  };
+
+  // Close story picker on outside click
+  useEffect(() => {
+    if (!showStoryPicker) return;
+    const handleClick = (e: MouseEvent) => {
+      if (storyPickerRef.current && !storyPickerRef.current.contains(e.target as Node)) {
+        setShowStoryPicker(false);
+        setCreatingStory(false);
+        setNewStoryTitle('');
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showStoryPicker]);
+
   if (loading) return (
     <div className={`min-h-screen flex items-center justify-center ${bgColor}`}>
       <div className="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -312,6 +380,117 @@ export default function PostView() {
                          <FontAwesomeIcon icon={faSignInAlt} className="sm:mr-1.5" />
                          <span className="hidden sm:inline">Login to Save</span>
                      </button>
+                 )}
+                 {signedIn && (
+                   <>
+                     <span className="opacity-30 hidden sm:inline">|</span>
+                     <div className="relative" ref={storyPickerRef}>
+                       <button
+                          onClick={openStoryPicker}
+                          title="Add to Story"
+                          className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                       >
+                           <FontAwesomeIcon icon={faBook} className="sm:mr-1.5" />
+                           <span className="hidden sm:inline">Add to Story</span>
+                       </button>
+
+                       {/* Story picker dropdown */}
+                       {showStoryPicker && (
+                         <div className={`absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 rounded-xl shadow-2xl overflow-hidden border ${
+                           !isLight
+                             ? 'bg-[var(--theme-bg)] border-white/20'
+                             : 'bg-white border-gray-200'
+                         }`}>
+                           <div className="px-3 py-2 border-b border-[var(--theme-border)]">
+                             <span className={`text-xs font-semibold ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
+                               Add to Story
+                             </span>
+                           </div>
+                           <div className="max-h-48 overflow-y-auto">
+                             {storiesLoading ? (
+                               <div className="flex justify-center py-4">
+                                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin opacity-50" />
+                               </div>
+                             ) : stories.length === 0 ? (
+                               <div className={`px-3 py-3 text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
+                                 No stories yet. Create one below.
+                               </div>
+                             ) : (
+                               stories.map(s => (
+                                 <button
+                                   key={s.id}
+                                   onClick={() => handleAddToStory(s.id)}
+                                   className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
+                                     isLight
+                                       ? 'bg-transparent text-gray-900 hover:bg-gray-50'
+                                       : 'bg-transparent text-gray-200 hover:bg-white/5'
+                                   }`}
+                                 >
+                                   <FontAwesomeIcon icon={faBook} className="text-xs opacity-40" />
+                                   <span className="truncate">{s.title}</span>
+                                 </button>
+                               ))
+                             )}
+                           </div>
+                           <div className="border-t border-[var(--theme-border)]">
+                             {creatingStory ? (
+                               <div className="flex items-center gap-2 p-2">
+                                 <input
+                                   type="text"
+                                   value={newStoryTitle}
+                                   onChange={(e) => setNewStoryTitle(e.target.value)}
+                                   onKeyDown={(e) => {
+                                     if (e.key === 'Enter') handleCreateStoryInline();
+                                     if (e.key === 'Escape') { setCreatingStory(false); setNewStoryTitle(''); }
+                                   }}
+                                   placeholder="Story title..."
+                                   autoFocus
+                                   className={`flex-1 px-2.5 py-1.5 rounded text-sm focus:outline-none focus:ring-1 ${
+                                     isLight
+                                       ? 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-orange-500/50'
+                                       : 'bg-white/5 border border-white/20 text-white placeholder-gray-500 focus:ring-[var(--theme-border)]'
+                                   }`}
+                                 />
+                                 <button
+                                   onClick={handleCreateStoryInline}
+                                   disabled={newStorySaving || !newStoryTitle.trim()}
+                                   className={`p-1.5 rounded text-xs transition-colors border-none cursor-pointer disabled:opacity-40 ${
+                                     isLight
+                                       ? 'bg-orange-600 text-white hover:bg-orange-700'
+                                       : 'bg-[var(--theme-primary)] text-[var(--theme-bg)] hover:opacity-90'
+                                   }`}
+                                 >
+                                   <FontAwesomeIcon icon={faCheck} />
+                                 </button>
+                                 <button
+                                   onClick={() => { setCreatingStory(false); setNewStoryTitle(''); }}
+                                   className={`p-1.5 rounded text-xs transition-colors border-none cursor-pointer ${
+                                     isLight
+                                       ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                       : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                                   }`}
+                                 >
+                                   <FontAwesomeIcon icon={faTimes} />
+                                 </button>
+                               </div>
+                             ) : (
+                               <button
+                                 onClick={() => setCreatingStory(true)}
+                                 className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
+                                   isLight
+                                     ? 'bg-transparent text-orange-600 hover:bg-orange-50'
+                                     : 'bg-transparent text-[var(--theme-primary)] hover:bg-white/5'
+                                 }`}
+                               >
+                                 <FontAwesomeIcon icon={faPlus} className="text-xs" />
+                                 New Story
+                               </button>
+                             )}
+                           </div>
+                         </div>
+                       )}
+                     </div>
+                   </>
                  )}
                  {signedIn && isComment(post) && (
                    <>
