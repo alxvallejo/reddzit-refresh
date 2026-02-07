@@ -54,9 +54,9 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
     }
   };
 
-  const isComment = quote.postId.startsWith('t1_');
-  const postSlug = quote.postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
-  const postLink = `/p/${quote.postId}/${postSlug}`;
+  const isComment = quote.postId?.startsWith('t1_') ?? false;
+  const postSlug = quote.postTitle?.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50) ?? '';
+  const postLink = quote.postId ? `/p/${quote.postId}/${postSlug}` : '#';
 
   const formattedDate = new Date(quote.createdAt).toLocaleDateString('en-US', {
     month: 'short',

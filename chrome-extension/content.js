@@ -23,7 +23,7 @@
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
       </svg>
-      Save Quote
+      <span>Save Quote</span>
     `;
     button.addEventListener('click', handleSaveClick);
     document.body.appendChild(button);
@@ -79,6 +79,13 @@
     if (button) {
       button.style.display = 'none';
       button.classList.remove('saving');
+      // Reset button text
+      button.innerHTML = `
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+        </svg>
+        <span>Save Quote</span>
+      `;
     }
   }
 
@@ -120,7 +127,7 @@
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;">
         <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-7.07l-2.83 2.83M9.76 14.24l-2.83 2.83m0-10.14l2.83 2.83m4.48 4.48l2.83 2.83"/>
       </svg>
-      Saving...
+      <span>Saving...</span>
     `;
 
     // Send message to background script

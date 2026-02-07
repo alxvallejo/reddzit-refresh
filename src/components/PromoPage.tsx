@@ -129,16 +129,27 @@ export default function PromoPage() {
           className="text-2xl md:text-3xl font-semibold mb-4"
           style={{ color: 'var(--theme-text)' }}
         >
-          Reddit is massive. Your time isn't.
+          Keep track of your saved posts and comments.
         </p>
 
-        <p
-          className="text-base md:text-lg max-w-2xl mb-10 leading-relaxed"
-          style={{ color: 'var(--theme-textMuted)' }}
-        >
-          A smarter Reddit client that learns what you care about, saves what
-          matters, and cuts through the noise.
-        </p>
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-10 text-base md:text-lg" style={{ color: 'var(--theme-textMuted)' }}>
+          <span className="flex items-center gap-2">
+            <span style={{ color: 'var(--theme-primary)' }}>•</span>
+            Saved Post Management
+          </span>
+          <span className="flex items-center gap-2">
+            <span style={{ color: 'var(--theme-primary)' }}>•</span>
+            Web Reader
+          </span>
+          <span className="flex items-center gap-2">
+            <span style={{ color: 'var(--theme-primary)' }}>•</span>
+            Writing Tool
+          </span>
+          <span className="flex items-center gap-2">
+            <span style={{ color: 'var(--theme-primary)' }}>•</span>
+            Chrome Extension
+          </span>
+        </div>
 
         <a
           href={CHROME_STORE_URL}
