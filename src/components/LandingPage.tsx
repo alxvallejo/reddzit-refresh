@@ -13,7 +13,7 @@ import {
 import type { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import MainHeader from './MainHeader';
 
-const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/reddzit/your-extension-id';
+const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/pphbloclmhhppmiknfjpddkefnialknl';
 
 function FeatureSection({
   icon,
@@ -245,6 +245,21 @@ export default function LandingPage() {
               Connect with Reddit
             </button>
           )}
+
+          <a
+            href={CHROME_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-4 rounded-full text-lg font-semibold transition-transform hover:scale-105 border-2 no-underline"
+            style={{
+              backgroundColor: 'transparent',
+              borderColor: 'var(--theme-border)',
+              color: 'var(--theme-textMuted)',
+            }}
+          >
+            <FontAwesomeIcon icon={faPuzzlePiece} className="mr-2" />
+            Chrome Extension
+          </a>
         </div>
       </section>
 
