@@ -6,6 +6,7 @@ import { getDisplayTitle } from '../helpers/RedditUtils';
 
 const DISPLAY_DURATION = 4000; // How long each post is visible (ms)
 const FADE_DURATION = 500; // Fade transition duration (ms)
+const MOBILE_BREAKPOINT = 640; // Matches sm: breakpoint / CSS media query
 
 const TrendingMarquee = () => {
   const { isLight } = useTheme();
@@ -14,6 +15,13 @@ const TrendingMarquee = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= MOBILE_BREAKPOINT);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     DailyService.getTrendingRSS().then(setPosts);
@@ -36,11 +44,11 @@ const TrendingMarquee = () => {
   }, [posts.length]);
 
   useEffect(() => {
-    if (posts.length === 0 || isPaused) return;
+    if (posts.length === 0 || isPaused || isMobile) return;
 
     const interval = setInterval(goToNext, DISPLAY_DURATION);
     return () => clearInterval(interval);
-  }, [posts.length, isPaused, goToNext]);
+  }, [posts.length, isPaused, isMobile, goToNext]);
 
   const handlePostClick = (post: TrendingPost) => {
     const match = post.link.match(/\/comments\/([a-z0-9]+)\//i);
@@ -60,6 +68,7 @@ const TrendingMarquee = () => {
   if (posts.length === 0) return null;
 
   const currentPost = posts[currentIndex];
+  const marqueeItems = [...posts, ...posts, ...posts];
 
   return (
     <div
@@ -81,52 +90,76 @@ const TrendingMarquee = () => {
           Trending
         </div>
 
-        {/* Navigation arrows */}
-        <button
-          onClick={goToPrev}
-          className={`flex-shrink-0 ml-2 p-1 transition-colors cursor-pointer border-none bg-transparent ${
-            isLight ? 'text-gray-400 hover:text-gray-600' : 'text-gray-500 hover:text-gray-300'
-          }`}
-          title="Previous"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+        {isMobile ? (
+          /* Mobile: scrolling marquee */
+          <div className="overflow-hidden flex-1 py-2">
+            <div className="animate-marquee flex items-center whitespace-nowrap">
+              {marqueeItems.map((post, i) => (
+                <button
+                  key={`${post.id}-${i}`}
+                  onClick={() => handlePostClick(post)}
+                  className={`inline-flex items-center text-sm cursor-pointer bg-transparent border-none flex-shrink-0 ${
+                    isLight ? 'text-gray-700' : 'text-gray-300'
+                  }`}
+                >
+                  <span className="mr-2 text-xs font-bold text-[var(--theme-primary)]">
+                    r/{post.subreddit}
+                  </span>
+                  <span>{getDisplayTitle(post)}</span>
+                  <span className="mx-4 text-[var(--theme-primary)] opacity-50">&bull;</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Desktop: fade carousel with arrows */
+          <>
+            <button
+              onClick={goToPrev}
+              className={`flex-shrink-0 ml-2 p-1 transition-colors cursor-pointer border-none bg-transparent ${
+                isLight ? 'text-gray-400 hover:text-gray-600' : 'text-gray-500 hover:text-gray-300'
+              }`}
+              title="Previous"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
-        <div className="overflow-hidden flex-1 py-2">
-          <button
-            onClick={() => handlePostClick(currentPost)}
-            className={`flex items-center text-sm hover:underline cursor-pointer bg-transparent border-none transition-opacity duration-500 ${
-              isLight ? 'text-gray-700 hover:text-orange-600' : 'text-gray-300 hover:text-[var(--theme-primary)]'
-            }`}
-            style={{ opacity: isVisible ? 1 : 0 }}
-          >
-            <span className="mr-2 text-xs font-bold text-[var(--theme-primary)]">
-              r/{currentPost.subreddit}
+            <div className="overflow-hidden flex-1 py-2">
+              <button
+                onClick={() => handlePostClick(currentPost)}
+                className={`flex items-center text-sm hover:underline cursor-pointer bg-transparent border-none transition-opacity duration-500 ${
+                  isLight ? 'text-gray-700 hover:text-orange-600' : 'text-gray-300 hover:text-[var(--theme-primary)]'
+                }`}
+                style={{ opacity: isVisible ? 1 : 0 }}
+              >
+                <span className="mr-2 text-xs font-bold text-[var(--theme-primary)]">
+                  r/{currentPost.subreddit}
+                </span>
+                <span className="truncate">{getDisplayTitle(currentPost)}</span>
+              </button>
+            </div>
+
+            <button
+              onClick={goToNext}
+              className={`flex-shrink-0 p-1 transition-colors cursor-pointer border-none bg-transparent ${
+                isLight ? 'text-gray-400 hover:text-gray-600' : 'text-gray-500 hover:text-gray-300'
+              }`}
+              title="Next"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <span className={`flex-shrink-0 ml-2 text-xs tabular-nums ${
+              isLight ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              {currentIndex + 1}/{posts.length}
             </span>
-            <span className="truncate">{getDisplayTitle(currentPost)}</span>
-          </button>
-        </div>
-
-        <button
-          onClick={goToNext}
-          className={`flex-shrink-0 p-1 transition-colors cursor-pointer border-none bg-transparent ${
-            isLight ? 'text-gray-400 hover:text-gray-600' : 'text-gray-500 hover:text-gray-300'
-          }`}
-          title="Next"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Post counter */}
-        <span className={`flex-shrink-0 ml-2 text-xs tabular-nums ${
-          isLight ? 'text-gray-400' : 'text-gray-500'
-        }`}>
-          {currentIndex + 1}/{posts.length}
-        </span>
+          </>
+        )}
       </div>
     </div>
   );
