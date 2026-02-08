@@ -87,7 +87,14 @@ export default function QuoteCard({ quote, onUpdate, onDelete, selected, onToggl
           )}
           <span className="font-medium text-[#ff4500]">r/{quote.subreddit}</span>
           <span>·</span>
-          {isComment ? (
+          {!isComment && quote.postId ? (
+            <Link
+              to={postLink}
+              className="hover:underline truncate max-w-[200px] text-[var(--theme-textMuted)]"
+            >
+              {quote.postTitle}
+            </Link>
+          ) : (
             <a
               href={quote.sourceUrl}
               target="_blank"
@@ -96,13 +103,6 @@ export default function QuoteCard({ quote, onUpdate, onDelete, selected, onToggl
             >
               {quote.postTitle}
             </a>
-          ) : (
-            <Link
-              to={postLink}
-              className="hover:underline truncate max-w-[200px] text-[var(--theme-textMuted)]"
-            >
-              {quote.postTitle}
-            </Link>
           )}
           <span>·</span>
           <span>{formattedDate}</span>
