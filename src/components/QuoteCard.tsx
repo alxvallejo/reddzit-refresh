@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft, faSquare, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
 
@@ -19,9 +19,11 @@ interface QuoteCardProps {
   quote: Quote;
   onUpdate: (id: string, note: string, tags: string[]) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
-export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps) {
+export default function QuoteCard({ quote, onUpdate, onDelete, selected, onToggleSelect }: QuoteCardProps) {
   const { isLight } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -30,9 +32,9 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const displayText = expanded || quote.text.length <= 200
+  const displayText = expanded || quote.text.length <= 500
     ? quote.text
-    : quote.text.substring(0, 200) + '...';
+    : quote.text.substring(0, 500) + '...';
 
   const handleSave = async () => {
     setLoading(true);
@@ -65,10 +67,24 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
   });
 
   return (
-    <div className="rounded-xl p-4 bg-[var(--theme-bg)] border border-[var(--theme-border)]">
+    <div className={`rounded-xl p-4 bg-[var(--theme-bg)] border ${
+      selected ? 'border-[var(--theme-primary)] ring-1 ring-[var(--theme-primary)]' : 'border-[var(--theme-border)]'
+    }`}>
       {/* Metadata */}
       <div className="flex items-center justify-between text-xs mb-3 text-[var(--theme-textMuted)]">
         <div className="flex items-center gap-2">
+          {onToggleSelect && (
+            <button
+              onClick={() => onToggleSelect(quote.id)}
+              className={`p-1 rounded transition-colors border-none cursor-pointer bg-transparent ${
+                selected
+                  ? 'text-[var(--theme-primary)]'
+                  : isLight ? 'text-gray-400 hover:text-gray-600' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              <FontAwesomeIcon icon={selected ? faSquareCheck : faSquare} />
+            </button>
+          )}
           <span className="font-medium text-[#ff4500]">r/{quote.subreddit}</span>
           <span>·</span>
           {isComment ? (
@@ -183,7 +199,7 @@ export default function QuoteCard({ quote, onUpdate, onDelete }: QuoteCardProps)
           <>
             <FontAwesomeIcon icon={faQuoteLeft} className="mr-2 opacity-40" />
             <span>{displayText}</span>
-            {quote.text.length > 200 && (
+            {quote.text.length > 500 && (
               <button
                 onClick={() => setExpanded(!expanded)}
                 className="ml-2 text-sm font-medium border-none bg-transparent cursor-pointer text-[var(--theme-primary)]"

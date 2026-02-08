@@ -57,6 +57,15 @@
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
+    // Reset button state when showing
+    btn.classList.remove('saving');
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+      </svg>
+      <span>Save Quote</span>
+    `;
+
     // Position above selection, centered
     let top = rect.top + scrollY - 45;
     let left = rect.left + scrollX + (rect.width / 2) - (btn.offsetWidth / 2);
@@ -139,10 +148,23 @@
     };
     console.log('[Reddzit] Saving quote:', payload);
 
+    // Fallback timeout in case response never comes back
+    let responseReceived = false;
+    const fallbackTimeout = setTimeout(() => {
+      if (!responseReceived) {
+        console.warn('[Reddzit] Response timeout - hiding button');
+        hideButton();
+        showToast('Quote may have been saved. Check your quotes.', 'success');
+      }
+    }, 10000);
+
     chrome.runtime.sendMessage({
       type: 'SAVE_QUOTE',
       data: payload
     }, (response) => {
+      responseReceived = true;
+      clearTimeout(fallbackTimeout);
+
       if (chrome.runtime.lastError) {
         console.error('[Reddzit] sendMessage error:', chrome.runtime.lastError);
         hideButton();
