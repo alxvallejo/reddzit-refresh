@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
 import ForYouService, { ForYouPost, Persona, TriageAction, SubredditSuggestion, SubredditWeight } from '../helpers/ForYouService';
@@ -19,6 +20,8 @@ const ForYouFeed = () => {
   const { isLight } = useTheme();
   const { signedIn, redirectForAuth, accessToken, savePost } = useReddit();
   const navigate = useNavigate();
+  const [animateRef] = useAutoAnimate();
+  const [suggestionsAnimateRef] = useAutoAnimate();
 
   const token = accessToken || '';
 
@@ -125,78 +128,77 @@ const ForYouFeed = () => {
   };
 
   // Save post to Reddit and remove from feed
-  const handleSave = async (postId: string) => {
-    try {
-      await savePost('t3_' + postId);
+  const handleSave = (postId: string) => {
+    // Optimistically remove the post immediately
+    setPosts(prev => {
+      const remaining = prev.filter(p => p.redditPostId !== postId);
+      if (remaining.length < MIN_POSTS_THRESHOLD) {
+        ForYouService.getFeed(token).then(feedResult => {
+          setPosts(feedResult.posts);
+        }).catch(console.error);
+      }
+      return remaining;
+    });
 
-      setPosts(prev => {
-        const remaining = prev.filter(p => p.redditPostId !== postId);
-        if (remaining.length < MIN_POSTS_THRESHOLD) {
-          ForYouService.getFeed(token).then(feedResult => {
-            setPosts(feedResult.posts);
-          }).catch(console.error);
-        }
-        return remaining;
-      });
-    } catch (err) {
+    // Fire-and-forget: save to Reddit + record triage action
+    savePost('t3_' + postId).catch(err => {
       console.error('Failed to save post:', err);
-      setError('Failed to save post. Please try again.');
-    }
+    });
+    ForYouService.recordAction(token, postId, 'saved').catch(err => {
+      console.error('Failed to record save action:', err);
+    });
   };
 
   // Record triage action and remove post from feed
-  const handleAction = async (postId: string, action: TriageAction) => {
+  const handleAction = (postId: string, action: TriageAction) => {
     if (!token) return;
 
-    try {
-      await ForYouService.recordAction(token, postId, action);
+    // Optimistically remove the post immediately for a snappy feel
+    setPosts(prev => {
+      const remaining = prev.filter(p => p.redditPostId !== postId);
 
-      // Remove post and check if we need to refresh
-      setPosts(prev => {
-        const remaining = prev.filter(p => p.redditPostId !== postId);
+      // Auto-refresh when posts run low
+      if (remaining.length < MIN_POSTS_THRESHOLD) {
+        ForYouService.getFeed(token).then(feedResult => {
+          setPosts(feedResult.posts);
+        }).catch(console.error);
+      }
 
-        // Auto-refresh when posts run low
-        if (remaining.length < MIN_POSTS_THRESHOLD) {
-          ForYouService.getFeed(token).then(feedResult => {
-            setPosts(feedResult.posts);
-          }).catch(console.error);
-        }
+      return remaining;
+    });
 
-        return remaining;
-      });
-    } catch (err) {
+    // Fire-and-forget the API call
+    ForYouService.recordAction(token, postId, action).catch(err => {
       console.error('Failed to record action:', err);
-      setError('Failed to save action. Please try again.');
-    }
+    });
   };
 
   // Dismiss a suggested subreddit and replace with another from the pool
-  const handleDismissSuggestion = async (subredditName: string) => {
+  const handleDismissSuggestion = (subredditName: string) => {
     if (!token) return;
 
-    try {
-      await ForYouService.dismissSubreddit(token, subredditName);
+    // Find a replacement from the pool that's not currently displayed
+    const displayedNames = suggestions.map(s => s.name);
+    const replacement = suggestionPool.find(
+      s => s.name !== subredditName && !displayedNames.includes(s.name)
+    );
 
-      // Find a replacement from the pool that's not currently displayed
-      const displayedNames = suggestions.map(s => s.name);
-      const replacement = suggestionPool.find(
-        s => s.name !== subredditName && !displayedNames.includes(s.name)
-      );
+    // Optimistically update displayed suggestions
+    setSuggestions(prev => {
+      const updated = prev.filter(s => s.name !== subredditName);
+      if (replacement) {
+        updated.push(replacement);
+      }
+      return updated;
+    });
 
-      // Update displayed suggestions
-      setSuggestions(prev => {
-        const updated = prev.filter(s => s.name !== subredditName);
-        if (replacement) {
-          updated.push(replacement);
-        }
-        return updated;
-      });
+    // Remove dismissed subreddit from pool
+    setSuggestionPool(prev => prev.filter(s => s.name !== subredditName));
 
-      // Remove dismissed subreddit from pool
-      setSuggestionPool(prev => prev.filter(s => s.name !== subredditName));
-    } catch (err) {
+    // Fire-and-forget the API call
+    ForYouService.dismissSubreddit(token, subredditName).catch(err => {
       console.error('Failed to dismiss subreddit:', err);
-    }
+    });
   };
 
   // Toggle subreddit star
@@ -323,15 +325,15 @@ const ForYouFeed = () => {
       {/* Header */}
       <header className="px-4 pb-2 sticky top-16 z-40 bg-[var(--theme-bg)]">
         <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
-          <div className="flex items-center justify-between py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--theme-text)]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-4">
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-2xl font-bold text-[var(--theme-text)] whitespace-nowrap">
                 For You
               </h1>
               {personaRefreshedAt && (
-                <div className="text-xs text-[var(--theme-textMuted)]">
-                  Last refreshed: {formatTimeAgo(personaRefreshedAt)}
-                </div>
+                <span className="text-xs text-[var(--theme-textMuted)]">
+                  {formatTimeAgo(personaRefreshedAt)}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -387,7 +389,7 @@ const ForYouFeed = () => {
           {/* Suggested Subreddits */}
           {suggestions.length > 0 && (
             <div className="max-w-7xl mx-auto px-4 pb-4 pt-4">
-              <div className="flex items-center flex-wrap gap-2">
+              <div ref={suggestionsAnimateRef} className="flex items-center flex-wrap gap-2">
                 <span className="text-xs font-medium whitespace-nowrap text-[var(--theme-textMuted)]">
                   Discover:
                 </span>
@@ -430,7 +432,7 @@ const ForYouFeed = () => {
 
           {/* Posts list */}
           {posts.length > 0 ? (
-            <main className="max-w-6xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <main ref={animateRef} className="max-w-6xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
               {posts.map((post) => (
                 <article
                   key={post.id}

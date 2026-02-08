@@ -156,7 +156,7 @@ export default function PostView() {
   const bgColor = 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
   const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
   const articleClass = !isLight
-    ? 'prose-invert prose-p:text-[var(--theme-textMuted)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-textMuted)] prose-li:font-light prose-ul:text-[var(--theme-textMuted)] prose-ol:text-[var(--theme-textMuted)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-white'
+    ? 'prose-invert prose-p:text-[var(--theme-text)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-text)] prose-li:font-light prose-ul:text-[var(--theme-text)] prose-ol:text-[var(--theme-text)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-white'
     : 'prose-gray prose-p:font-light prose-headings:font-normal prose-strong:font-medium prose-li:font-light';
   
   const handleShare = async () => {
