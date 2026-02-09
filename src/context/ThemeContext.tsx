@@ -4,7 +4,7 @@ import { deriveColors, luminance } from '../utils/deriveColors';
 export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
 export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans' | 'cactus-classical' | 'noto-znamenny';
 
-const fontFamilies: Record<FontFamily, string> = {
+export const fontFamilies: Record<FontFamily, string> = {
   'brygada': '"Brygada 1918", "Outfit", system-ui, serif',
   'outfit': '"Outfit", "Open Sans", system-ui, sans-serif',
   'libertinus': '"Libertinus Math", "Outfit", system-ui, serif',
@@ -195,6 +195,8 @@ interface ThemeContextType {
   fontFamily: FontFamily;
   setFontFamily: (font: FontFamily) => void;
   toggleFont: () => void;
+  contentFont: FontFamily;
+  setContentFont: (font: FontFamily) => void;
   bgShade: string | null;
   setBgShade: (color: string | null) => void;
   accentShade: string | null;
@@ -213,6 +215,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_font') as FontFamily | null;
     return saved && fontFamilies[saved] ? saved : 'noto-znamenny';
+  });
+
+  const [contentFont, setContentFontState] = useState<FontFamily>(() => {
+    const saved = localStorage.getItem('reddzit_content_font') as FontFamily | null;
+    return saved && fontFamilies[saved] ? saved : fontFamily;
   });
 
   const [bgShade, setBgShadeState] = useState<string | null>(() => {
@@ -255,6 +262,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     document.documentElement.setAttribute('data-font', fontFamily);
   }, [fontFamily]);
 
+  useEffect(() => {
+    localStorage.setItem('reddzit_content_font', contentFont);
+  }, [contentFont]);
+
   const setTheme = (name: ThemeName) => {
     if (themes[name]) {
       setBgShade(null);
@@ -270,6 +281,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setFontFamily = (font: FontFamily) => {
     if (fontFamilies[font]) {
       setFontFamilyState(font);
+    }
+  };
+
+  const setContentFont = (font: FontFamily) => {
+    if (fontFamilies[font]) {
+      setContentFontState(font);
     }
   };
 
@@ -296,7 +313,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, bgShade, setBgShade, accentShade, setAccentShade, isLight }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, contentFont, setContentFont, bgShade, setBgShade, accentShade, setAccentShade, isLight }}>
       {children}
     </ThemeContext.Provider>
   );

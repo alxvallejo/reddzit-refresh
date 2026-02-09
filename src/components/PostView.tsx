@@ -24,7 +24,6 @@ export default function PostView() {
   // Use context for preferences.
   const {
     fontSize, setFontSize,
-    darkMode, toggleDarkMode,
     savePost, unsavePost,
     signedIn, redirectForAuth,
     accessToken
@@ -152,7 +151,7 @@ export default function PostView() {
     return () => { cancelled = true; };
   }, [fullname, location.state]);
 
-  const { isLight } = useTheme();
+  const { isLight, contentFont, setContentFont } = useTheme();
   const bgColor = 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
   const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
   const articleClass = !isLight
@@ -296,8 +295,8 @@ export default function PostView() {
                   <ReadControls
                       fontSize={fontSize}
                       setSize={setFontSize}
-                      darkMode={darkMode}
-                      toggleDarkMode={toggleDarkMode}
+                      contentFont={contentFont}
+                      setContentFont={setContentFont}
                   />
               </div>
           </header>
@@ -329,9 +328,21 @@ export default function PostView() {
                      </div>
                  )}
              </div>
-             
+
+             {/* Read Controls (signed-in users get these inline; signed-out get them in the header) */}
+             {signedIn && (
+               <div className="flex justify-end mb-4">
+                 <ReadControls
+                   fontSize={fontSize}
+                   setSize={setFontSize}
+                   contentFont={contentFont}
+                   setContentFont={setContentFont}
+                 />
+               </div>
+             )}
+
              {/* Article Content */}
-             <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }}>
+             <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }} data-content-font={contentFont}>
                  {getParsedContent(content, false, post, fontSize, !!getArticlePreviewImage(post))}
              </article>
         </main>

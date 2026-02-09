@@ -73,6 +73,50 @@ body {
   font-weight: 200 !important;
 }
 
+/* Content font switching via data attribute (article-level, independent of UI font).
+   Double attribute selector bumps specificity to (0,2,0), beating :root[data-font] * at (0,1,1). */
+[data-content-font="brygada"][data-content-font],
+[data-content-font="brygada"][data-content-font] * {
+  font-family: "Brygada 1918", "Outfit", system-ui, serif !important;
+}
+
+[data-content-font="outfit"][data-content-font],
+[data-content-font="outfit"][data-content-font] * {
+  font-family: "Outfit", "Open Sans", system-ui, sans-serif !important;
+}
+
+[data-content-font="libertinus"][data-content-font],
+[data-content-font="libertinus"][data-content-font] * {
+  font-family: "Libertinus Math", "Outfit", system-ui, serif !important;
+}
+
+[data-content-font="tirra"][data-content-font],
+[data-content-font="tirra"][data-content-font] * {
+  font-family: "Tirra", "Outfit", system-ui, serif !important;
+}
+
+[data-content-font="reddit-sans"][data-content-font],
+[data-content-font="reddit-sans"][data-content-font] * {
+  font-family: "Reddit Sans", "Outfit", system-ui, sans-serif !important;
+}
+
+[data-content-font="zalando-sans"][data-content-font],
+[data-content-font="zalando-sans"][data-content-font] * {
+  font-family: "Zalando Sans", "Outfit", system-ui, sans-serif !important;
+  font-weight: 200 !important;
+}
+
+[data-content-font="cactus-classical"][data-content-font],
+[data-content-font="cactus-classical"][data-content-font] * {
+  font-family: "Cactus Classical Serif", "Outfit", system-ui, serif !important;
+}
+
+[data-content-font="noto-znamenny"][data-content-font],
+[data-content-font="noto-znamenny"][data-content-font] * {
+  font-family: "Noto Znamenny Musical Notation", "Outfit", system-ui, serif !important;
+  font-weight: 200 !important;
+}
+
 /* Marquee Animation */
 @keyframes marquee {
   0% {
