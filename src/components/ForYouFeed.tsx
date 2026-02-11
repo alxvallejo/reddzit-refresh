@@ -38,6 +38,12 @@ const ForYouFeed = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>('feed');
   const [now, setNow] = useState(new Date());
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2000);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -139,6 +145,7 @@ const ForYouFeed = () => {
       }
       return remaining;
     });
+    showToast('Post saved!');
 
     // Fire-and-forget: save to Reddit + record triage action
     savePost('t3_' + postId).catch(err => {
@@ -471,11 +478,7 @@ const ForYouFeed = () => {
                         handleSave(post.redditPostId);
                       }}
                       title="Save to Reddit"
-                      className={`p-1.5 rounded transition ${
-                        isLight
-                          ? 'text-green-600 hover:bg-green-100'
-                          : 'text-green-400 hover:bg-green-500/20'
-                      }`}
+                      className="p-1.5 rounded transition text-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/15"
                     >
                       <FontAwesomeIcon icon={faBookmark} className="w-3 h-3" />
                     </button>
@@ -709,6 +712,16 @@ const ForYouFeed = () => {
               })()}
             </div>
           </section>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]"
+          style={{ backgroundColor: 'var(--theme-primary)' }}
+        >
+          {toast}
         </div>
       )}
     </div>
