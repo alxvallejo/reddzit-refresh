@@ -214,12 +214,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_font') as FontFamily | null;
-    return saved && fontFamilies[saved] ? saved : 'noto-znamenny';
+    return saved && fontFamilies[saved] ? saved : 'outfit';
   });
 
   const [contentFont, setContentFontState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_content_font') as FontFamily | null;
-    return saved && fontFamilies[saved] ? saved : fontFamily;
+    return saved && fontFamilies[saved] ? saved : 'cactus-classical';
   });
 
   const [bgShade, setBgShadeState] = useState<string | null>(() => {
