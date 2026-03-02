@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 import { getDisplayTitle } from '../helpers/RedditUtils';
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 
 const TopFeed = () => {
   const { isLight } = useTheme();
@@ -19,6 +21,32 @@ const TopFeed = () => {
 
   useEffect(() => {
     loadTopPosts();
+  }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadTopPosts();
+      }
+    };
+    const handlePageShow = () => {
+      loadTopPosts();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadTopPosts();
+    }, REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
   }, []);
 
   const loadTopPosts = async () => {
@@ -55,6 +83,21 @@ const TopFeed = () => {
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     return `${Math.floor(seconds / 86400)}d ago`;
   };
+
+  const getNewestPostAgeSeconds = () => {
+    const validTimestamps = posts
+      .map(post => post.pubDate)
+      .filter((pubDate): pubDate is string => Boolean(pubDate))
+      .map(pubDate => new Date(pubDate).getTime())
+      .filter(ms => !Number.isNaN(ms));
+
+    if (validTimestamps.length === 0) return null;
+    const newestPostMs = Math.max(...validTimestamps);
+    return Math.floor((Date.now() - newestPostMs) / 1000);
+  };
+
+  const newestPostAgeSeconds = getNewestPostAgeSeconds();
+  const isStaleData = newestPostAgeSeconds !== null && newestPostAgeSeconds > STALE_DATA_THRESHOLD_SECONDS;
 
   if (loading) {
     return (
@@ -97,6 +140,14 @@ const TopFeed = () => {
               {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
             </span>
           </div>
+          {newestPostAgeSeconds !== null && (
+            <div className="flex items-center justify-end px-4 pb-3">
+              <span className={`text-xs ${isStaleData ? 'text-amber-600' : 'text-[var(--theme-textMuted)]'}`}>
+                Newest post: {formatTimeAgo(new Date(Date.now() - newestPostAgeSeconds * 1000).toISOString())}
+                {isStaleData ? ' • Data may be stale' : ''}
+              </span>
+            </div>
+          )}
         </div>
       </header>
 

@@ -39,6 +39,7 @@ const CACHE_KEY = 'rdz_latest_report';
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 const RSS_CACHE_KEY = 'rdz_trending_rss';
 const RSS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const RSS_STALE_FALLBACK_MAX_AGE = 60 * 60 * 1000; // 60 minutes
 
 export interface TrendingPost {
   id: string;
@@ -183,13 +184,16 @@ const DailyService = {
       return posts;
     } catch (error) {
       console.error('Failed to fetch trending posts', error);
-      // Try to return stale cache on error (only if it has posts)
+      // Try to return cache on error only if it's not too old
       const cached = localStorage.getItem(RSS_CACHE_KEY);
       if (cached) {
-        const { data } = JSON.parse(cached);
-        if (data?.length > 0) {
+        const { data, timestamp } = JSON.parse(cached);
+        const hasPosts = data?.length > 0;
+        const cacheAge = typeof timestamp === 'number' ? Date.now() - timestamp : Infinity;
+        if (hasPosts && cacheAge < RSS_STALE_FALLBACK_MAX_AGE) {
           return data;
         }
+        localStorage.removeItem(RSS_CACHE_KEY);
       }
       return [];
     }

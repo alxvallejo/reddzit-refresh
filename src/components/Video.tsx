@@ -70,12 +70,12 @@ const Video: React.FC<VideoProps> = ({ url, title = 'Video' }) => {
     // Reddit: use native video element with HLS
     if (videoInfo.type === 'reddit') {
         return (
-            <div className="relative max-w-full my-4 rounded-lg shadow-lg bg-black overflow-hidden">
+            <div className="relative max-w-full my-4 rounded-lg shadow-lg bg-black overflow-hidden flex justify-center">
                 <video
                     ref={videoRef}
                     controls
                     playsInline
-                    className="w-full h-auto"
+                    className="w-full h-auto max-h-[70vh] object-contain"
                     title={title}
                 >
                     Your browser does not support the video tag.

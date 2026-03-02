@@ -193,6 +193,30 @@ export const getCommentSnippet = (post, maxLen = 400) => {
   return cleaned.slice(0, maxLen - 1).trim() + '…';
 };
 
+export const getImageUrlFromText = (text) => {
+  if (!text || typeof text !== 'string') return null;
+  const trimmed = text.trim().replace(/^<|>$/g, '');
+  if (!/^https?:\/\//i.test(trimmed)) return null;
+
+  try {
+    const url = new URL(trimmed);
+    const hasImageExt = /\.(jpg|jpeg|png|gif|webp|bmp|avif)(\?.*)?$/i.test(trimmed);
+    const imageHosts = new Set([
+      'i.redd.it',
+      'preview.redd.it',
+      'i.imgur.com',
+      'images.unsplash.com',
+    ]);
+    if (hasImageExt || imageHosts.has(url.hostname)) {
+      return trimmed;
+    }
+  } catch (_) {
+    return null;
+  }
+
+  return null;
+};
+
 // Detect whether a saved item is a Reddit comment
 export const isComment = (post) => {
   return !!(
@@ -255,10 +279,17 @@ export const handlePostType = async (postType) => {
       // Reddit comment or link - show the comment body if available
       const post = postType.post;
       if (post && post.body) {
+        const imageUrlFromComment = getImageUrlFromText(post.body);
         // This is a comment with body text
         // Decode HTML entities if body_html is available
         let commentContent = post.body_html;
-        if (commentContent) {
+        if (imageUrlFromComment) {
+          commentContent = `
+            <a href="${imageUrlFromComment}" target="_blank" rel="noreferrer noopener">
+              <img src="${imageUrlFromComment}" alt="Comment image" />
+            </a>
+          `;
+        } else if (commentContent) {
           const textarea = document.createElement('textarea');
           textarea.innerHTML = commentContent;
           commentContent = textarea.value;
@@ -341,6 +372,9 @@ export const getParsedContent = (
 ) => {
   // Track if we've seen the first image (to skip it when preview image is shown)
   let firstImageSkipped = false;
+  const selectedPostImageClass = isComment(selectedPost)
+    ? 'w-full h-auto max-h-[70vh] object-contain rounded mx-auto'
+    : 'w-full h-auto rounded';
   //const selectedPost = saved[selectedIndex]
 
   let content;
@@ -359,7 +393,7 @@ export const getParsedContent = (
       let src = selectedContent.img;
       return (
         <div className='my-4' style={{ fontSize }}>
-          <img className='w-full h-auto rounded' src={src} alt={src} />
+          <img className={selectedPostImageClass} src={src} alt={src} />
         </div>
       );
     } else if (selectedContent.video) {
@@ -381,7 +415,7 @@ export const getParsedContent = (
       <div className='my-4' style={{ fontSize }}>
         <figure className='my-4'>
           <img
-            className='w-full h-auto rounded'
+            className={selectedPostImageClass}
             src={selectedContent.img}
             alt={selectedPost.title}
           />
@@ -415,7 +449,7 @@ export const getParsedContent = (
             }
             return (
               <div className='my-4' style={{ fontSize }}>
-                <img className='w-full h-auto rounded' src={src} alt={alt} />
+                <img className={selectedPostImageClass} src={src} alt={alt} />
               </div>
             );
           }
@@ -454,7 +488,7 @@ export const getParsedContent = (
             }
             return (
               <div className='my-4' style={{ fontSize }}>
-                <img className='w-full h-auto rounded' src={src} alt={alt} />
+                <img className={selectedPostImageClass} src={src} alt={alt} />
               </div>
             );
           }

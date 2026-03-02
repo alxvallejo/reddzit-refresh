@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getPreviewImage, getDisplayTitle, isComment, getCommentSnippet } from '../helpers/RedditUtils';
+import { getPreviewImage, getDisplayTitle, isComment, getCommentSnippet, getImageUrlFromText, getArticlePreviewImage } from '../helpers/RedditUtils';
 import NoContent from './NoContent';
 
 // Demo data for Chrome Web Store screenshots — activate with ?demo=true
@@ -20,17 +20,60 @@ const DEMO_POSTS = [
 ];
 
 const SavedFeed = () => {
-  const { loading, saved, after, fetchSaved } = useReddit();
+  const { loading, saved, after, fetchSaved, redditHelper } = useReddit();
   const { isLight } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get('demo') === 'true';
   const [now, setNow] = useState(new Date());
+  const [commentParentImages, setCommentParentImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (isDemo || !redditHelper || saved.length === 0) return;
+
+    let cancelled = false;
+
+    const loadParentImages = async () => {
+      const commentsNeedingImages = saved.filter((post) => {
+        if (!isComment(post)) return false;
+        const commentImage = getImageUrlFromText(post.body);
+        const directImage = commentImage || getImageUrlFromText(post.link_url) || getImageUrlFromText(post.url) || getPreviewImage(post);
+        return !directImage && !!post.link_id && !commentParentImages[post.link_id];
+      });
+
+      const linkIds = Array.from(new Set(commentsNeedingImages.map((post) => post.link_id)));
+      if (linkIds.length === 0) return;
+
+      const entries = await Promise.all(
+        linkIds.map(async (linkId) => {
+          try {
+            const parentPost = await redditHelper.getById(linkId);
+            const parentImage = getArticlePreviewImage(parentPost)
+              || getPreviewImage(parentPost)
+              || getImageUrlFromText(parentPost?.url);
+            return parentImage ? [linkId, parentImage] : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      if (cancelled) return;
+
+      const updates = entries.filter((entry): entry is [string, string] => Array.isArray(entry));
+      if (updates.length > 0) {
+        setCommentParentImages((prev) => ({ ...prev, ...Object.fromEntries(updates) }));
+      }
+    };
+
+    loadParentImages();
+    return () => { cancelled = true; };
+  }, [saved, redditHelper, isDemo, commentParentImages]);
 
   const handlePostClick = (post: any) => {
     const title = getDisplayTitle(post) || post.title || '';
@@ -98,54 +141,65 @@ const SavedFeed = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
-        {posts.map((post) => (
-          <article
-            key={post.id}
-            onClick={() => handlePostClick(post)}
-            className={`group relative p-4 rounded-xl transition cursor-pointer border border-[var(--theme-border)] ${
-              isLight ? 'bg-[var(--theme-cardBg)] hover:border-orange-600' : 'bg-transparent hover:border-[var(--theme-primary)]'
-            }`}
-          >
-            <div className="flex gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline justify-between mb-1">
-                  <span className="text-xs font-normal text-[var(--theme-primary)]">
-                    r/{post.subreddit}
-                  </span>
+        {posts.map((post) => {
+          const commentImageUrl = isComment(post) ? getImageUrlFromText(post.body) : null;
+          const fallbackImageFromPost = getImageUrlFromText(post.link_url) || getImageUrlFromText(post.url) || getPreviewImage(post);
+          const parentPostImage = isComment(post) && post.link_id ? commentParentImages[post.link_id] : null;
+          const cardImageUrl = commentImageUrl || fallbackImageFromPost || parentPostImage;
+
+          return (
+            <article
+              key={post.id}
+              onClick={() => handlePostClick(post)}
+              className={`group relative p-4 rounded-xl transition cursor-pointer border border-[var(--theme-border)] ${
+                isLight ? 'bg-[var(--theme-cardBg)] hover:border-orange-600' : 'bg-transparent hover:border-[var(--theme-primary)]'
+              }`}
+            >
+              <div className="flex gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between mb-1">
+                    <span className="text-xs font-normal text-[var(--theme-primary)]">
+                      r/{post.subreddit}
+                    </span>
+                  </div>
+
+                  <h2 className="font-light text-base my-2 leading-tight text-[var(--theme-text)]">
+                    {getDisplayTitle(post)}
+                  </h2>
+
+                  {isComment(post) && !commentImageUrl && (
+                    <div className="text-sm line-clamp-2 italic p-2 rounded text-[var(--theme-textMuted)] bg-[var(--theme-bgSecondary)]">
+                      "{getCommentSnippet(post, 100)}"
+                    </div>
+                  )}
+
+                  {post.author && (
+                    <div className="text-xs text-[var(--theme-textMuted)]">
+                      u/{post.author}
+                    </div>
+                  )}
                 </div>
 
-                <h2 className="font-light text-base my-2 leading-tight text-[var(--theme-text)]">
-                  {getDisplayTitle(post)}
-                </h2>
-
-                {isComment(post) && (
-                  <div className="text-sm line-clamp-2 italic p-2 rounded text-[var(--theme-textMuted)] bg-[var(--theme-bgSecondary)]">
-                    "{getCommentSnippet(post, 100)}"
-                  </div>
-                )}
-
-                {post.author && (
-                  <div className="text-xs text-[var(--theme-textMuted)]">
-                    u/{post.author}
+                {cardImageUrl && (
+                  <div className={`flex-shrink-0 rounded-lg overflow-hidden self-center ${
+                    commentImageUrl ? 'bg-[var(--theme-bgSecondary)] p-1' : ''
+                  }`}>
+                    <img
+                      src={cardImageUrl}
+                      alt=""
+                      className={`w-24 h-24 rounded-lg ${
+                        commentImageUrl ? 'object-contain' : 'object-cover'
+                      }`}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                      }}
+                    />
                   </div>
                 )}
               </div>
-
-              {getPreviewImage(post) && (
-                <div className="flex-shrink-0 rounded-lg overflow-hidden self-center">
-                  <img
-                    src={getPreviewImage(post)}
-                    alt=""
-                    className="w-24 h-24 object-cover rounded-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).parentElement!.style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
 
       {/* Pagination */}

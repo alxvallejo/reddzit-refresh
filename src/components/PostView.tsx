@@ -349,20 +349,20 @@ export default function PostView() {
         
         {/* Sticky Footer Actions */}
         <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pointer-events-none flex justify-center">
-            <div className={`pointer-events-auto flex w-full sm:w-auto justify-evenly sm:justify-center gap-0 sm:gap-4 backdrop-blur-xl border px-2 sm:px-6 py-3 rounded-full shadow-2xl items-center ${
+            <div className={`pointer-events-auto flex w-full sm:w-auto justify-evenly sm:justify-center gap-0 sm:gap-3 backdrop-blur-xl border px-2 sm:px-6 py-3 rounded-full shadow-2xl items-center ${
               !isLight
-                ? 'bg-white/10 border-white/20 text-white'
-                : 'bg-gray-900/90 border-gray-700 text-white'
+                ? 'bg-white/8 border-white/15 text-white/80'
+                : 'bg-gray-900/85 border-gray-700/50 text-gray-200'
             }`}>
                  <button
                     onClick={() => navigate(-1)}
                     title="Back"
-                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                  >
                      <FontAwesomeIcon icon={faArrowLeft} className="sm:mr-1.5" />
                      <span className="hidden sm:inline">Back</span>
                  </button>
-                 <span className="opacity-30 hidden sm:inline">|</span>
+                 <span className="opacity-20 hidden sm:inline text-xs">·</span>
                  {signedIn ? (
                      <button
                         onClick={async () => {
@@ -377,7 +377,7 @@ export default function PostView() {
                           }
                         }}
                         title={post.saved ? 'Unsave' : 'Save'}
-                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                      >
                          <FontAwesomeIcon icon={post.saved ? faBookmarkSolid : faBookmarkRegular} className="sm:mr-1.5" />
                          <span className="hidden sm:inline">{post.saved ? 'Unsave' : 'Save'}</span>
@@ -386,7 +386,7 @@ export default function PostView() {
                      <button
                         onClick={redirectForAuth}
                         title="Login to Save"
-                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                      >
                          <FontAwesomeIcon icon={faSignInAlt} className="sm:mr-1.5" />
                          <span className="hidden sm:inline">Login to Save</span>
@@ -394,12 +394,12 @@ export default function PostView() {
                  )}
                  {signedIn && (
                    <>
-                     <span className="opacity-30 hidden sm:inline">|</span>
+                     <span className="opacity-20 hidden sm:inline text-xs">·</span>
                      <div className="relative" ref={storyPickerRef}>
                        <button
                           onClick={openStoryPicker}
                           title="Add to Story"
-                          className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                          className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                        >
                            <FontAwesomeIcon icon={faBook} className="sm:mr-1.5" />
                            <span className="hidden sm:inline">Add to Story</span>
@@ -505,14 +505,14 @@ export default function PostView() {
                  )}
                  {signedIn && isComment(post) && (
                    <>
-                     <span className="opacity-30 hidden sm:inline">|</span>
+                     <span className="opacity-20 hidden sm:inline text-xs">·</span>
                      <button
                         onClick={() => {
                           setSelectedText(post.body);
                           openQuoteModal();
                         }}
                         title="Save as Quote"
-                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                      >
                          <FontAwesomeIcon icon={faQuoteLeft} className="sm:mr-1.5" />
                          <span className="hidden sm:inline">Save as Quote</span>
@@ -521,7 +521,7 @@ export default function PostView() {
                  )}
                  {signedIn && getArticlePreviewImage(post) && !getVideoUrl(post) && (
                    <>
-                     <span className="opacity-30 hidden sm:inline">|</span>
+                     <span className="opacity-20 hidden sm:inline text-xs">·</span>
                      <button
                         onClick={async () => {
                           if (!accessToken) return;
@@ -536,29 +536,29 @@ export default function PostView() {
                           showToast('Image saved!');
                         }}
                         title="Save Image"
-                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                        className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                      >
                          <FontAwesomeIcon icon={faImage} className="sm:mr-1.5" />
                          <span className="hidden sm:inline">Save Image</span>
                      </button>
                    </>
                  )}
-                 <span className="opacity-30 hidden sm:inline">|</span>
+                 <span className="opacity-20 hidden sm:inline text-xs">·</span>
                  <button
                     onClick={handleShare}
                     title="Share"
-                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors border-none bg-transparent cursor-pointer text-inherit font-bold"
+                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors border-none bg-transparent cursor-pointer text-inherit font-normal tracking-wide"
                  >
                      <FontAwesomeIcon icon={faShareNodes} className="sm:mr-1.5" />
                      <span className="hidden sm:inline">Share</span>
                  </button>
-                 <span className="opacity-30 hidden sm:inline">|</span>
+                 <span className="opacity-20 hidden sm:inline text-xs">·</span>
                  <a
                     href={`https://www.reddit.com${post.permalink}`}
                     target="_blank"
                     rel="noreferrer"
                     title="View on Reddit"
-                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-base hover:text-[#ff4500] transition-colors text-inherit no-underline font-bold"
+                    className="p-3 sm:px-0 sm:py-0 text-lg sm:text-sm hover:text-white transition-colors text-inherit no-underline font-normal tracking-wide"
                  >
                      <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="sm:mr-1.5" />
                      <span className="hidden sm:inline">View on Reddit</span>

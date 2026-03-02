@@ -7,6 +7,7 @@ import { getDisplayTitle } from '../helpers/RedditUtils';
 const DISPLAY_DURATION = 4000; // How long each post is visible (ms)
 const FADE_DURATION = 500; // Fade transition duration (ms)
 const MOBILE_BREAKPOINT = 640; // Matches sm: breakpoint / CSS media query
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 const TrendingMarquee = () => {
   const { isLight } = useTheme();
@@ -17,6 +18,10 @@ const TrendingMarquee = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= MOBILE_BREAKPOINT);
 
+  const loadTrendingPosts = useCallback(() => {
+    DailyService.getTrendingRSS().then(setPosts);
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
     window.addEventListener('resize', checkMobile);
@@ -24,8 +29,34 @@ const TrendingMarquee = () => {
   }, []);
 
   useEffect(() => {
-    DailyService.getTrendingRSS().then(setPosts);
-  }, []);
+    loadTrendingPosts();
+  }, [loadTrendingPosts]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadTrendingPosts();
+      }
+    };
+    const handlePageShow = () => {
+      loadTrendingPosts();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, [loadTrendingPosts]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadTrendingPosts();
+    }, REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [loadTrendingPosts]);
 
   const goToNext = useCallback(() => {
     setIsVisible(false);
