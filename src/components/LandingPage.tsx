@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -165,6 +165,10 @@ function Divider() {
 export default function LandingPage() {
   const { signedIn, redirectForAuth } = useReddit();
   const { isLight } = useTheme();
+
+  if (signedIn) {
+    return <Navigate to="/news" replace />;
+  }
 
   const heroGlow = isLight
     ? 'radial-gradient(ellipse at center, rgba(249, 115, 22, 0.12) 0%, transparent 70%)'
