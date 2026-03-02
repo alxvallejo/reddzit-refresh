@@ -47,37 +47,54 @@ export const RedditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [darkMode, setDarkMode] = useState(options.darkMode ?? true);
   const [fontSize, setFontSizeState] = useState(options.fontSize || 18);
 
+  const cleanupOAuthParams = () => {
+    const url = new URL(window.location.href);
+    const hadOauthParams =
+      url.searchParams.has('code') ||
+      url.searchParams.has('state') ||
+      url.searchParams.has('error') ||
+      url.searchParams.has('error_description');
+    if (!hadOauthParams && url.hash !== '#_') return;
+    url.searchParams.delete('code');
+    url.searchParams.delete('state');
+    url.searchParams.delete('error');
+    url.searchParams.delete('error_description');
+    const nextHash = url.hash === '#_' ? '' : url.hash;
+    const query = url.searchParams.toString();
+    const nextUrl = `${url.pathname}${query ? `?${query}` : ''}${nextHash}`;
+    window.history.replaceState({}, document.title, nextUrl);
+  };
+
   // Initialize Auth
   useEffect(() => {
     const initAuth = async () => {
-      const auth = new RedditAuth();
-      const token = await auth.handleAuth();
-      
-      if (token) {
-        setAccessToken(token);
-        const reddit = new Reddit({ accessToken: token });
-        setRedditHelper(reddit);
-        setSignedIn(true);
-        
-        try {
-          await reddit.getMe();
-          setUser(reddit.me);
-          // Store token and username for Chrome extension
-          localStorage.setItem('reddit_access_token', token);
-          if (reddit.me?.name) {
-            localStorage.setItem('reddit_username', reddit.me.name);
+      try {
+        const auth = new RedditAuth();
+        const token = await auth.handleAuth();
+
+        if (token) {
+          setAccessToken(token);
+          const reddit = new Reddit({ accessToken: token });
+          setRedditHelper(reddit);
+          setSignedIn(true);
+
+          try {
+            await reddit.getMe();
+            setUser(reddit.me);
+            // Store token and username for Chrome extension
+            localStorage.setItem('reddit_access_token', token);
+            if (reddit.me?.name) {
+              localStorage.setItem('reddit_username', reddit.me.name);
+            }
+          } catch (e) {
+            console.error("Failed to fetch user", e);
           }
-        } catch (e) {
-          console.error("Failed to fetch user", e);
+        } else {
+          // Not signed in or handling external link
+          setLoading(false);
         }
-        
-        // Clean up URL if we just auth'd
-        const parsed = queryString.parse(window.location.search);
-        if (parsed.code) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      } else {
-        // Not signed in or handling external link
+      } finally {
+        cleanupOAuthParams();
         setLoading(false);
       }
     };

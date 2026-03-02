@@ -48,6 +48,7 @@ export class RedditAuth {
         duration: 'permanent', // Needed to retrieve refresh token
       };
     let authQueryString = queryString.stringify(authParams);
+    sessionStorage.setItem('rdz_oauth_state', String(state));
     window.location = authUrl + '?' + authQueryString;
   };
 
@@ -139,24 +140,36 @@ export class RedditAuth {
     // Queue code for potential auth request
     let parsed = queryString.parse(window.location.search);
     let code = parsed.code,
+      state = parsed.state,
+      oauthError = parsed.error,
       name = parsed.name,
       url = parsed.url;
 
     // Queue refresh token
     let refreshToken = localStorage.getItem('redditRefreshToken');
+    const expectedState = sessionStorage.getItem('rdz_oauth_state');
 
-    if (
-      !redditCreds ||
-      !redditCreds.accessToken ||
-      !redditCreds.lastReceived ||
-      !refreshToken
-    ) {
+    if (oauthError) {
+      return null;
+    }
+
+    if (!redditCreds || !redditCreds.accessToken || !redditCreds.lastReceived) {
       if (code) {
+        if (expectedState && state && expectedState !== String(state)) {
+          localStorage.removeItem('redditCreds');
+          localStorage.removeItem('redditRefreshToken');
+          return null;
+        }
         console.log('code with no creds', code);
-        // Use code for token retrieval token retrieval
-        let response = await this.getAccessToken(code);
-        let accessToken = await this.handleTokenResponse(response);
-        return accessToken;
+        try {
+          // Use code for token retrieval
+          let response = await this.getAccessToken(code);
+          let accessToken = await this.handleTokenResponse(response);
+          sessionStorage.removeItem('rdz_oauth_state');
+          return accessToken;
+        } catch (e) {
+          return null;
+        }
       } else if (name || url) {
         console.log('no name or url', { name, url });
         return false;
@@ -169,13 +182,13 @@ export class RedditAuth {
     } else if (redditCreds.lastReceived) {
       let needsRefresh = await this.needsRefresh(redditCreds.lastReceived);
       if (needsRefresh) {
-        // console.log('needs refresh', refreshToken)
-        let newToken = await this.refreshToken(refreshToken);
-        if (!newToken) {
-          debugger;
+        if (refreshToken) {
+          let newToken = await this.refreshToken(refreshToken);
+          if (newToken) {
+            return newToken;
+          }
         }
-        //let accessToken = await this.handleTokenResponse(response);
-        return newToken;
+        return redditCreds.accessToken;
       } else {
         // Should be good
         return redditCreds.accessToken;
