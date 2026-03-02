@@ -219,7 +219,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [contentFont, setContentFontState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_content_font') as FontFamily | null;
-    return saved && fontFamilies[saved] ? saved : 'cactus-classical';
+    return saved && fontFamilies[saved] ? saved : 'reddit-sans';
   });
 
   const [bgShade, setBgShadeState] = useState<string | null>(() => {

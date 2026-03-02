@@ -28,6 +28,17 @@ interface User {
   createdAt: string;
 }
 
+interface Subscription {
+  id: string;
+  email: string;
+  status: 'PENDING' | 'ACTIVE' | 'UNSUBSCRIBED' | 'BOUNCED';
+  topics: unknown;
+  source: string;
+  createdAt: string;
+  confirmedAt: string | null;
+  unsubscribedAt: string | null;
+}
+
 interface Briefing {
   id: number;
   briefingTime: string;
@@ -106,6 +117,9 @@ const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [usersTotalCount, setUsersTotalCount] = useState<number | null>(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [subscriptionsTotalCount, setSubscriptionsTotalCount] = useState<number | null>(null);
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [redditUsage, setRedditUsage] = useState<RedditUsage | null>(null);
@@ -114,6 +128,7 @@ const Admin = () => {
   const [showLogs, setShowLogs] = useState(false);
   const [editingCron, setEditingCron] = useState<{name: string; value: string} | null>(null);
   const [userSearch, setUserSearch] = useState('');
+  const [usersView, setUsersView] = useState<'loggedIn' | 'newsletter'>('loggedIn');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'briefings' | 'jobs'>('stats');
@@ -131,6 +146,7 @@ const Admin = () => {
         headers: getAuthHeaders(),
       });
       setStats(response.data);
+      setUsersTotalCount(response.data.users.total);
       setAuthenticated(true);
       setError(null);
     } catch (err: unknown) {
@@ -140,6 +156,25 @@ const Admin = () => {
       } else {
         setError('Failed to fetch stats');
       }
+    }
+  }, [getAuthHeaders]);
+
+  // Fetch newsletter signups
+  const fetchSubscriptions = useCallback(async (search = '') => {
+    setLoading(true);
+    try {
+      const response = await axios.get<{ subscriptions: Subscription[]; pagination?: { total: number } }>(
+        `${API_BASE_URL}/api/admin/subscriptions?search=${encodeURIComponent(search)}`,
+        { headers: getAuthHeaders() }
+      );
+      setSubscriptions(response.data.subscriptions);
+      if (!search.trim() && response.data.pagination) {
+        setSubscriptionsTotalCount(response.data.pagination.total);
+      }
+    } catch {
+      setError('Failed to fetch newsletter signups');
+    } finally {
+      setLoading(false);
     }
   }, [getAuthHeaders]);
 
@@ -197,11 +232,14 @@ const Admin = () => {
   const fetchUsers = useCallback(async (search = '') => {
     setLoading(true);
     try {
-      const response = await axios.get<{ users: User[] }>(
+      const response = await axios.get<{ users: User[]; pagination?: { total: number } }>(
         `${API_BASE_URL}/api/admin/users?search=${encodeURIComponent(search)}`,
         { headers: getAuthHeaders() }
       );
       setUsers(response.data.users);
+      if (!search.trim() && response.data.pagination) {
+        setUsersTotalCount(response.data.pagination.total);
+      }
     } catch {
       setError('Failed to fetch users');
     } finally {
@@ -324,16 +362,26 @@ const Admin = () => {
   useEffect(() => {
     if (authenticated) {
       if (activeTab === 'stats') { fetchRedditUsage(); fetchCacheStats(); }
-      if (activeTab === 'users') fetchUsers(userSearch);
+      if (activeTab === 'users') {
+        if (usersView === 'loggedIn') fetchUsers(userSearch);
+        if (usersView === 'newsletter') fetchSubscriptions(userSearch);
+      }
       if (activeTab === 'briefings') fetchBriefings();
       if (activeTab === 'jobs') fetchJobs();
     }
-  }, [authenticated, activeTab, fetchUsers, fetchBriefings, fetchJobs, fetchRedditUsage, fetchCacheStats, userSearch]);
+  }, [authenticated, activeTab, fetchUsers, fetchSubscriptions, fetchBriefings, fetchJobs, fetchRedditUsage, fetchCacheStats, userSearch, usersView]);
 
   // Format date
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'Never';
     return new Date(dateStr).toLocaleString();
+  };
+
+  const formatTopics = (topics: unknown) => {
+    if (!topics) return '—';
+    if (Array.isArray(topics)) return topics.join(', ') || '—';
+    if (typeof topics === 'string') return topics;
+    return 'Custom';
   };
 
   // Login form
@@ -678,14 +726,48 @@ const Admin = () => {
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div>
+            <div className="flex gap-1 p-1 rounded-xl mb-4 bg-[var(--theme-bgSecondary)] w-fit">
+              {([
+                {
+                  key: 'loggedIn',
+                  label: `Logged-in Users${usersTotalCount !== null ? ` (${usersTotalCount.toLocaleString()})` : ''}`,
+                },
+                {
+                  key: 'newsletter',
+                  label: `Newsletter Signups${subscriptionsTotalCount !== null ? ` (${subscriptionsTotalCount.toLocaleString()})` : ''}`,
+                },
+              ] as const).map((option) => (
+                <button
+                  key={option.key}
+                  onClick={() => setUsersView(option.key)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    usersView === option.key
+                      ? isLight
+                        ? 'bg-white text-orange-600 shadow'
+                        : 'bg-[var(--theme-primary)] text-[#262129]'
+                      : isLight
+                        ? 'text-gray-600 hover:text-gray-900'
+                        : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
             <div className="mb-4">
+              <p className="mb-3 text-sm text-[var(--theme-textMuted)]">
+                {usersView === 'loggedIn'
+                  ? 'This list shows app users from Reddit login sync (accounts that authenticated in Reddzit).'
+                  : 'This list shows newsletter subscriptions from the email signup flow, including people who may not have logged in.'}
+              </p>
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder={usersView === 'loggedIn' ? 'Search users...' : 'Search email or source...'}
                 value={userSearch}
                 onChange={(e) => {
                   setUserSearch(e.target.value);
-                  fetchUsers(e.target.value);
+                  if (usersView === 'loggedIn') fetchUsers(e.target.value);
+                  if (usersView === 'newsletter') fetchSubscriptions(e.target.value);
                 }}
                 className="w-full md:w-64 p-3 rounded-lg border bg-[var(--theme-bg)] border-[var(--theme-border)] text-[var(--theme-text)]"
               />
@@ -694,58 +776,105 @@ const Admin = () => {
             {loading ? (
               <div className="text-center py-8">Loading...</div>
             ) : (
-              <div className="rounded-xl overflow-hidden bg-[var(--theme-bg)] shadow">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[var(--theme-bgSecondary)] text-[var(--theme-textMuted)]">
-                      <th className="text-left p-4 font-semibold">Username</th>
-                      <th className="text-left p-4 font-semibold hidden md:table-cell">Joined</th>
-                      <th className="text-center p-4 font-semibold">Pro</th>
-                      <th className="text-right p-4 font-semibold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id} className="border-t border-[var(--theme-border)]">
-                        <td className="p-4 font-medium text-[var(--theme-text)]">
-                          u/{u.redditUsername}
-                          {u.isAdmin && (
-                            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">
-                              Admin
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4 text-sm hidden md:table-cell text-[var(--theme-textMuted)]">
-                          {formatDate(u.createdAt)}
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            u.isPro
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-gray-500/20 text-gray-400'
-                          }`}>
-                            {u.isPro ? 'Pro' : 'Free'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right">
-                          <button
-                            onClick={() => togglePro(u.redditUsername, u.isPro)}
-                            className={`text-sm px-3 py-1 rounded-lg transition ${
-                              u.isPro
-                                ? 'text-red-400 hover:bg-red-500/20'
-                                : isLight
-                                  ? 'text-green-600 hover:bg-green-50'
-                                  : 'text-green-400 hover:bg-green-500/20'
-                            }`}
-                          >
-                            {u.isPro ? 'Remove Pro' : 'Grant Pro'}
-                          </button>
-                        </td>
+              usersView === 'loggedIn' ? (
+                <div className="rounded-xl overflow-hidden bg-[var(--theme-bg)] shadow">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[var(--theme-bgSecondary)] text-[var(--theme-textMuted)]">
+                        <th className="text-left p-4 font-semibold">Username</th>
+                        <th className="text-left p-4 font-semibold hidden md:table-cell">Joined</th>
+                        <th className="text-center p-4 font-semibold">Pro</th>
+                        <th className="text-right p-4 font-semibold">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => (
+                        <tr key={u.id} className="border-t border-[var(--theme-border)]">
+                          <td className="p-4 font-medium text-[var(--theme-text)]">
+                            u/{u.redditUsername}
+                            {u.isAdmin && (
+                              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">
+                                Admin
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-4 text-sm hidden md:table-cell text-[var(--theme-textMuted)]">
+                            {formatDate(u.createdAt)}
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              u.isPro
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {u.isPro ? 'Pro' : 'Free'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => togglePro(u.redditUsername, u.isPro)}
+                              className={`text-sm px-3 py-1 rounded-lg transition ${
+                                u.isPro
+                                  ? 'text-red-400 hover:bg-red-500/20'
+                                  : isLight
+                                    ? 'text-green-600 hover:bg-green-50'
+                                    : 'text-green-400 hover:bg-green-500/20'
+                              }`}
+                            >
+                              {u.isPro ? 'Remove Pro' : 'Grant Pro'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="rounded-xl overflow-hidden bg-[var(--theme-bg)] shadow">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[var(--theme-bgSecondary)] text-[var(--theme-textMuted)]">
+                        <th className="text-left p-4 font-semibold">Email</th>
+                        <th className="text-left p-4 font-semibold hidden md:table-cell">Topics</th>
+                        <th className="text-left p-4 font-semibold hidden md:table-cell">Source</th>
+                        <th className="text-center p-4 font-semibold">Status</th>
+                        <th className="text-right p-4 font-semibold">Subscribed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscriptions.map((sub) => (
+                        <tr key={sub.id} className="border-t border-[var(--theme-border)]">
+                          <td className="p-4 font-medium text-[var(--theme-text)]">
+                            {sub.email}
+                          </td>
+                          <td className="p-4 text-sm hidden md:table-cell text-[var(--theme-textMuted)]">
+                            {formatTopics(sub.topics)}
+                          </td>
+                          <td className="p-4 text-sm hidden md:table-cell text-[var(--theme-textMuted)]">
+                            {sub.source || '—'}
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              sub.status === 'ACTIVE'
+                                ? 'bg-green-500/20 text-green-400'
+                                : sub.status === 'UNSUBSCRIBED'
+                                  ? 'bg-gray-500/20 text-gray-400'
+                                  : sub.status === 'BOUNCED'
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : 'bg-yellow-500/20 text-yellow-400'
+                            }`}>
+                              {sub.status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right text-sm text-[var(--theme-textMuted)]">
+                            {formatDate(sub.createdAt)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
             )}
           </div>
         )}

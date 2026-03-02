@@ -8,6 +8,7 @@ import ForYouFeed from './ForYouFeed';
 import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import MainHeader from './MainHeader';
+import Footer from './Footer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -90,6 +91,9 @@ const AppShell = () => {
         {activeTab === 'top' && <TopContent />}
         {activeTab === 'foryou' && <ForYouContent />}
       </main>
+
+      {/* Footer with feedback */}
+      <Footer />
 
       {/* Subscribe Banner - Fixed at bottom */}
       {showBanner && subscribeStatus !== 'success' && (
