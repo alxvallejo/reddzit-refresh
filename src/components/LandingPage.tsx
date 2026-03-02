@@ -233,7 +233,7 @@ export default function LandingPage() {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
-            to="/top"
+            to="/news"
             className="px-8 py-4 rounded-full text-lg font-semibold transition-transform hover:scale-105 no-underline"
             style={{
               backgroundColor: ctaBg,
@@ -283,7 +283,7 @@ export default function LandingPage() {
         copy="See what's trending across all of Reddit with a live marquee and curated top posts. Stay informed without doomscrolling through endless feeds."
         imageSrc="/promo-assets/reader.png"
         imageAlt="Top posts reader view"
-        linkTo="/top"
+        linkTo="/news"
         linkLabel="Browse Top Posts"
         isLight={isLight}
       />
@@ -337,7 +337,7 @@ export default function LandingPage() {
         icon={faBolt}
         headline="Daily Pulse"
         copy="AI-generated briefings delivered to your inbox every morning. Get sentiment analysis and key takeaways from the topics you follow, without opening Reddit."
-        linkTo="/top"
+        linkTo="/news"
         linkLabel="See Top Posts"
         isLight={isLight}
       />
@@ -370,7 +370,7 @@ export default function LandingPage() {
         </h2>
 
         <Link
-          to="/top"
+          to="/news"
           className="px-8 py-4 rounded-full text-lg font-semibold mb-4 transition-transform hover:scale-105 no-underline"
           style={{
             backgroundColor: ctaBg,

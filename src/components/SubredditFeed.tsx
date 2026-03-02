@@ -112,7 +112,7 @@ const SubredditFeed = () => {
           {/* Tabs */}
           <nav className="flex gap-1 overflow-x-auto px-4 sm:px-0 scrollbar-hide">
             <button
-              onClick={() => navigate('/top')}
+              onClick={() => navigate('/news')}
               className={`px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors border-none cursor-pointer whitespace-nowrap ${
                 isLight
                   ? 'text-gray-600 hover:bg-gray-100 bg-transparent'

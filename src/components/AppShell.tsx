@@ -35,7 +35,7 @@ const AppShell = () => {
   });
 
   const pageTitles: Record<Tab, string> = {
-    top: 'Top Posts on Reddit',
+    top: location.pathname === '/news' ? 'Top News' : 'Top Posts on Reddit',
     saved: 'Saved Posts',
     foryou: 'For You',
     stories: 'Stories',

@@ -13,7 +13,7 @@ const getTabFromPath = (pathname: string): Tab => {
   if (pathname === '/foryou') return 'foryou';
   if (pathname.startsWith('/stories')) return 'stories';
   if (pathname.startsWith('/quotes')) return 'quotes';
-  if (pathname === '/top') return 'top';
+  if (pathname === '/top' || pathname === '/news') return 'top';
   return null;
 };
 
@@ -71,7 +71,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
 
           {/* Tabs */}
           <nav className="flex flex-1 justify-evenly sm:justify-end sm:flex-none sm:gap-1 sm:ml-auto sm:mr-48">
-            <button onClick={() => navigate('/top')} className={tabClass('top')}>
+            <button onClick={() => navigate('/news')} className={tabClass('top')}>
               <FontAwesomeIcon icon={faArrowUp} />
             </button>
             <button onClick={() => navigate('/reddit')} className={tabClass('saved')}>
