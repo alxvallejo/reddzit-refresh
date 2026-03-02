@@ -16,10 +16,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Create .env.production
         run: |
@@ -30,7 +30,10 @@ jobs:
           EOF
 
       - name: Build
-        run: yarn build
+        run: npm run build
+
+      - name: Verify build output
+        run: test -f dist/index.html
 
       - name: Prepare archive
         run: |
@@ -70,6 +73,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           source: "dist.tar.gz"
           target: "/tmp"
 
@@ -79,6 +83,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -e
             # Extract without trying to change owner/perms or mtime (avoids utime/mode errors)
@@ -98,6 +103,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -e
             echo "Restarting read-api to pick up updated dist/index.html..."
