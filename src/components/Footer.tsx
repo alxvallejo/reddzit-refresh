@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { useReddit } from '../context/RedditContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import API_BASE_URL from '../config/api';
 
 export default function Footer() {
   const { isLight } = useTheme();
+  const { signedIn, redirectForAuth } = useReddit();
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
@@ -31,10 +33,31 @@ export default function Footer() {
   };
 
   return (
-    <footer className={`border-t mt-16 py-10 px-4 ${
+    <footer className={`border-t mt-16 pb-28 pt-10 px-4 ${
       isLight ? 'border-gray-200' : 'border-white/10'
     }`}>
       <div className="max-w-2xl mx-auto flex flex-col items-center gap-4">
+        {/* Sign-in CTA for unauthenticated users */}
+        {!signedIn && (
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <img src="/favicon.png" alt="Reddzit" className="w-12 h-12" />
+            <p className={`text-sm text-center max-w-sm ${
+              isLight ? 'text-gray-500' : 'text-white/50'
+            }`}>
+              Sign in to manage your saved Reddit posts in a clean, distraction-free reader.
+            </p>
+            <button
+              onClick={redirectForAuth}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-colors border-none cursor-pointer bg-[var(--theme-primary)] ${
+                isLight
+                  ? 'text-white hover:bg-orange-700'
+                  : 'text-[#262129] hover:opacity-90'
+              }`}
+            >
+              Connect with Reddit
+            </button>
+          </div>
+        )}
         <p className={`text-xs tracking-wide ${
           isLight ? 'text-gray-400' : 'text-white/30'
         }`}>

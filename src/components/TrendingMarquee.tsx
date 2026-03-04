@@ -19,7 +19,7 @@ const TrendingMarquee = () => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= MOBILE_BREAKPOINT);
 
   const loadTrendingPosts = useCallback(() => {
-    DailyService.getTrendingRSS().then(setPosts);
+    DailyService.getTrendingRSS('news').then(setPosts);
   }, []);
 
   useEffect(() => {
