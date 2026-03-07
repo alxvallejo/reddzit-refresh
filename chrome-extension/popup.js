@@ -63,11 +63,95 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
+  // Open saved links button
+  const openLinksBtn = document.getElementById('open-links-btn');
+  openLinksBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: `${getReddzitUrl()}/reddit?tab=links` });
+    window.close();
+  });
+
+  // Save This Page button
+  const saveLinkBtn = document.getElementById('save-link-btn');
+  const saveLinkStatus = document.getElementById('save-link-status');
+
+  saveLinkBtn.addEventListener('click', () => {
+    saveLinkBtn.disabled = true;
+    saveLinkBtn.textContent = 'Saving...';
+    saveLinkStatus.style.display = 'none';
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab?.url) {
+        saveLinkBtn.disabled = false;
+        saveLinkBtn.textContent = '\uD83D\uDD17 Save This Page';
+        return;
+      }
+
+      chrome.runtime.sendMessage({
+        type: 'SAVE_LINK',
+        data: {
+          url: tab.url,
+          title: tab.title || 'Untitled',
+          favicon: tab.favIconUrl || null
+        }
+      }, (response) => {
+        saveLinkBtn.disabled = false;
+        saveLinkBtn.textContent = '\uD83D\uDD17 Save This Page';
+
+        if (response?.success) {
+          saveLinkStatus.textContent = '\u2713 Link saved!';
+          saveLinkStatus.className = 'save-link-status success';
+        } else if (response?.error === 'NOT_AUTHENTICATED') {
+          saveLinkStatus.textContent = 'Please log in to Reddzit first';
+          saveLinkStatus.className = 'save-link-status error';
+        } else {
+          saveLinkStatus.textContent = response?.error || 'Failed to save';
+          saveLinkStatus.className = 'save-link-status error';
+        }
+        saveLinkStatus.style.display = 'block';
+      });
+    });
+  });
+
   // Logout button
   logoutBtn.addEventListener('click', () => {
     chrome.runtime.sendMessage({ type: 'LOGOUT' }, () => {
       authenticatedEl.style.display = 'none';
       authRequiredEl.style.display = 'block';
     });
+  });
+
+  // Site toggle - disable/enable quote highlighting per hostname
+  const siteToggleContainer = document.getElementById('site-toggle-container');
+  const siteHostnameEl = document.getElementById('site-hostname');
+  const siteEnabledCheckbox = document.getElementById('site-enabled');
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (!tab?.url) return;
+
+    try {
+      const url = new URL(tab.url);
+      const hostname = url.hostname;
+
+      // Don't show toggle for non-http pages or reddzit itself
+      if (!url.protocol.startsWith('http') || hostname === 'reddzit.com') return;
+
+      siteHostnameEl.textContent = hostname;
+      siteToggleContainer.style.display = 'flex';
+
+      // Check current status
+      chrome.runtime.sendMessage({ type: 'GET_SITE_STATUS', hostname }, (response) => {
+        if (response?.disabled) {
+          siteEnabledCheckbox.checked = false;
+        }
+      });
+
+      siteEnabledCheckbox.addEventListener('change', () => {
+        chrome.runtime.sendMessage({ type: 'TOGGLE_SITE', hostname }, (response) => {
+          siteEnabledCheckbox.checked = !response?.disabled;
+        });
+      });
+    } catch (_) {}
   });
 });

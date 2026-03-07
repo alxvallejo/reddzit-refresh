@@ -6,7 +6,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #ff4500 0%, #ff6b3d 100%);
+  background: linear-gradient(135deg, #7563ca 0%, #9f72d6 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -14,7 +14,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(117, 99, 202, 0.4);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   pointer-events: auto;
   white-space: nowrap;
@@ -22,7 +22,7 @@
 
 #reddzit-quote-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 69, 0, 0.5);
+  box-shadow: 0 6px 16px rgba(117, 99, 202, 0.5);
 }
 
 #reddzit-quote-btn:active {
@@ -65,7 +65,7 @@
 }
 
 #reddzit-toast.success {
-  background: #10b981;
+  background: #7563ca;
 }
 
 #reddzit-toast.error {

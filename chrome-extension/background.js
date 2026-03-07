@@ -2,6 +2,7 @@
 
 const API_BASE = 'https://read-api.reddzit.com';
 const API_BASE_DEV = 'http://localhost:3000';
+const TOKEN_EXPIRY_MS = 3500 * 1000; // Refresh ~100s before the 1-hour expiry
 
 // Determine if we're in development
 function getApiBase() {
@@ -13,35 +14,152 @@ function getApiBase() {
   });
 }
 
-// Get stored auth token
-async function getAuthToken() {
+// Get all stored auth data
+async function getAuthData() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(['authToken'], (result) => {
-      resolve(result.authToken || null);
+    chrome.storage.local.get(['authToken', 'refreshToken', 'tokenReceivedAt', 'username'], (result) => {
+      resolve(result);
     });
   });
 }
 
-// Store auth token
-async function setAuthToken(token, username) {
+// Store auth data
+async function setAuthData({ token, username, refreshToken, lastReceived }) {
+  const data = {};
+  if (token) data.authToken = token;
+  if (username) data.username = username;
+  if (refreshToken) data.refreshToken = refreshToken;
+  data.tokenReceivedAt = lastReceived || Date.now();
   return new Promise((resolve) => {
-    chrome.storage.local.set({
-      authToken: token,
-      username: username
-    }, resolve);
+    chrome.storage.local.set(data, resolve);
   });
 }
 
-// Clear auth token
-async function clearAuthToken() {
+// Clear auth data
+async function clearAuthData() {
   return new Promise((resolve) => {
-    chrome.storage.local.remove(['authToken', 'username'], resolve);
+    chrome.storage.local.remove(['authToken', 'refreshToken', 'tokenReceivedAt', 'username'], resolve);
   });
+}
+
+// Check if the access token needs refreshing
+function tokenNeedsRefresh(tokenReceivedAt) {
+  if (!tokenReceivedAt) return true;
+  return Date.now() - tokenReceivedAt > TOKEN_EXPIRY_MS;
+}
+
+// Refresh the access token using the backend proxy
+async function refreshAccessToken(refreshToken) {
+  const apiBase = await getApiBase();
+  const response = await fetch(`${apiBase}/api/reddit/oauth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('[Reddzit] Token refresh failed:', response.status, errorData);
+    throw new Error('Token refresh failed');
+  }
+
+  const data = await response.json();
+  if (data.error) {
+    console.error('[Reddzit] Token refresh error:', data.error);
+    throw new Error(data.error);
+  }
+
+  return data.access_token;
+}
+
+// Get a valid access token, refreshing if needed
+async function getValidToken() {
+  const authData = await getAuthData();
+
+  if (!authData.authToken) {
+    return null;
+  }
+
+  if (!tokenNeedsRefresh(authData.tokenReceivedAt)) {
+    return authData.authToken;
+  }
+
+  // Token is expired — try to refresh
+  if (!authData.refreshToken) {
+    console.warn('[Reddzit] Token expired and no refresh token available');
+    return null;
+  }
+
+  console.log('[Reddzit] Access token expired, refreshing...');
+  try {
+    const newToken = await refreshAccessToken(authData.refreshToken);
+    await setAuthData({
+      token: newToken,
+      username: authData.username,
+      refreshToken: authData.refreshToken,
+      lastReceived: Date.now()
+    });
+    console.log('[Reddzit] Token refreshed successfully');
+    return newToken;
+  } catch (error) {
+    console.error('[Reddzit] Failed to refresh token:', error);
+    // Token refresh failed — clear auth so user re-authenticates
+    await clearAuthData();
+    return null;
+  }
+}
+
+// Save link to API
+async function saveLink(data) {
+  const token = await getValidToken();
+  if (!token) {
+    return { success: false, error: 'NOT_AUTHENTICATED' };
+  }
+
+  const apiBase = await getApiBase();
+  const url = `${apiBase}/api/links`;
+  const body = {
+    url: data.url,
+    title: data.title || 'Untitled',
+    description: data.description || null,
+    favicon: data.favicon || null
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (response.status === 401) {
+      await clearAuthData();
+      return { success: false, error: 'NOT_AUTHENTICATED' };
+    }
+
+    if (response.status === 409) {
+      return { success: false, error: 'Link already saved' };
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return { success: false, error: errorData.error || 'Failed to save link' };
+    }
+
+    const result = await response.json();
+    return { success: true, link: result.link };
+  } catch (error) {
+    console.error('[Reddzit] Network error saving link:', error);
+    return { success: false, error: 'Network error. Please try again.' };
+  }
 }
 
 // Save quote to API
 async function saveQuote(data) {
-  const token = await getAuthToken();
+  const token = await getValidToken();
   console.log('[Reddzit] Auth token:', token ? `${token.substring(0, 10)}...` : 'MISSING');
 
   if (!token) {
@@ -76,7 +194,7 @@ async function saveQuote(data) {
     console.log('[Reddzit] Response status:', response.status);
 
     if (response.status === 401) {
-      await clearAuthToken();
+      await clearAuthData();
       return { success: false, error: 'NOT_AUTHENTICATED' };
     }
 
@@ -99,8 +217,13 @@ async function saveQuote(data) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'AUTH_TOKEN') {
     // Token received from Reddzit page
-    setAuthToken(message.token, message.username).then(() => {
-      console.log('Auth token stored for user:', message.username);
+    setAuthData({
+      token: message.token,
+      username: message.username,
+      refreshToken: message.refreshToken,
+      lastReceived: message.lastReceived
+    }).then(() => {
+      console.log('Auth token stored for user:', message.username, 'refreshToken:', message.refreshToken ? 'yes' : 'no');
     });
     return false;
   }
@@ -111,22 +234,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Keep channel open for async response
   }
 
+  if (message.type === 'SAVE_LINK') {
+    // Save link request from popup
+    saveLink(message.data).then(sendResponse);
+    return true;
+  }
+
   if (message.type === 'GET_AUTH_STATUS') {
     // Check if user is authenticated
-    Promise.all([
-      getAuthToken(),
-      new Promise(resolve => chrome.storage.local.get(['username'], resolve))
-    ]).then(([token, data]) => {
+    getAuthData().then((data) => {
       sendResponse({
-        authenticated: !!token,
-        username: data.username || null
+        authenticated: !!data.authToken,
+        username: data.username || null,
+        hasRefreshToken: !!data.refreshToken
       });
     });
     return true;
   }
 
   if (message.type === 'LOGOUT') {
-    clearAuthToken().then(() => {
+    clearAuthData().then(() => {
       sendResponse({ success: true });
     });
     return true;
@@ -135,6 +262,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'SET_DEV_MODE') {
     chrome.storage.local.set({ useDev: message.enabled }, () => {
       sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  if (message.type === 'GET_SITE_STATUS') {
+    chrome.storage.local.get(['disabledSites'], (result) => {
+      const disabledSites = result.disabledSites || [];
+      sendResponse({ disabled: disabledSites.includes(message.hostname) });
+    });
+    return true;
+  }
+
+  if (message.type === 'TOGGLE_SITE') {
+    chrome.storage.local.get(['disabledSites'], (result) => {
+      let disabledSites = result.disabledSites || [];
+      const hostname = message.hostname;
+      const isCurrentlyDisabled = disabledSites.includes(hostname);
+
+      if (isCurrentlyDisabled) {
+        disabledSites = disabledSites.filter(h => h !== hostname);
+      } else {
+        disabledSites.push(hostname);
+      }
+
+      // Content scripts pick up the change via chrome.storage.onChanged
+      chrome.storage.local.set({ disabledSites }, () => {
+        sendResponse({ disabled: !isCurrentlyDisabled });
+      });
     });
     return true;
   }

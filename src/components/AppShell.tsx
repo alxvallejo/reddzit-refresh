@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import SavedFeed from './SavedFeed';
+import LinksFeed from './LinksFeed';
 import TopFeed from './TopFeed';
 import ForYouFeed from './ForYouFeed';
 import TrendingMarquee from './TrendingMarquee';
@@ -171,9 +172,22 @@ const AppShell = () => {
 };
 
 // Saved Posts content (requires login)
+type SavedSubTab = 'reddit' | 'links';
+
 const SavedContent = () => {
   const { signedIn, redirectForAuth } = useReddit();
   const { isLight } = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeSubTab: SavedSubTab = searchParams.get('tab') === 'links' ? 'links' : 'reddit';
+
+  const setActiveSubTab = (tab: SavedSubTab) => {
+    if (tab === 'reddit') {
+      searchParams.delete('tab');
+    } else {
+      searchParams.set('tab', tab);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
 
   if (!signedIn) {
     return (
@@ -200,10 +214,32 @@ const SavedContent = () => {
     );
   }
 
+  const subTabClass = (tab: SavedSubTab) =>
+    `px-4 py-2 text-sm font-medium rounded-full transition-colors border-none cursor-pointer ${
+      activeSubTab === tab
+        ? isLight
+          ? 'bg-orange-600 text-white'
+          : 'bg-[var(--theme-primary)] text-[#262129]'
+        : isLight
+          ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          : 'bg-white/10 text-gray-400 hover:bg-white/20'
+    }`;
+
   return (
     <>
       <TrendingMarquee />
-      <SavedFeed />
+      {/* Sub-tab bar */}
+      <div className="max-w-7xl mx-auto px-4 pt-2">
+        <div className="flex gap-2">
+          <button onClick={() => setActiveSubTab('reddit')} className={subTabClass('reddit')}>
+            Reddit
+          </button>
+          <button onClick={() => setActiveSubTab('links')} className={subTabClass('links')}>
+            Links
+          </button>
+        </div>
+      </div>
+      {activeSubTab === 'reddit' ? <SavedFeed /> : <LinksFeed />}
     </>
   );
 };

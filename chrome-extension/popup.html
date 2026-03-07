@@ -46,9 +46,31 @@
         </ol>
       </div>
 
+      <!-- Save This Page -->
+      <div id="save-link-container" class="save-link-section">
+        <button id="save-link-btn" class="save-link-btn">
+          🔗 Save This Page
+        </button>
+        <div id="save-link-status" class="save-link-status" style="display: none;"></div>
+      </div>
+
+      <div id="site-toggle-container" class="site-toggle" style="display: none;">
+        <div class="site-toggle-info">
+          <span class="site-toggle-label">Quotes on this site</span>
+          <span class="site-toggle-hostname" id="site-hostname"></span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="site-enabled" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
       <div class="actions">
         <button id="open-quotes-btn" class="primary-btn">
           View Your Quotes
+        </button>
+        <button id="open-links-btn" class="primary-btn" style="background: #6366f1;">
+          View Saved Links
         </button>
         <button id="logout-btn" class="secondary-btn">
           Disconnect

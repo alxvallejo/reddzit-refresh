@@ -12,6 +12,27 @@
   let button = null;
   let toast = null;
   let currentSelection = '';
+  let siteDisabled = false;
+
+  // Check if this site is disabled before setting up listeners
+  chrome.storage.local.get(['disabledSites'], (result) => {
+    const disabledSites = result.disabledSites || [];
+    if (disabledSites.includes(window.location.hostname)) {
+      siteDisabled = true;
+    }
+  });
+
+  // Listen for enable/disable toggling from popup while page is open
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.disabledSites) {
+      const disabledSites = changes.disabledSites.newValue || [];
+      const wasDisabled = siteDisabled;
+      siteDisabled = disabledSites.includes(window.location.hostname);
+      if (siteDisabled && !wasDisabled) {
+        hideButton();
+      }
+    }
+  });
 
   // Create the floating button
   function createButton() {
@@ -100,6 +121,11 @@
 
   // Handle text selection
   function handleSelection() {
+    if (siteDisabled) {
+      hideButton();
+      return;
+    }
+
     const selection = window.getSelection();
     const text = selection?.toString().trim();
 
