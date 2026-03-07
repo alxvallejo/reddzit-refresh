@@ -180,7 +180,7 @@
       if (!responseReceived) {
         console.warn('[Reddzit] Response timeout - hiding button');
         hideButton();
-        showToast('Quote may have been saved. Check your quotes.', 'success');
+        showToast('Request timed out. Please try again.', 'error');
       }
     }, 10000);
 

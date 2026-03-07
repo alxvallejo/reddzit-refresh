@@ -7,7 +7,7 @@ import StoryService, { Story } from '../helpers/StoryService';
 import QuoteCard from './QuoteCard';
 import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes, faFilter, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
 export default function QuotesPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
@@ -18,6 +18,11 @@ export default function QuotesPage() {
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Filter state
+  const [activeTab, setActiveTab] = useState<'unassigned' | string>('unassigned');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   // Story picker state
   const [showStoryPicker, setShowStoryPicker] = useState(false);
@@ -35,10 +40,14 @@ export default function QuotesPage() {
       return;
     }
 
-    async function loadQuotes() {
+    async function loadData() {
       try {
-        const { quotes } = await QuoteService.listQuotes(accessToken!);
-        setQuotes(quotes);
+        const [quotesRes, storiesRes] = await Promise.all([
+          QuoteService.listQuotes(accessToken!),
+          StoryService.listStories(accessToken!),
+        ]);
+        setQuotes(quotesRes.quotes);
+        setStories(storiesRes.stories);
       } catch (err) {
         console.error('Failed to load quotes:', err);
         setError('Failed to load quotes');
@@ -47,7 +56,7 @@ export default function QuotesPage() {
       }
     }
 
-    loadQuotes();
+    loadData();
   }, [signedIn, accessToken]);
 
   // Outside-click to close story picker
@@ -63,6 +72,18 @@ export default function QuotesPage() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showStoryPicker]);
+
+  // Outside-click to close filter dropdown
+  useEffect(() => {
+    if (!showFilterDropdown) return;
+    function handleClick(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilterDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showFilterDropdown]);
 
   const handleUpdate = async (id: string, note: string, tags: string[]) => {
     if (!accessToken) return;
@@ -91,10 +112,10 @@ export default function QuotesPage() {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.size === quotes.length) {
+    if (selectedIds.size === filteredQuotes.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(quotes.map(q => q.id)));
+      setSelectedIds(new Set(filteredQuotes.map(q => q.id)));
     }
   };
 
@@ -178,7 +199,26 @@ export default function QuotesPage() {
     );
   }
 
-  const allSelected = quotes.length > 0 && selectedIds.size === quotes.length;
+  // Build story lookup and determine which stories have quotes, sorted by most recent quote
+  const storyMap = new Map(stories.map(s => [s.id, s]));
+  const storiesWithQuotes = stories
+    .filter(s => quotes.some(q => q.storyId === s.id))
+    .sort((a, b) => {
+      const latestA = Math.max(...quotes.filter(q => q.storyId === a.id).map(q => new Date(q.createdAt).getTime()));
+      const latestB = Math.max(...quotes.filter(q => q.storyId === b.id).map(q => new Date(q.createdAt).getTime()));
+      return latestB - latestA;
+    });
+
+  // Filter quotes based on active tab
+  const filteredQuotes = activeTab === 'unassigned'
+    ? quotes.filter(q => !q.storyId)
+    : quotes.filter(q => q.storyId === activeTab);
+
+  const activeFilterLabel = activeTab === 'unassigned'
+    ? 'Unassigned'
+    : storyMap.get(activeTab)?.title || 'All';
+
+  const allSelected = filteredQuotes.length > 0 && selectedIds.size === filteredQuotes.length;
 
   return (
     <div className={`min-h-screen ${
@@ -188,16 +228,103 @@ export default function QuotesPage() {
 
       {/* Page Header */}
       <div className="border-b bg-[var(--theme-headerBg)] border-[var(--theme-border)]">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className="font-semibold text-[var(--theme-text)]">
-            Your Quotes
-            {quotes.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-[var(--theme-textMuted)]">
-                ({quotes.length})
-              </span>
+        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="font-semibold text-[var(--theme-text)]">
+              Your Quotes
+              {quotes.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-[var(--theme-textMuted)]">
+                  ({quotes.length})
+                </span>
+              )}
+            </h1>
+
+            {/* Filter dropdown */}
+            {!loading && quotes.length > 0 && (
+              <div ref={filterRef} className="relative">
+                <button
+                  onClick={() => setShowFilterDropdown(prev => !prev)}
+                  className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors border-none cursor-pointer ${
+                    isLight
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faFilter} className="text-xs" />
+                  <span className="max-w-[150px] truncate">{activeFilterLabel}</span>
+                  <FontAwesomeIcon icon={faChevronDown} className={`text-[0.6rem] transition-transform ${
+                    showFilterDropdown ? 'rotate-180' : ''
+                  }`} />
+                </button>
+
+                {showFilterDropdown && (
+                  <div className={`absolute top-full left-0 mt-1 w-64 rounded-xl shadow-2xl overflow-hidden border z-50 ${
+                    !isLight
+                      ? 'bg-[var(--theme-bg)] border-white/20'
+                      : 'bg-white border-gray-200'
+                  }`}>
+                    <div className="max-h-72 overflow-y-auto">
+                      {/* Unassigned option */}
+                      <button
+                        onClick={() => { setActiveTab('unassigned'); setSelectedIds(new Set()); setShowFilterDropdown(false); }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
+                          activeTab === 'unassigned'
+                            ? isLight
+                              ? 'bg-orange-50 text-orange-700'
+                              : 'bg-white/10 text-[var(--theme-primary)]'
+                            : isLight
+                              ? 'bg-transparent text-gray-900 hover:bg-gray-50'
+                              : 'bg-transparent text-gray-200 hover:bg-white/5'
+                        }`}
+                      >
+                        <span>Unassigned</span>
+                        <span className={`text-xs ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {quotes.filter(q => !q.storyId).length}
+                        </span>
+                      </button>
+
+                      {/* Stories */}
+                      {storiesWithQuotes.length > 0 && (
+                        <div className={`px-3 py-1.5 text-xs font-semibold border-t border-[var(--theme-border)] ${
+                          isLight ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          Stories
+                        </div>
+                      )}
+                      {storiesWithQuotes.map(story => {
+                        const count = quotes.filter(q => q.storyId === story.id).length;
+                        return (
+                          <button
+                            key={story.id}
+                            onClick={() => { setActiveTab(story.id); setSelectedIds(new Set()); setShowFilterDropdown(false); }}
+                            className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
+                              activeTab === story.id
+                                ? isLight
+                                  ? 'bg-orange-50 text-orange-700'
+                                  : 'bg-white/10 text-[var(--theme-primary)]'
+                                : isLight
+                                  ? 'bg-transparent text-gray-900 hover:bg-gray-50'
+                                  : 'bg-transparent text-gray-200 hover:bg-white/5'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 min-w-0">
+                              <FontAwesomeIcon icon={faBook} className="text-xs opacity-40 shrink-0" />
+                              <span className="truncate">{story.title}</span>
+                            </span>
+                            <span className={`text-xs shrink-0 ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
-          </h1>
-          {quotes.length > 0 && (
+          </div>
+
+          {filteredQuotes.length > 0 && (
             <button
               onClick={handleSelectAll}
               className={`text-sm px-3 py-1.5 rounded-lg transition-colors border-none cursor-pointer ${
@@ -213,7 +340,7 @@ export default function QuotesPage() {
       </div>
 
       {/* Content */}
-      <main className={`max-w-7xl mx-auto px-4 py-8 ${selectedIds.size > 0 ? 'pb-24' : ''}`}>
+      <main className={`max-w-3xl mx-auto px-4 py-8 ${selectedIds.size > 0 ? 'pb-24' : ''}`}>
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
@@ -245,12 +372,22 @@ export default function QuotesPage() {
               Get the Chrome Extension
             </a>
           </div>
+        ) : filteredQuotes.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-4 opacity-30">
+              <FontAwesomeIcon icon={faQuoteLeft} />
+            </div>
+            <p className="text-[var(--theme-textMuted)]">
+              No quotes in this category
+            </p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {quotes.map(quote => (
+          <div className="flex flex-col gap-3">
+            {filteredQuotes.map(quote => (
               <QuoteCard
                 key={quote.id}
                 quote={quote}
+                storyTitle={quote.storyId ? storyMap.get(quote.storyId)?.title : undefined}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}
                 selected={selectedIds.has(quote.id)}

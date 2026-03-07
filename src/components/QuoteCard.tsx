@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft, faSquare, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft, faSquare, faSquareCheck, faBook, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
 
@@ -17,13 +17,14 @@ function isImageUrl(text: string): boolean {
 
 interface QuoteCardProps {
   quote: Quote;
+  storyTitle?: string;
   onUpdate: (id: string, note: string, tags: string[]) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
 }
 
-export default function QuoteCard({ quote, onUpdate, onDelete, selected, onToggleSelect }: QuoteCardProps) {
+export default function QuoteCard({ quote, storyTitle, onUpdate, onDelete, selected, onToggleSelect }: QuoteCardProps) {
   const { isLight } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -70,6 +71,37 @@ export default function QuoteCard({ quote, onUpdate, onDelete, selected, onToggl
     <div className={`rounded-xl p-4 bg-[var(--theme-bg)] border ${
       selected ? 'border-[var(--theme-primary)] ring-1 ring-[var(--theme-primary)]' : 'border-[var(--theme-border)]'
     }`}>
+      {/* Source Link */}
+      <div className="mb-3">
+        {!isComment && quote.postId ? (
+          <Link
+            to={postLink}
+            className={`flex items-center gap-2 text-sm font-medium no-underline rounded-lg px-3 py-2 transition-colors ${
+              isLight
+                ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                : 'bg-white/5 text-[var(--theme-primary)] hover:bg-white/10'
+            }`}
+          >
+            <FontAwesomeIcon icon={faExternalLinkAlt} className="text-xs shrink-0" />
+            <span className="line-clamp-2">{quote.postTitle}</span>
+          </Link>
+        ) : (
+          <a
+            href={quote.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center gap-2 text-sm font-medium no-underline rounded-lg px-3 py-2 transition-colors ${
+              isLight
+                ? 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                : 'bg-white/5 text-[var(--theme-primary)] hover:bg-white/10'
+            }`}
+          >
+            <FontAwesomeIcon icon={faExternalLinkAlt} className="text-xs shrink-0" />
+            <span className="line-clamp-2">{quote.postTitle}</span>
+          </a>
+        )}
+      </div>
+
       {/* Metadata */}
       <div className="flex items-center justify-between text-xs mb-3 text-[var(--theme-textMuted)]">
         <div className="flex items-center gap-2">
@@ -87,25 +119,20 @@ export default function QuoteCard({ quote, onUpdate, onDelete, selected, onToggl
           )}
           <span className="font-medium text-[#ff4500]">r/{quote.subreddit}</span>
           <span>·</span>
-          {!isComment && quote.postId ? (
-            <Link
-              to={postLink}
-              className="hover:underline truncate max-w-[200px] text-[var(--theme-textMuted)]"
-            >
-              {quote.postTitle}
-            </Link>
-          ) : (
-            <a
-              href={quote.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline truncate max-w-[200px] text-[var(--theme-textMuted)]"
-            >
-              {quote.postTitle}
-            </a>
-          )}
-          <span>·</span>
           <span>{formattedDate}</span>
+          {storyTitle && (
+            <>
+              <span>·</span>
+              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${
+                isLight
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'bg-blue-500/15 text-blue-300'
+              }`}>
+                <FontAwesomeIcon icon={faBook} className="text-[0.6rem]" />
+                {storyTitle}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Actions */}

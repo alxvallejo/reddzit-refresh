@@ -251,13 +251,13 @@ header {
 }
 
 .save-link-status.success {
-  color: #10b981;
-  background: #ecfdf5;
+  color: #7563ca;
+  background: #f3f0ff;
 }
 
 .save-link-status.error {
-  color: #ef4444;
-  background: #fef2f2;
+  color: #6b4f8a;
+  background: #f5f0ff;
 }
 
 /* Actions */
