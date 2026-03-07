@@ -16,6 +16,7 @@ import StoryEditorPage from './components/StoryEditorPage';
 import PromoPage from './components/PromoPage';
 import LandingPage from './components/LandingPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import QuoteSharePage from './components/QuoteSharePage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path='/p/:fullname/:slug' element={<PostView />} />
             <Route path='/admin' element={<Admin />} />
             <Route path='/quotes' element={<QuotesPage />} />
+            <Route path='/q/:id' element={<QuoteSharePage />} />
             <Route path='/stories' element={<StoriesPage />} />
             <Route path='/stories/new' element={<StoryNewPage />} />
             <Route path='/stories/:id/edit' element={<StoryEditorPage />} />

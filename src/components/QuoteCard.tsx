@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft, faSquare, faSquareCheck, faBook, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft, faSquare, faSquareCheck, faBook, faExternalLinkAlt, faExpand } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
 
@@ -22,9 +22,10 @@ interface QuoteCardProps {
   onDelete: (id: string) => Promise<void>;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
+  onExpand?: (id: string) => void;
 }
 
-export default function QuoteCard({ quote, storyTitle, onUpdate, onDelete, selected, onToggleSelect }: QuoteCardProps) {
+export default function QuoteCard({ quote, storyTitle, onUpdate, onDelete, selected, onToggleSelect, onExpand }: QuoteCardProps) {
   const { isLight } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -188,6 +189,19 @@ export default function QuoteCard({ quote, storyTitle, onUpdate, onDelete, selec
             </>
           ) : (
             <>
+              {onExpand && (
+                <button
+                  onClick={() => onExpand(quote.id)}
+                  title="Full screen"
+                  className={`p-1.5 rounded transition-colors border-none cursor-pointer ${
+                    isLight
+                      ? 'text-gray-500 hover:bg-gray-100 bg-transparent'
+                      : 'text-gray-400 hover:bg-white/10 bg-transparent'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faExpand} />
+                </button>
+              )}
               <button
                 onClick={() => setEditing(true)}
                 className={`p-1.5 rounded transition-colors border-none cursor-pointer ${

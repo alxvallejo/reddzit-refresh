@@ -5,9 +5,10 @@ import { useTheme } from '../context/ThemeContext';
 import QuoteService, { Quote } from '../helpers/QuoteService';
 import StoryService, { Story } from '../helpers/StoryService';
 import QuoteCard from './QuoteCard';
+import QuoteFullScreen from './QuoteFullScreen';
 import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes, faFilter, faChevronDown, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes, faFilter, faChevronDown, faSync, faGlobe } from '@fortawesome/free-solid-svg-icons';
 
 export default function QuotesPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
@@ -20,8 +21,12 @@ export default function QuotesPage() {
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Full-screen state
+  const [expandedQuoteId, setExpandedQuoteId] = useState<string | null>(null);
+
   // Filter state
   const [activeTab, setActiveTab] = useState<'unassigned' | string>('unassigned');
+  const [activeDomain, setActiveDomain] = useState<string | null>(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -106,6 +111,12 @@ export default function QuotesPage() {
   const handleUpdate = async (id: string, note: string, tags: string[]) => {
     if (!accessToken) return;
     const { quote } = await QuoteService.updateQuote(accessToken, id, { note, tags });
+    setQuotes(quotes.map(q => q.id === id ? quote : q));
+  };
+
+  const handleUpdateText = async (id: string, text: string) => {
+    if (!accessToken) return;
+    const { quote } = await QuoteService.updateQuote(accessToken, id, { text });
     setQuotes(quotes.map(q => q.id === id ? quote : q));
   };
 
@@ -227,10 +238,32 @@ export default function QuotesPage() {
       return latestB - latestA;
     });
 
+  // Helper to extract domain from a URL
+  const getDomain = (url: string): string => {
+    try {
+      return new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+      return 'unknown';
+    }
+  };
+
   // Filter quotes based on active tab
-  const filteredQuotes = activeTab === 'unassigned'
+  const tabFilteredQuotes = activeTab === 'unassigned'
     ? quotes.filter(q => !q.storyId)
     : quotes.filter(q => q.storyId === activeTab);
+
+  // Build domain counts from tab-filtered quotes
+  const domainCounts = new Map<string, number>();
+  tabFilteredQuotes.forEach(q => {
+    const domain = getDomain(q.sourceUrl);
+    domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
+  });
+  const sortedDomains = [...domainCounts.entries()].sort((a, b) => b[1] - a[1]);
+
+  // Apply domain filter on top of tab filter
+  const filteredQuotes = activeDomain
+    ? tabFilteredQuotes.filter(q => getDomain(q.sourceUrl) === activeDomain)
+    : tabFilteredQuotes;
 
   const activeFilterLabel = activeTab === 'unassigned'
     ? 'Unassigned'
@@ -246,7 +279,7 @@ export default function QuotesPage() {
 
       {/* Page Header */}
       <div className="border-b bg-[var(--theme-headerBg)] border-[var(--theme-border)]">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="font-semibold text-[var(--theme-text)]">
               Your Quotes
@@ -269,7 +302,9 @@ export default function QuotesPage() {
                   }`}
                 >
                   <FontAwesomeIcon icon={faFilter} className="text-xs" />
-                  <span className="max-w-[150px] truncate">{activeFilterLabel}</span>
+                  <span className="max-w-[150px] truncate">
+                    {activeFilterLabel}{activeDomain ? ` · ${activeDomain}` : ''}
+                  </span>
                   <FontAwesomeIcon icon={faChevronDown} className={`text-[0.6rem] transition-transform ${
                     showFilterDropdown ? 'rotate-180' : ''
                   }`} />
@@ -284,7 +319,7 @@ export default function QuotesPage() {
                     <div className="max-h-72 overflow-y-auto">
                       {/* Unassigned option */}
                       <button
-                        onClick={() => { setActiveTab('unassigned'); setSelectedIds(new Set()); setShowFilterDropdown(false); }}
+                        onClick={() => { setActiveTab('unassigned'); setActiveDomain(null); setSelectedIds(new Set()); setShowFilterDropdown(false); }}
                         className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
                           activeTab === 'unassigned'
                             ? isLight
@@ -314,7 +349,7 @@ export default function QuotesPage() {
                         return (
                           <button
                             key={story.id}
-                            onClick={() => { setActiveTab(story.id); setSelectedIds(new Set()); setShowFilterDropdown(false); }}
+                            onClick={() => { setActiveTab(story.id); setActiveDomain(null); setSelectedIds(new Set()); setShowFilterDropdown(false); }}
                             className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-left border-none cursor-pointer transition-colors ${
                               activeTab === story.id
                                 ? isLight
@@ -374,63 +409,123 @@ export default function QuotesPage() {
       </div>
 
       {/* Content */}
-      <main className={`max-w-3xl mx-auto px-4 py-8 ${selectedIds.size > 0 ? 'pb-24' : ''}`}>
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 text-red-500">{error}</div>
-        ) : quotes.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-5xl mb-4 opacity-30">
-              <FontAwesomeIcon icon={faQuoteLeft} />
+      <div className={`max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[1fr_220px] lg:gap-8 ${selectedIds.size > 0 ? 'pb-24' : ''}`}>
+        <main>
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
             </div>
-            <h2 className="text-xl font-semibold mb-2 text-[var(--theme-text)]">
-              No quotes yet
-            </h2>
-            <p className="mb-6 max-w-md mx-auto text-[var(--theme-textMuted)]">
-              Highlight text in any article to save your first quote, or use the Chrome extension to save quotes from any page on the web.
-            </p>
-            <a
-              href="https://chromewebstore.google.com/detail/reddzit"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm no-underline transition-colors ${
-                isLight
-                  ? 'bg-orange-600 text-white hover:bg-orange-700'
-                  : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
-              }`}
-            >
-              <FontAwesomeIcon icon={faPuzzlePiece} />
-              Get the Chrome Extension
-            </a>
-          </div>
-        ) : filteredQuotes.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-4 opacity-30">
-              <FontAwesomeIcon icon={faQuoteLeft} />
+          ) : error ? (
+            <div className="text-center py-12 text-red-500">{error}</div>
+          ) : quotes.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-5xl mb-4 opacity-30">
+                <FontAwesomeIcon icon={faQuoteLeft} />
+              </div>
+              <h2 className="text-xl font-semibold mb-2 text-[var(--theme-text)]">
+                No quotes yet
+              </h2>
+              <p className="mb-6 max-w-md mx-auto text-[var(--theme-textMuted)]">
+                Highlight text in any article to save your first quote, or use the Chrome extension to save quotes from any page on the web.
+              </p>
+              <a
+                href="https://chromewebstore.google.com/detail/reddzit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm no-underline transition-colors ${
+                  isLight
+                    ? 'bg-orange-600 text-white hover:bg-orange-700'
+                    : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+                }`}
+              >
+                <FontAwesomeIcon icon={faPuzzlePiece} />
+                Get the Chrome Extension
+              </a>
             </div>
-            <p className="text-[var(--theme-textMuted)]">
-              No quotes in this category
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {filteredQuotes.map(quote => (
-              <QuoteCard
-                key={quote.id}
-                quote={quote}
-                storyTitle={quote.storyId ? storyMap.get(quote.storyId)?.title : undefined}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-                selected={selectedIds.has(quote.id)}
-                onToggleSelect={handleToggleSelect}
-              />
-            ))}
-          </div>
+          ) : filteredQuotes.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-4xl mb-4 opacity-30">
+                <FontAwesomeIcon icon={faQuoteLeft} />
+              </div>
+              <p className="text-[var(--theme-textMuted)]">
+                No quotes in this category
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filteredQuotes.map(quote => (
+                <QuoteCard
+                  key={quote.id}
+                  quote={quote}
+                  storyTitle={quote.storyId ? storyMap.get(quote.storyId)?.title : undefined}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  selected={selectedIds.has(quote.id)}
+                  onToggleSelect={handleToggleSelect}
+                  onExpand={setExpandedQuoteId}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+
+        {/* Domain source filter sidebar — desktop only */}
+        {!loading && quotes.length > 0 && sortedDomains.length > 1 && (
+          <aside className="hidden lg:block">
+            <div className="sticky top-20">
+              <h3 className={`text-xs font-semibold uppercase tracking-wide mb-3 ${
+                isLight ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                Sources
+              </h3>
+              <div className="flex flex-col gap-0.5">
+                {/* All sources */}
+                <button
+                  onClick={() => { setActiveDomain(null); setSelectedIds(new Set()); }}
+                  className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm text-left border-none cursor-pointer transition-colors ${
+                    !activeDomain
+                      ? isLight
+                        ? 'bg-orange-50 text-orange-700 font-medium'
+                        : 'bg-white/10 text-[var(--theme-primary)] font-medium'
+                      : isLight
+                        ? 'bg-transparent text-gray-700 hover:bg-gray-50'
+                        : 'bg-transparent text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <FontAwesomeIcon icon={faGlobe} className="text-xs opacity-50 shrink-0" />
+                    <span className="truncate">All sources</span>
+                  </span>
+                  <span className={`text-xs shrink-0 ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {tabFilteredQuotes.length}
+                  </span>
+                </button>
+
+                {sortedDomains.map(([domain, count]) => (
+                  <button
+                    key={domain}
+                    onClick={() => { setActiveDomain(activeDomain === domain ? null : domain); setSelectedIds(new Set()); }}
+                    className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm text-left border-none cursor-pointer transition-colors ${
+                      activeDomain === domain
+                        ? isLight
+                          ? 'bg-orange-50 text-orange-700 font-medium'
+                          : 'bg-white/10 text-[var(--theme-primary)] font-medium'
+                        : isLight
+                          ? 'bg-transparent text-gray-700 hover:bg-gray-50'
+                          : 'bg-transparent text-gray-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="truncate">{domain}</span>
+                    <span className={`text-xs shrink-0 ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
         )}
-      </main>
+      </div>
 
       {/* Floating bulk action bar */}
       {selectedIds.size > 0 && (
@@ -576,6 +671,19 @@ export default function QuotesPage() {
           </div>
         </div>
       )}
+
+      {/* Full-screen quote overlay */}
+      {expandedQuoteId && (() => {
+        const expandedQuote = quotes.find(q => q.id === expandedQuoteId);
+        if (!expandedQuote) return null;
+        return (
+          <QuoteFullScreen
+            quote={expandedQuote}
+            onClose={() => setExpandedQuoteId(null)}
+            onUpdateText={handleUpdateText}
+          />
+        );
+      })()}
     </div>
   );
 }

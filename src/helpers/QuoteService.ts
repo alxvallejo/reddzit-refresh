@@ -29,9 +29,20 @@ export interface CreateQuoteData {
 }
 
 export interface UpdateQuoteData {
+  text?: string;
   note?: string;
   tags?: string[];
   storyId?: string | null;
+}
+
+export interface PublicQuote {
+  id: string;
+  text: string;
+  sourceUrl: string;
+  subreddit: string;
+  postTitle: string;
+  author: string;
+  createdAt: string;
 }
 
 const QuoteService = {
@@ -66,6 +77,13 @@ const QuoteService = {
     const response = await axios.delete<{ success: boolean }>(
       `${API_BASE_URL}/api/quotes/${id}`,
       { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
+  async getPublicQuote(id: string): Promise<{ quote: PublicQuote }> {
+    const response = await axios.get<{ quote: PublicQuote }>(
+      `${API_BASE_URL}/api/quotes/${id}/public`
     );
     return response.data;
   }

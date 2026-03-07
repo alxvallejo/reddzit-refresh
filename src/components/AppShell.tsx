@@ -6,7 +6,6 @@ import SavedFeed from './SavedFeed';
 import LinksFeed from './LinksFeed';
 import TopFeed from './TopFeed';
 import ForYouFeed from './ForYouFeed';
-import LinksFeed from './LinksFeed';
 import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import MainHeader from './MainHeader';
