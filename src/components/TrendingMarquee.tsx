@@ -19,7 +19,15 @@ const TrendingMarquee = () => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= MOBILE_BREAKPOINT);
 
   const loadTrendingPosts = useCallback(() => {
-    DailyService.getTrendingRSS('news').then(setPosts);
+    DailyService.getTrendingRSS('news').then(fetched => {
+      // Fisher-Yates shuffle for random order
+      const shuffled = [...fetched];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      setPosts(shuffled);
+    });
   }, []);
 
   useEffect(() => {

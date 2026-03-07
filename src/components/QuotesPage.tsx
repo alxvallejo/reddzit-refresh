@@ -7,13 +7,14 @@ import StoryService, { Story } from '../helpers/StoryService';
 import QuoteCard from './QuoteCard';
 import MainHeader from './MainHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes, faFilter, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes, faFilter, faChevronDown, faSync } from '@fortawesome/free-solid-svg-icons';
 
 export default function QuotesPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
   const { isLight } = useTheme();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Selection state
@@ -58,6 +59,23 @@ export default function QuotesPage() {
 
     loadData();
   }, [signedIn, accessToken]);
+
+  const handleRefresh = async () => {
+    if (!accessToken || refreshing) return;
+    setRefreshing(true);
+    try {
+      const [quotesRes, storiesRes] = await Promise.all([
+        QuoteService.listQuotes(accessToken),
+        StoryService.listStories(accessToken),
+      ]);
+      setQuotes(quotesRes.quotes);
+      setStories(storiesRes.stories);
+    } catch (err) {
+      console.error('Failed to refresh quotes:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Outside-click to close story picker
   useEffect(() => {
@@ -324,18 +342,34 @@ export default function QuotesPage() {
             )}
           </div>
 
-          {filteredQuotes.length > 0 && (
-            <button
-              onClick={handleSelectAll}
-              className={`text-sm px-3 py-1.5 rounded-lg transition-colors border-none cursor-pointer ${
-                isLight
-                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  : 'bg-white/10 text-gray-300 hover:bg-white/15'
-              }`}
-            >
+          <div className="flex items-center gap-2">
+            {!loading && quotes.length > 0 && (
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                title="Refresh quotes"
+                className={`text-sm px-2.5 py-1.5 rounded-lg transition-colors border-none cursor-pointer disabled:opacity-50 ${
+                  isLight
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                }`}
+              >
+                <FontAwesomeIcon icon={faSync} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+            )}
+            {filteredQuotes.length > 0 && (
+              <button
+                onClick={handleSelectAll}
+                className={`text-sm px-3 py-1.5 rounded-lg transition-colors border-none cursor-pointer ${
+                  isLight
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                }`}
+              >
               {allSelected ? 'Deselect All' : 'Select All'}
             </button>
           )}
+          </div>
         </div>
       </div>
 
