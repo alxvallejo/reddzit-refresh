@@ -403,8 +403,31 @@ export const getParsedContent = (
           <Video url={selectedContent.video} />
         </div>
       );
-    } else {
-      //debugger
+    } else if (selectedContent.content) {
+      try {
+        content = Parser(selectedContent.content, {
+          replace: (domNode) => {
+            if (badTags.indexOf(domNode.name) !== -1) {
+              return React.createElement('span', {}, '');
+            }
+            if (domNode.name === 'img') {
+              let { src, alt } = domNode.attribs;
+              return (
+                <div className='my-4' style={{ fontSize }}>
+                  <img className={selectedPostImageClass} src={src} alt={alt} />
+                </div>
+              );
+            }
+          },
+        });
+        return content;
+      } catch (err) {
+        return (
+          <div className='my-4' style={{ fontSize }}>
+            {noContentTile()}
+          </div>
+        );
+      }
     }
   } else if (selectedContent.img && selectedPost) {
     // Skip displaying image if preview image is already shown
