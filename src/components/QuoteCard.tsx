@@ -117,7 +117,7 @@ export default function QuoteCard({ quote, storyTitle, onUpdate, onDelete, selec
               <FontAwesomeIcon icon={selected ? faSquareCheck : faSquare} />
             </button>
           )}
-          <span className="font-medium text-[#ff4500]">r/{quote.subreddit}</span>
+          <span className="font-medium text-[var(--theme-primary)]">r/{quote.subreddit}</span>
           <span>·</span>
           <span>{formattedDate}</span>
           {storyTitle && (

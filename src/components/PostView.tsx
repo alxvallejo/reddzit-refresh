@@ -262,7 +262,7 @@ export default function PostView() {
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bgColor}`}>
         <h2 className="text-2xl font-bold mb-4">Unable to load post</h2>
         <p className="mb-6">{error}</p>
-        <Link to="/" className="bg-[#ff4500] text-white px-6 py-3 rounded-full font-bold shadow-lg no-underline">Back to Feed</Link>
+        <Link to="/" className="bg-[var(--theme-primary)] text-[#262129] px-6 py-3 rounded-full font-bold shadow-lg no-underline">Back to Feed</Link>
     </div>
   );
 
@@ -308,11 +308,11 @@ export default function PostView() {
         {/* Content */}
         <main className="max-w-3xl mx-auto px-4 py-8 pb-32">
              <div className="mb-8">
-                 <div className="text-[#ff4500] font-bold text-sm uppercase tracking-wide mb-2">
+                 <div className="text-[var(--theme-primary)] font-bold text-sm uppercase tracking-wide mb-2">
                      {post.subreddit}
                  </div>
                  <h1 className={`text-3xl sm:text-4xl font-sans leading-tight mb-4 ${!isLight ? 'font-extralight' : 'font-normal'}`}>
-                     <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="hover:text-[#ff4500] transition-colors text-inherit no-underline">
+                     <a href={`https://www.reddit.com${post.permalink}`} target="_blank" rel="noreferrer" className="hover:text-[var(--theme-primary)] transition-colors text-inherit no-underline">
                         {getDisplayTitle(post)}
                      </a>
                  </h1>

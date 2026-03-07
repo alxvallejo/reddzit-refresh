@@ -57,7 +57,7 @@ const Feed = () => {
       return (
          <div className="min-h-screen bg-[var(--color-primary)] flex items-center justify-center flex-col p-4 text-center">
              <h2 className="text-white text-2xl mb-4">Please log in to view your feed</h2>
-             <a href="/" className="bg-[#ff4500] text-white px-6 py-3 rounded-full font-bold shadow-lg no-underline">Go Home</a>
+             <a href="/" className="bg-[var(--theme-primary)] text-[#262129] px-6 py-3 rounded-full font-bold shadow-lg no-underline">Go Home</a>
          </div>
       );
   }
@@ -147,7 +147,7 @@ const Feed = () => {
                     
                     {/* Text */}
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="text-xs font-bold text-[#ff4500] uppercase tracking-wide mb-1">
+                        <div className="text-xs font-bold text-[var(--theme-primary)] uppercase tracking-wide mb-1">
                             {post.subreddit}
                         </div>
                         <h3 className="text-lg font-light text-gray-900 leading-tight mb-2 line-clamp-2">

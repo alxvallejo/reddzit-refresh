@@ -352,7 +352,7 @@ export const handlePostType = async (postType) => {
       
       // Otherwise just show link
       return {
-        content: `<h2 class="text-xl font-bold mb-2">${postType.title}</h2><p><a href="${postType.url}" target="_blank" class="text-[#ff4500] hover:underline">View on Reddit</a></p>`,
+        content: `<h2 class="text-xl font-bold mb-2">${postType.title}</h2><p><a href="${postType.url}" target="_blank" style="color: var(--theme-primary, #b6aaf1);" class="hover:underline">View on Reddit</a></p>`,
         title: postType.title,
       };
 

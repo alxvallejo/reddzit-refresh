@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { getPreviewImage, getDisplayTitle, isComment, getCommentSnippet, getImageUrlFromText, getArticlePreviewImage } from '../helpers/RedditUtils';
 import NoContent from './NoContent';
 
@@ -26,7 +28,18 @@ const SavedFeed = () => {
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get('demo') === 'true';
   const [now, setNow] = useState(new Date());
+  const [refreshing, setRefreshing] = useState(false);
   const [commentParentImages, setCommentParentImages] = useState<Record<string, string>>({});
+
+  const handleRefresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await fetchSaved();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchSaved, refreshing]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -106,7 +119,7 @@ const SavedFeed = () => {
 
   const posts = isDemo ? DEMO_POSTS : saved;
 
-  if (!isDemo && loading) {
+  if (!isDemo && loading && !refreshing) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin border-[var(--theme-primary)]"></div>
@@ -131,11 +144,25 @@ const SavedFeed = () => {
             <h1 className="text-2xl font-bold text-[var(--theme-text)]">
               Saved Posts
             </h1>
-            <span className="text-xs whitespace-nowrap text-[var(--theme-textMuted)]">
-              {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-              {' '}
-              {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                title="Refresh saved posts"
+                className={`text-sm px-2.5 py-1.5 rounded-lg transition-colors border-none cursor-pointer disabled:opacity-50 ${
+                  isLight
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                }`}
+              >
+                <FontAwesomeIcon icon={faSync} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+              <span className="text-xs whitespace-nowrap text-[var(--theme-textMuted)]">
+                {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                {' '}
+                {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            </div>
           </div>
         </div>
       </header>
