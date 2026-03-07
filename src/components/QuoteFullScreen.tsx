@@ -190,7 +190,7 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, 
         </div>
 
         {/* Quote content with nav arrows */}
-        <div className="flex-1 overflow-y-auto flex items-center justify-center px-6 pb-8 relative">
+        <div className={`flex-1 overflow-y-auto flex justify-center px-6 pb-8 relative ${editing ? 'items-start pt-8' : 'items-center'}`}>
           {/* Prev arrow */}
           {hasPrev && onPrev && !editing && (
             <button
