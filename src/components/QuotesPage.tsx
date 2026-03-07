@@ -674,13 +674,20 @@ export default function QuotesPage() {
 
       {/* Full-screen quote overlay */}
       {expandedQuoteId && (() => {
-        const expandedQuote = quotes.find(q => q.id === expandedQuoteId);
+        const idx = filteredQuotes.findIndex(q => q.id === expandedQuoteId);
+        const expandedQuote = idx >= 0 ? filteredQuotes[idx] : quotes.find(q => q.id === expandedQuoteId);
         if (!expandedQuote) return null;
         return (
           <QuoteFullScreen
             quote={expandedQuote}
             onClose={() => setExpandedQuoteId(null)}
             onUpdateText={handleUpdateText}
+            onPrev={idx > 0 ? () => setExpandedQuoteId(filteredQuotes[idx - 1].id) : undefined}
+            onNext={idx < filteredQuotes.length - 1 ? () => setExpandedQuoteId(filteredQuotes[idx + 1].id) : undefined}
+            hasPrev={idx > 0}
+            hasNext={idx < filteredQuotes.length - 1}
+            currentIndex={idx >= 0 ? idx : undefined}
+            totalCount={idx >= 0 ? filteredQuotes.length : undefined}
           />
         );
       })()}

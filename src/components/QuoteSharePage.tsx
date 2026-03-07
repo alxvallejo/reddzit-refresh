@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuoteLeft, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { faQuoteLeft, faExternalLinkAlt, faLink, faHighlighter, faPuzzlePiece, faBookOpen, faShareAlt } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useReddit } from '../context/RedditContext';
 import QuoteService, { PublicQuote } from '../helpers/QuoteService';
 
 export default function QuoteSharePage() {
   const { id } = useParams<{ id: string }>();
   const { isLight } = useTheme();
+  const { signedIn } = useReddit();
   const [quote, setQuote] = useState<PublicQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -95,8 +98,38 @@ export default function QuoteSharePage() {
               </div>
             </div>
 
-            {/* CTA */}
-            <div className={`mt-8 pt-6 border-t ${isLight ? 'border-gray-100' : 'border-white/5'}`}>
+            {/* Share + CTA */}
+            <div className={`mt-8 pt-6 border-t flex items-center gap-3 ${isLight ? 'border-gray-100' : 'border-white/5'}`}>
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  } catch {
+                    const input = document.createElement('input');
+                    input.value = window.location.href;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border-none cursor-pointer ${
+                  copied
+                    ? isLight
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-green-500/20 text-green-400'
+                    : isLight
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                }`}
+              >
+                <FontAwesomeIcon icon={faLink} className="text-xs" />
+                {copied ? 'Link copied!' : 'Share'}
+              </button>
               <Link
                 to="/"
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium no-underline transition-colors ${
@@ -108,6 +141,45 @@ export default function QuoteSharePage() {
                 Explore Reddzit
               </Link>
             </div>
+
+            {/* Promo for logged-out visitors */}
+            {!signedIn && (
+              <div className={`mt-10 rounded-2xl p-6 ${
+                isLight ? 'bg-gray-50 border border-gray-200' : 'bg-white/5 border border-white/10'
+              }`}>
+                <h3 className={`text-lg font-semibold mb-3 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                  Save the best of what you read
+                </h3>
+                <p className={`text-sm leading-relaxed mb-4 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                  Reddzit helps you capture and organize quotes from articles, Reddit threads, and the web.
+                </p>
+                <div className="flex flex-col gap-3 mb-5">
+                  {[
+                    { icon: faHighlighter, text: 'Highlight any text on the web to save it as a quote' },
+                    { icon: faBookOpen, text: 'Organize quotes into stories and reports' },
+                    { icon: faShareAlt, text: 'Share your favorite quotes with a beautiful link' },
+                    { icon: faPuzzlePiece, text: 'Chrome extension for one-click saving from any page' },
+                  ].map(({ icon, text }, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <FontAwesomeIcon icon={icon} className={`text-sm mt-0.5 ${
+                        isLight ? 'text-orange-500' : 'text-[var(--theme-primary)]'
+                      }`} />
+                      <span className={`text-sm ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>{text}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  to="/"
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold no-underline transition-colors ${
+                    isLight
+                      ? 'bg-orange-600 text-white hover:bg-orange-700'
+                      : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90'
+                  }`}
+                >
+                  Get started with Reddzit
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </main>

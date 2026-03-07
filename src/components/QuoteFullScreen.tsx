@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faEdit, faCheck, faShareAlt, faQuoteLeft, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faEdit, faCheck, faShareAlt, faQuoteLeft, faExternalLinkAlt, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
 
@@ -8,9 +8,15 @@ interface QuoteFullScreenProps {
   quote: Quote;
   onClose: () => void;
   onUpdateText: (id: string, text: string) => Promise<void>;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
-export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteFullScreenProps) {
+export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, onNext, hasPrev, hasNext, currentIndex, totalCount }: QuoteFullScreenProps) {
   const { isLight } = useTheme();
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(quote.text);
@@ -18,7 +24,7 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteF
   const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Escape key to close
+  // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -29,10 +35,13 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteF
           onClose();
         }
       }
+      if (editing) return;
+      if (e.key === 'ArrowLeft' && hasPrev && onPrev) onPrev();
+      if (e.key === 'ArrowRight' && hasNext && onNext) onNext();
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [editing, onClose, quote.text]);
+  }, [editing, onClose, quote.text, hasPrev, hasNext, onPrev, onNext]);
 
   // Lock body scroll
   useEffect(() => {
@@ -48,6 +57,13 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteF
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
   }, [editing]);
+
+  // Reset state when navigating to a different quote
+  useEffect(() => {
+    setEditText(quote.text);
+    setEditing(false);
+    setCopied(false);
+  }, [quote.id]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -98,6 +114,12 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteF
         {/* Top bar */}
         <div className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-3">
+            {/* Counter */}
+            {currentIndex != null && totalCount != null && (
+              <span className={`text-sm tabular-nums ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
+                {currentIndex + 1} / {totalCount}
+              </span>
+            )}
             {!editing ? (
               <>
                 <button
@@ -167,8 +189,36 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteF
           </button>
         </div>
 
-        {/* Quote content */}
-        <div className="flex-1 overflow-y-auto flex items-center justify-center px-6 pb-8">
+        {/* Quote content with nav arrows */}
+        <div className="flex-1 overflow-y-auto flex items-center justify-center px-6 pb-8 relative">
+          {/* Prev arrow */}
+          {hasPrev && onPrev && !editing && (
+            <button
+              onClick={onPrev}
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors border-none cursor-pointer ${
+                isLight
+                  ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  : 'bg-white/10 text-gray-400 hover:bg-white/20'
+              }`}
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+          )}
+
+          {/* Next arrow */}
+          {hasNext && onNext && !editing && (
+            <button
+              onClick={onNext}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors border-none cursor-pointer ${
+                isLight
+                  ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  : 'bg-white/10 text-gray-400 hover:bg-white/20'
+              }`}
+            >
+              <FontAwesomeIcon icon={faChevronRight} />
+            </button>
+          )}
+
           <div className="max-w-2xl w-full">
             <FontAwesomeIcon
               icon={faQuoteLeft}
