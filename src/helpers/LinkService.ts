@@ -4,21 +4,30 @@ import API_BASE_URL from '../config/api';
 export interface SavedLink {
   id: string;
   url: string;
-  title: string;
-  description: string | null;
-  favicon: string | null;
-  tags: string[];
-  note: string | null;
+  title: string | null;
+  imageUrl: string | null;
+  domain: string | null;
+  hasContent: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface UpdateLinkData {
-  note?: string;
-  tags?: string[];
+export interface LinkContent {
+  type: 'article';
+  title: string | null;
+  content: string;
 }
 
 const LinkService = {
+  async saveLink(token: string, url: string): Promise<{ link: SavedLink }> {
+    const response = await axios.post<{ link: SavedLink }>(
+      `${API_BASE_URL}/api/links`,
+      { url },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
   async listLinks(token: string): Promise<{ links: SavedLink[]; count: number }> {
     const response = await axios.get<{ links: SavedLink[]; count: number }>(
       `${API_BASE_URL}/api/links`,
@@ -35,10 +44,9 @@ const LinkService = {
     return response.data;
   },
 
-  async updateLink(token: string, id: string, data: UpdateLinkData): Promise<{ link: SavedLink }> {
-    const response = await axios.put<{ link: SavedLink }>(
-      `${API_BASE_URL}/api/links/${id}`,
-      data,
+  async getLinkContent(token: string, id: string): Promise<{ link: SavedLink; content: LinkContent | null }> {
+    const response = await axios.get<{ link: SavedLink; content: LinkContent | null }>(
+      `${API_BASE_URL}/api/links/${id}/content`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;

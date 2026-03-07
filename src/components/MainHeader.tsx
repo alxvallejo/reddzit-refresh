@@ -4,13 +4,14 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faCoffee, faSignOutAlt, faQuoteLeft, faBookOpen, faPenNib, faArrowUp, faBookmark, faBinoculars } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faCoffee, faSignOutAlt, faQuoteLeft, faBookOpen, faPenNib, faArrowUp, faBookmark, faBinoculars, faLink } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'top' | 'saved' | 'foryou' | 'stories' | 'quotes' | null;
+type Tab = 'top' | 'saved' | 'foryou' | 'links' | 'stories' | 'quotes' | null;
 
 const getTabFromPath = (pathname: string): Tab => {
   if (pathname === '/reddit' || pathname === '/saved') return 'saved';
   if (pathname === '/foryou') return 'foryou';
+  if (pathname === '/links') return 'links';
   if (pathname.startsWith('/stories')) return 'stories';
   if (pathname.startsWith('/quotes')) return 'quotes';
   if (pathname === '/top' || pathname === '/news') return 'top';
@@ -79,6 +80,9 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
             </button>
             <button onClick={() => navigate('/foryou')} className={tabClass('foryou')}>
               <FontAwesomeIcon icon={faBinoculars} />
+            </button>
+            <button onClick={() => navigate('/links')} className={tabClass('links')}>
+              <FontAwesomeIcon icon={faLink} />
             </button>
             <button onClick={() => navigate('/stories')} className={tabClass('stories')}>
               <FontAwesomeIcon icon={faPenNib} />

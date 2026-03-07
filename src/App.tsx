@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AppShell from './components/AppShell';
 import About from './components/About';
 import PostView from './components/PostView';
+import LinkView from './components/LinkView';
 import Admin from './components/Admin';
 import SubredditFeed from './components/SubredditFeed';
 import QuotesPage from './components/QuotesPage';
@@ -28,6 +29,8 @@ function App() {
             <Route path='/top' element={<AppShell />} />
             <Route path='/foryou' element={<AppShell />} />
             <Route path='/reddit' element={<AppShell />} />
+            <Route path='/links' element={<AppShell />} />
+            <Route path='/link/:id' element={<LinkView />} />
             <Route path='/r/:name' element={<SubredditFeed />} />
             <Route path='/about' element={<About />} />
             <Route path='/p/:fullname' element={<PostView />} />

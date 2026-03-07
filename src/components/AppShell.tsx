@@ -6,6 +6,7 @@ import SavedFeed from './SavedFeed';
 import LinksFeed from './LinksFeed';
 import TopFeed from './TopFeed';
 import ForYouFeed from './ForYouFeed';
+import LinksFeed from './LinksFeed';
 import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import MainHeader from './MainHeader';
@@ -13,12 +14,13 @@ import Footer from './Footer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
-type Tab = 'top' | 'saved' | 'foryou' | 'stories' | 'quotes';
+type Tab = 'top' | 'saved' | 'foryou' | 'stories' | 'quotes' | 'links';
 
 // Derive active tab from URL path
 const getTabFromPath = (pathname: string): Tab => {
   if (pathname === '/reddit' || pathname === '/saved') return 'saved';
   if (pathname === '/foryou') return 'foryou';
+  if (pathname === '/links') return 'links';
   if (pathname.startsWith('/stories')) return 'stories';
   if (pathname.startsWith('/quotes')) return 'quotes';
   return 'top';
@@ -39,6 +41,7 @@ const AppShell = () => {
     top: location.pathname === '/news' ? 'Top News' : 'Top Posts on Reddit',
     saved: 'Saved Posts',
     foryou: 'For You',
+    links: 'Links',
     stories: 'Stories',
     quotes: 'Quotes',
   };
@@ -91,6 +94,7 @@ const AppShell = () => {
         {activeTab === 'saved' && <SavedContent />}
         {activeTab === 'top' && <TopContent />}
         {activeTab === 'foryou' && <ForYouContent />}
+        {activeTab === 'links' && <LinksContent />}
       </main>
 
       {/* Footer with feedback */}
@@ -288,6 +292,44 @@ const ForYouContent = () => {
     <>
       <TrendingMarquee />
       <ForYouFeed />
+    </>
+  );
+};
+
+// Links content (requires login)
+const LinksContent = () => {
+  const { signedIn, redirectForAuth } = useReddit();
+  const { isLight } = useTheme();
+
+  if (!signedIn) {
+    return (
+      <>
+        <TrendingMarquee />
+        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+          <div className="text-6xl mb-6">🔗</div>
+          <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">Saved Links</h2>
+          <p className="mb-8 max-w-md text-[var(--theme-textMuted)]">
+            Connect your Reddit account to save and read links from anywhere.
+          </p>
+          <button
+            onClick={redirectForAuth}
+            className={`px-6 py-3 rounded-full font-semibold transition-colors border-none cursor-pointer shadow-lg bg-[var(--theme-primary)] ${
+              isLight
+                ? 'text-white hover:bg-orange-700'
+                : 'text-[#262129] hover:opacity-90'
+            }`}
+          >
+            Connect with Reddit
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <TrendingMarquee />
+      <LinksFeed />
     </>
   );
 };
