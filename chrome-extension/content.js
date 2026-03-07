@@ -165,12 +165,47 @@
       <span>Saving...</span>
     `;
 
+    // Try to extract article publish date from page meta tags
+    const sourceDate = (() => {
+      const selectors = [
+        'meta[property="article:published_time"]',
+        'meta[name="date"]',
+        'meta[name="pubdate"]',
+        'meta[name="publish_date"]',
+        'meta[name="DC.date.issued"]',
+        'meta[itemprop="datePublished"]',
+        'time[datetime]',
+      ];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        const val = el?.getAttribute('content') || el?.getAttribute('datetime');
+        if (val) {
+          const d = new Date(val);
+          if (!isNaN(d.getTime())) return d.toISOString();
+        }
+      }
+      // Try JSON-LD
+      const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+      for (const s of scripts) {
+        try {
+          const data = JSON.parse(s.textContent);
+          const dp = data.datePublished || (data['@graph'] && data['@graph'].find(i => i.datePublished))?.datePublished;
+          if (dp) {
+            const d = new Date(dp);
+            if (!isNaN(d.getTime())) return d.toISOString();
+          }
+        } catch {}
+      }
+      return null;
+    })();
+
     // Send message to background script
     const payload = {
       text: currentSelection,
       pageUrl: window.location.href,
       pageTitle: document.title,
-      sourceUrl: window.location.href
+      sourceUrl: window.location.href,
+      sourceDate
     };
     console.log('[Reddzit] Saving quote:', payload);
 

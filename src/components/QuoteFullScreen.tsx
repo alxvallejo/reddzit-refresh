@@ -78,7 +78,8 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText }: QuoteF
     }
   };
 
-  const formattedDate = new Date(quote.createdAt).toLocaleDateString('en-US', {
+  const displayDate = quote.sourceDate || quote.createdAt;
+  const formattedDate = new Date(displayDate).toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
     year: 'numeric'

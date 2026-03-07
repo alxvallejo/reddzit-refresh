@@ -179,7 +179,8 @@ export default function PostView() {
       subreddit: post.subreddit,
       postTitle: post.link_title || post.title,
       author: post.author,
-      storyId
+      storyId,
+      sourceDate: post.created_utc ? new Date(post.created_utc * 1000).toISOString() : undefined
     });
 
     setSelectedText('');
@@ -217,6 +218,7 @@ export default function PostView() {
       postTitle,
       author: post.author,
       storyId,
+      sourceDate: post.created_utc ? new Date(post.created_utc * 1000).toISOString() : undefined,
     });
     setShowStoryPicker(false);
     showToast('Added to story!');
@@ -532,6 +534,7 @@ export default function PostView() {
                             subreddit: post.subreddit,
                             postTitle: post.link_title || post.title,
                             author: post.author,
+                            sourceDate: post.created_utc ? new Date(post.created_utc * 1000).toISOString() : undefined,
                           });
                           showToast('Image saved!');
                         }}

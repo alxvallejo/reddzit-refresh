@@ -176,7 +176,8 @@ async function saveQuote(data) {
     isExternal: true,
     subreddit: '',
     postTitle: data.pageTitle || '',
-    author: ''
+    author: '',
+    sourceDate: data.sourceDate || null
   };
 
   console.log('[Reddzit] POST', url, body);

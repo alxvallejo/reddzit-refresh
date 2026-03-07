@@ -12,6 +12,7 @@ export interface Quote {
   postTitle: string;
   author: string;
   storyId: string | null;
+  sourceDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +27,7 @@ export interface CreateQuoteData {
   postTitle: string;
   author: string;
   storyId?: string;
+  sourceDate?: string;
 }
 
 export interface UpdateQuoteData {
@@ -42,6 +44,7 @@ export interface PublicQuote {
   subreddit: string;
   postTitle: string;
   author: string;
+  sourceDate: string | null;
   createdAt: string;
 }
 

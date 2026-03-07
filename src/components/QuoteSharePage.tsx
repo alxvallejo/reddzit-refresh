@@ -21,7 +21,7 @@ export default function QuoteSharePage() {
   }, [id]);
 
   const formattedDate = quote
-    ? new Date(quote.createdAt).toLocaleDateString('en-US', {
+    ? new Date(quote.sourceDate || quote.createdAt).toLocaleDateString('en-US', {
         month: 'long',
         day: 'numeric',
         year: 'numeric'

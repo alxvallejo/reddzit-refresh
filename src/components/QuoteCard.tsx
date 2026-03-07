@@ -62,7 +62,8 @@ export default function QuoteCard({ quote, storyTitle, onUpdate, onDelete, selec
   const postSlug = quote.postTitle?.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50) ?? '';
   const postLink = quote.postId ? `/p/${quote.postId}/${postSlug}` : '#';
 
-  const formattedDate = new Date(quote.createdAt).toLocaleDateString('en-US', {
+  const displayDate = quote.sourceDate || quote.createdAt;
+  const formattedDate = new Date(displayDate).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
