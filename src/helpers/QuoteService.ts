@@ -13,6 +13,8 @@ export interface Quote {
   author: string;
   storyId: string | null;
   sourceDate: string | null;
+  displayFont: string | null;
+  displayBg: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +37,8 @@ export interface UpdateQuoteData {
   note?: string;
   tags?: string[];
   storyId?: string | null;
+  displayFont?: string | null;
+  displayBg?: string | null;
 }
 
 export interface PublicQuote {
@@ -45,6 +49,8 @@ export interface PublicQuote {
   postTitle: string;
   author: string;
   sourceDate: string | null;
+  displayFont: string | null;
+  displayBg: string | null;
   createdAt: string;
 }
 

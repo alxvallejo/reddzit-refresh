@@ -1,13 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faEdit, faCheck, faShareAlt, faQuoteLeft, faExternalLinkAlt, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { useTheme } from '../context/ThemeContext';
+import { faTimes, faEdit, faCheck, faShareAlt, faQuoteLeft, faExternalLinkAlt, faChevronLeft, faChevronRight, faFont, faPalette } from '@fortawesome/free-solid-svg-icons';
+import { useTheme, FontFamily, fontFamilies } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
+
+const quoteFontOptions: { key: FontFamily; label: string }[] = [
+  { key: 'brygada', label: 'Brygada 1918' },
+  { key: 'outfit', label: 'Outfit' },
+  { key: 'libertinus', label: 'Libertinus Math' },
+  { key: 'tirra', label: 'Tirra' },
+  { key: 'reddit-sans', label: 'Reddit Sans' },
+  { key: 'zalando-sans', label: 'Zalando Sans' },
+  { key: 'cactus-classical', label: 'Cactus Classical' },
+  { key: 'noto-znamenny', label: 'Noto Znamenny' },
+];
+
+const bgPresets = [
+  { color: '#1a1625', label: 'Dark Purple' },
+  { color: '#1e1e4a', label: 'Deep Navy' },
+  { color: '#1a2332', label: 'Dark Blue' },
+  { color: '#2d1b2e', label: 'Dark Plum' },
+  { color: '#1b2e1b', label: 'Dark Forest' },
+  { color: '#2e2318', label: 'Dark Brown' },
+  { color: '#1a1a1a', label: 'Near Black' },
+  { color: '#2a1a3a', label: 'Violet Night' },
+];
 
 interface QuoteFullScreenProps {
   quote: Quote;
   onClose: () => void;
   onUpdateText: (id: string, text: string) => Promise<void>;
+  onUpdateDisplay: (id: string, data: { displayFont?: string | null; displayBg?: string | null }) => Promise<void>;
   onPrev?: () => void;
   onNext?: () => void;
   hasPrev?: boolean;
@@ -16,13 +39,19 @@ interface QuoteFullScreenProps {
   totalCount?: number;
 }
 
-export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, onNext, hasPrev, hasNext, currentIndex, totalCount }: QuoteFullScreenProps) {
+export default function QuoteFullScreen({ quote, onClose, onUpdateText, onUpdateDisplay, onPrev, onNext, hasPrev, hasNext, currentIndex, totalCount }: QuoteFullScreenProps) {
   const { isLight } = useTheme();
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(quote.text);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [fontMenuOpen, setFontMenuOpen] = useState(false);
+  const [bgMenuOpen, setBgMenuOpen] = useState(false);
+  const [activeFont, setActiveFont] = useState<FontFamily | null>((quote.displayFont as FontFamily) || null);
+  const [activeBg, setActiveBg] = useState<string | null>(quote.displayBg || null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fontMenuRef = useRef<HTMLDivElement>(null);
+  const bgMenuRef = useRef<HTMLDivElement>(null);
 
   // Keyboard navigation
   useEffect(() => {
@@ -63,7 +92,35 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, 
     setEditText(quote.text);
     setEditing(false);
     setCopied(false);
-  }, [quote.id]);
+    setFontMenuOpen(false);
+    setBgMenuOpen(false);
+    setActiveFont((quote.displayFont as FontFamily) || null);
+    setActiveBg(quote.displayBg || null);
+  }, [quote.id, quote.displayFont, quote.displayBg]);
+
+  // Outside-click to close font menu
+  useEffect(() => {
+    if (!fontMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (fontMenuRef.current && !fontMenuRef.current.contains(e.target as Node)) {
+        setFontMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [fontMenuOpen]);
+
+  // Outside-click to close bg menu
+  useEffect(() => {
+    if (!bgMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (bgMenuRef.current && !bgMenuRef.current.contains(e.target as Node)) {
+        setBgMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [bgMenuOpen]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -105,7 +162,8 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, 
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 ${isLight ? 'bg-white/95' : 'bg-black/95'} backdrop-blur-sm`}
+        className="absolute inset-0 backdrop-blur-sm transition-colors duration-300"
+        style={{ backgroundColor: activeBg ? `${activeBg}f2` : isLight ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.95)' }}
         onClick={() => !editing && onClose()}
       />
 
@@ -148,6 +206,105 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, 
                   <FontAwesomeIcon icon={faShareAlt} className="text-xs" />
                   {copied ? 'Link copied!' : 'Share'}
                 </button>
+                {/* Font picker */}
+                <div className="relative" ref={fontMenuRef}>
+                  <button
+                    onClick={() => { setFontMenuOpen(prev => !prev); setBgMenuOpen(false); }}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors border-none cursor-pointer ${
+                      isLight
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faFont} className="text-xs" />
+                  </button>
+                  {fontMenuOpen && (
+                    <div className={`absolute left-0 top-full mt-1 w-52 rounded-xl shadow-2xl py-1 border z-50 ${
+                      isLight
+                        ? 'bg-white border-gray-200'
+                        : 'bg-[var(--theme-bgSecondary,_#3d3466)] border-white/20'
+                    }`}>
+                      <div className={`px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider ${
+                        isLight ? 'text-gray-400' : 'text-white/50'
+                      }`}>
+                        Quote Font
+                      </div>
+                      {quoteFontOptions.map((font) => {
+                        const isActive = font.key === activeFont;
+                        return (
+                          <button
+                            key={font.key}
+                            onClick={() => {
+                              setActiveFont(font.key);
+                              setFontMenuOpen(false);
+                              onUpdateDisplay(quote.id, { displayFont: font.key });
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left border-none cursor-pointer transition-colors ${
+                              isActive
+                                ? isLight
+                                  ? 'bg-orange-50 text-orange-700'
+                                  : 'text-white bg-white/10'
+                                : isLight
+                                  ? 'bg-transparent text-gray-700 hover:bg-gray-50'
+                                  : 'bg-transparent text-gray-300 hover:bg-white/5 hover:text-white'
+                            }`}
+                            style={{ fontFamily: fontFamilies[font.key] }}
+                          >
+                            <span className="flex-1">{font.label}</span>
+                            {isActive && (
+                              <FontAwesomeIcon icon={faCheck} className="text-xs opacity-70" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                {/* Background picker */}
+                <div className="relative" ref={bgMenuRef}>
+                  <button
+                    onClick={() => { setBgMenuOpen(prev => !prev); setFontMenuOpen(false); }}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors border-none cursor-pointer ${
+                      isLight
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faPalette} className="text-xs" />
+                  </button>
+                  {bgMenuOpen && (
+                    <div className={`absolute left-0 top-full mt-1 w-52 rounded-xl shadow-2xl p-3 border z-50 ${
+                      isLight
+                        ? 'bg-white border-gray-200'
+                        : 'bg-[var(--theme-bgSecondary,_#3d3466)] border-white/20'
+                    }`}>
+                      <div className={`text-[10px] font-semibold uppercase tracking-wider mb-2 ${
+                        isLight ? 'text-gray-400' : 'text-white/50'
+                      }`}>
+                        Background
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {bgPresets.map(({ color, label }) => (
+                          <button
+                            key={color}
+                            onClick={() => {
+                              setActiveBg(color);
+                              setBgMenuOpen(false);
+                              onUpdateDisplay(quote.id, { displayBg: color });
+                            }}
+                            title={label}
+                            className={`w-9 h-9 rounded-lg border-2 cursor-pointer transition-all ${
+                              activeBg === color
+                                ? 'border-[var(--theme-primary)] scale-110'
+                                : 'border-transparent hover:border-white/30'
+                            }`}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -189,37 +346,35 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText, onPrev, 
           </button>
         </div>
 
-        {/* Quote content with nav arrows */}
-        <div className={`flex-1 overflow-y-auto flex justify-center px-6 pb-8 relative ${editing ? 'items-start pt-8' : 'items-center'}`}>
-          {/* Prev arrow */}
-          {hasPrev && onPrev && !editing && (
-            <button
-              onClick={onPrev}
-              className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors border-none cursor-pointer ${
-                isLight
-                  ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  : 'bg-white/10 text-gray-400 hover:bg-white/20'
-              }`}
-            >
-              <FontAwesomeIcon icon={faChevronLeft} />
-            </button>
-          )}
+        {/* Nav arrows — outside scrollable area so they stay fixed */}
+        {hasPrev && onPrev && !editing && (
+          <button
+            onClick={onPrev}
+            className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors border-none cursor-pointer ${
+              isLight
+                ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                : 'bg-white/10 text-gray-400 hover:bg-white/20'
+            }`}
+          >
+            <FontAwesomeIcon icon={faChevronLeft} />
+          </button>
+        )}
+        {hasNext && onNext && !editing && (
+          <button
+            onClick={onNext}
+            className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors border-none cursor-pointer ${
+              isLight
+                ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                : 'bg-white/10 text-gray-400 hover:bg-white/20'
+            }`}
+          >
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        )}
 
-          {/* Next arrow */}
-          {hasNext && onNext && !editing && (
-            <button
-              onClick={onNext}
-              className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors border-none cursor-pointer ${
-                isLight
-                  ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  : 'bg-white/10 text-gray-400 hover:bg-white/20'
-              }`}
-            >
-              <FontAwesomeIcon icon={faChevronRight} />
-            </button>
-          )}
-
-          <div className="max-w-2xl w-full">
+        {/* Quote content */}
+        <div className={`flex-1 overflow-y-auto flex justify-center px-6 pb-8 ${editing ? 'items-start pt-8' : 'items-center'}`}>
+          <div className="max-w-2xl w-full" data-content-font={activeFont || undefined}>
             <FontAwesomeIcon
               icon={faQuoteLeft}
               className={`text-4xl mb-6 ${isLight ? 'text-gray-200' : 'text-white/10'}`}

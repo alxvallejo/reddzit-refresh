@@ -120,6 +120,12 @@ export default function QuotesPage() {
     setQuotes(quotes.map(q => q.id === id ? quote : q));
   };
 
+  const handleUpdateDisplay = async (id: string, data: { displayFont?: string | null; displayBg?: string | null }) => {
+    if (!accessToken) return;
+    const { quote } = await QuoteService.updateQuote(accessToken, id, data);
+    setQuotes(quotes.map(q => q.id === id ? quote : q));
+  };
+
   const handleDelete = async (id: string) => {
     if (!accessToken) return;
     await QuoteService.deleteQuote(accessToken, id);
@@ -682,6 +688,7 @@ export default function QuotesPage() {
             quote={expandedQuote}
             onClose={() => setExpandedQuoteId(null)}
             onUpdateText={handleUpdateText}
+            onUpdateDisplay={handleUpdateDisplay}
             onPrev={idx > 0 ? () => setExpandedQuoteId(filteredQuotes[idx - 1].id) : undefined}
             onNext={idx < filteredQuotes.length - 1 ? () => setExpandedQuoteId(filteredQuotes[idx + 1].id) : undefined}
             hasPrev={idx > 0}

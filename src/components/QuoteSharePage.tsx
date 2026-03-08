@@ -31,6 +31,10 @@ export default function QuoteSharePage() {
       })
     : '';
 
+  // When a custom dark bg is set, always use dark-mode text colors
+  const hasDarkBg = !!quote?.displayBg;
+  const useDark = !isLight || hasDarkBg;
+
   return (
     <div className={`min-h-screen flex flex-col ${isLight ? 'bg-white' : 'bg-[var(--theme-bg)]'}`}>
       {/* Simple header */}
@@ -46,7 +50,10 @@ export default function QuoteSharePage() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
+      <main
+        className="flex-1 flex items-center justify-center px-6 py-12 transition-colors duration-300"
+        style={quote?.displayBg ? { backgroundColor: quote.displayBg } : undefined}
+      >
         {loading ? (
           <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />
         ) : error || !quote ? (
@@ -64,34 +71,34 @@ export default function QuoteSharePage() {
             </Link>
           </div>
         ) : (
-          <div className="max-w-2xl w-full">
+          <div className="max-w-2xl w-full" data-content-font={quote.displayFont || undefined}>
             <FontAwesomeIcon
               icon={faQuoteLeft}
-              className={`text-4xl mb-6 ${isLight ? 'text-gray-200' : 'text-white/10'}`}
+              className={`text-4xl mb-6 ${useDark ? 'text-white/10' : 'text-gray-200'}`}
             />
 
             <p className={`text-xl sm:text-2xl leading-relaxed whitespace-pre-wrap ${
-              isLight ? 'text-gray-900' : 'text-white'
+              useDark ? 'text-white' : 'text-gray-900'
             }`}>
               {quote.text}
             </p>
 
             {/* Attribution */}
-            <div className={`mt-8 pt-6 border-t ${isLight ? 'border-gray-200' : 'border-white/10'}`}>
+            <div className={`mt-8 pt-6 border-t ${useDark ? 'border-white/10' : 'border-gray-200'}`}>
               {quote.postTitle && (
                 <a
                   href={quote.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`flex items-center gap-2 text-sm font-medium no-underline mb-2 ${
-                    isLight ? 'text-orange-600 hover:text-orange-700' : 'text-[var(--theme-primary)] hover:opacity-80'
+                    useDark ? 'text-[var(--theme-primary)] hover:opacity-80' : 'text-orange-600 hover:text-orange-700'
                   }`}
                 >
                   <FontAwesomeIcon icon={faExternalLinkAlt} className="text-xs" />
                   {quote.postTitle}
                 </a>
               )}
-              <div className={`flex items-center gap-2 text-sm ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
+              <div className={`flex items-center gap-2 text-sm ${useDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 {quote.subreddit && <span>r/{quote.subreddit}</span>}
                 {quote.subreddit && <span>·</span>}
                 <span>{formattedDate}</span>
@@ -99,7 +106,7 @@ export default function QuoteSharePage() {
             </div>
 
             {/* Share + CTA */}
-            <div className={`mt-8 pt-6 border-t flex items-center gap-3 ${isLight ? 'border-gray-100' : 'border-white/5'}`}>
+            <div className={`mt-8 pt-6 border-t flex items-center gap-3 ${useDark ? 'border-white/5' : 'border-gray-100'}`}>
               <button
                 onClick={async () => {
                   try {
