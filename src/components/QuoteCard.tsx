@@ -4,16 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faCheck, faTimes, faQuoteLeft, faSquare, faSquareCheck, faBook, faExternalLinkAlt, faExpand } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
-
-function isImageUrl(text: string): boolean {
-  if (/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(text)) return true;
-  try {
-    const url = new URL(text);
-    return ['preview.redd.it', 'i.redd.it'].includes(url.hostname);
-  } catch {
-    return false;
-  }
-}
+import { isImageUrl } from '../helpers/isImageUrl';
 
 interface QuoteCardProps {
   quote: Quote;

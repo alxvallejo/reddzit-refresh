@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faEdit, faCheck, faShareAlt, faQuoteLeft, faExternalLinkAlt, faChevronLeft, faChevronRight, faFont, faPalette } from '@fortawesome/free-solid-svg-icons';
 import { useTheme, FontFamily, fontFamilies } from '../context/ThemeContext';
 import { Quote } from '../helpers/QuoteService';
+import { isImageUrl } from '../helpers/isImageUrl';
 
 const quoteFontOptions: { key: FontFamily; label: string }[] = [
   { key: 'brygada', label: 'Brygada 1918' },
@@ -396,6 +397,12 @@ export default function QuoteFullScreen({ quote, onClose, onUpdateText, onUpdate
                 }`}
                 style={{ minHeight: '200px' }}
                 placeholder="Enter quote text..."
+              />
+            ) : isImageUrl(quote.text) ? (
+              <img
+                src={quote.text}
+                alt={quote.postTitle || 'Saved image'}
+                className="max-w-full max-h-[60vh] rounded-xl object-contain"
               />
             ) : (
               <p className={`text-xl sm:text-2xl leading-relaxed whitespace-pre-wrap ${

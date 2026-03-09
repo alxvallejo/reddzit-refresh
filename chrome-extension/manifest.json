@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Reddzit - Save Quotes from Any Page",
   "description": "Highlight text on any webpage and save it to your Reddzit quote library",
-"version": "2.3.0",
+"version": "2.4.0",
   "author": "Reddzit Team",
 
   "action": {
@@ -34,7 +34,8 @@
 
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "contextMenus"
   ],
 
   "host_permissions": [

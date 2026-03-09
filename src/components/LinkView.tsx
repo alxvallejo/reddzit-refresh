@@ -156,8 +156,22 @@ export default function LinkView() {
           </div>
         )}
 
-        {showFallback ? (
-          /* Fallback: extraction failed */
+        {/* Saved image */}
+        {link.imageUrl && (
+          <div className="mb-8">
+            <img
+              src={link.imageUrl}
+              alt={link.title || 'Saved image'}
+              className={`w-full rounded-2xl border ${
+                isLight ? 'border-gray-200' : 'border-white/10'
+              }`}
+              style={{ maxHeight: '70vh', objectFit: 'contain' }}
+            />
+          </div>
+        )}
+
+        {showFallback && !link.imageUrl ? (
+          /* Fallback: extraction failed and no image */
           <div className={`text-center py-16 px-4 rounded-2xl border ${
             isLight ? 'bg-gray-50 border-gray-200' : 'bg-white/5 border-white/10'
           }`}>

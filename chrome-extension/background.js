@@ -122,7 +122,8 @@ async function saveLink(data) {
     url: data.url,
     title: data.title || 'Untitled',
     description: data.description || null,
-    favicon: data.favicon || null
+    favicon: data.favicon || null,
+    imageUrl: data.imageUrl || null
   };
 
   try {
@@ -296,11 +297,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// Brief badge flash for feedback (shows ✓ or ✗ for 2 seconds)
+function flashBadge(tabId, success) {
+  const text = success ? '✓' : '✗';
+  const color = success ? '#22c55e' : '#ef4444';
+  chrome.action.setBadgeText({ text, tabId });
+  chrome.action.setBadgeBackgroundColor({ color, tabId });
+  setTimeout(() => {
+    chrome.action.setBadgeText({ text: '', tabId });
+  }, 2000);
+}
+
 // Handle extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log('Reddzit extension installed');
   } else if (details.reason === 'update') {
     console.log('Reddzit extension updated to version', chrome.runtime.getManifest().version);
+  }
+
+  // Register context menu for images
+  console.log('[Reddzit] contextMenus API available:', !!chrome.contextMenus);
+  if (chrome.contextMenus) {
+    chrome.contextMenus.removeAll(() => {
+      const menuId = chrome.contextMenus.create({
+        id: 'save-image-to-reddzit',
+        title: 'Save Image to Reddzit',
+        contexts: ['image']
+      }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('[Reddzit] Context menu error:', chrome.runtime.lastError.message);
+        } else {
+          console.log('[Reddzit] Context menu registered, id:', menuId);
+        }
+      });
+    });
+  } else {
+    console.error('[Reddzit] contextMenus API not available — check permissions');
+  }
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId !== 'save-image-to-reddzit') return;
+
+  const result = await saveQuote({
+    text: info.srcUrl,
+    sourceUrl: tab.url,
+    pageUrl: tab.url,
+    pageTitle: tab.title || 'Untitled'
+  });
+
+  flashBadge(tab.id, result.success);
+
+  if (!result.success) {
+    console.error('[Reddzit] Save image failed:', result.error);
   }
 });
