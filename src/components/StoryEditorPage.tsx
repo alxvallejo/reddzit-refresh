@@ -7,7 +7,25 @@ import QuoteService, { Quote } from '../helpers/QuoteService';
 import MainHeader from './MainHeader';
 import TiptapEditor, { TiptapEditorHandle } from './TiptapEditor';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faQuoteLeft, faCheck, faChevronRight, faChevronLeft, faXmark, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faQuoteLeft, faCheck, faChevronRight, faChevronLeft, faXmark, faPlus, faGlobe, faEyeSlash, faPalette, faLink, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { isImageUrl } from '../helpers/isImageUrl';
+
+const BG_PRESETS = [
+  { label: 'Default', value: '' },
+  { label: 'White', value: '#ffffff' },
+  { label: 'Warm', value: '#fdf6e3' },
+  { label: 'Cool', value: '#f0f4f8' },
+  { label: 'Dark', value: '#1a1a2e' },
+  { label: 'Midnight', value: '#0d1117' },
+  { label: 'Forest', value: '#1b2d1b' },
+  { label: 'Slate', value: '#334155' },
+];
+
+const FONT_OPTIONS = [
+  { label: 'Sans-serif', value: 'font-sans' },
+  { label: 'Serif', value: 'font-serif' },
+  { label: 'Mono', value: 'font-mono' },
+];
 
 export default function StoryEditorPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
@@ -26,6 +44,11 @@ export default function StoryEditorPage() {
   const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
   const [showAllQuotes, setShowAllQuotes] = useState(false);
   const [quotesLoading, setQuotesLoading] = useState(true);
+  const [bgColor, setBgColor] = useState('');
+  const [fontClass, setFontClass] = useState('font-sans');
+  const [showStylePanel, setShowStylePanel] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,6 +62,8 @@ export default function StoryEditorPage() {
         setStory(story);
         setTitle(story.title);
         setDescription(story.description || '');
+        setBgColor(story.content?.bgColor || '');
+        setFontClass(story.content?.fontClass || 'font-sans');
         const rawText = story.content?.text || '';
         // Migrate plain text to HTML paragraphs if not already HTML
         const isHTML = /<[a-z][\s\S]*>/i.test(rawText);
@@ -77,6 +102,12 @@ export default function StoryEditorPage() {
     };
   }, []);
 
+  // Refs to keep style values current for debounced save
+  const bgColorRef = useRef(bgColor);
+  bgColorRef.current = bgColor;
+  const fontClassRef = useRef(fontClass);
+  fontClassRef.current = fontClass;
+
   const debouncedSave = useCallback((newTitle: string, newDescription: string, newBody: string) => {
     setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -87,7 +118,7 @@ export default function StoryEditorPage() {
         await StoryService.updateStory(accessToken, id, {
           title: newTitle,
           description: newDescription,
-          content: { text: newBody },
+          content: { text: newBody, bgColor: bgColorRef.current, fontClass: fontClassRef.current },
         });
         setSaveStatus('saved');
       } catch (err) {
@@ -160,6 +191,42 @@ export default function StoryEditorPage() {
     }
   };
 
+  const handlePublishToggle = async () => {
+    if (!accessToken || !id || !story) return;
+    setPublishing(true);
+    try {
+      if (story.status === 'PUBLISHED') {
+        const { story: updated } = await StoryService.unpublishStory(accessToken, id);
+        setStory(updated);
+      } else {
+        const { story: updated } = await StoryService.publishStory(accessToken, id);
+        setStory(updated);
+      }
+    } catch (err) {
+      console.error('Failed to toggle publish:', err);
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleBgColorChange = (color: string) => {
+    setBgColor(color);
+    debouncedSave(title, description, bodyText);
+  };
+
+  const handleFontClassChange = (fc: string) => {
+    setFontClass(fc);
+    debouncedSave(title, description, bodyText);
+  };
+
+  const shareUrl = story ? `${window.location.origin}/s/${story.id}/${story.slug}` : '';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
   // Auth guard (after all hooks)
   if (!signedIn) {
     redirectForAuth();
@@ -216,14 +283,47 @@ export default function StoryEditorPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Status badge */}
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              story?.status === 'PUBLISHED'
-                ? (isLight ? 'bg-green-100 text-green-700' : 'bg-green-900/30 text-green-400')
-                : (isLight ? 'bg-gray-100 text-gray-600' : 'bg-gray-700/50 text-gray-400')
-            }`}>
-              {story?.status === 'PUBLISHED' ? 'Published' : 'Draft'}
-            </span>
+            {/* Style toggle */}
+            <button
+              onClick={() => setShowStylePanel(!showStylePanel)}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-sm border-none cursor-pointer transition-colors ${
+                showStylePanel
+                  ? (isLight ? 'bg-orange-100 text-orange-700' : 'bg-[var(--theme-primary)]/20 text-[var(--theme-primary)]')
+                  : (isLight ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700')
+              }`}
+            >
+              <FontAwesomeIcon icon={faPalette} className="text-xs" />
+            </button>
+
+            {/* Publish / Unpublish */}
+            <button
+              onClick={handlePublishToggle}
+              disabled={publishing}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded text-sm font-medium border-none cursor-pointer transition-colors ${
+                story?.status === 'PUBLISHED'
+                  ? (isLight ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-green-900/30 text-green-400 hover:bg-green-900/50')
+                  : (isLight ? 'bg-orange-600 text-white hover:bg-orange-700' : 'bg-[var(--theme-primary)] text-[#262129] hover:opacity-90')
+              }`}
+            >
+              <FontAwesomeIcon icon={story?.status === 'PUBLISHED' ? faEyeSlash : faGlobe} className="text-xs" />
+              {publishing ? '...' : story?.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
+            </button>
+
+            {/* Share link (only when published) */}
+            {story?.status === 'PUBLISHED' && (
+              <button
+                onClick={handleCopyLink}
+                title="Copy share link"
+                className={`flex items-center gap-1 px-2 py-1 rounded text-sm border-none cursor-pointer transition-colors ${
+                  copySuccess
+                    ? (isLight ? 'bg-green-100 text-green-700' : 'bg-green-900/30 text-green-400')
+                    : (isLight ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700')
+                }`}
+              >
+                <FontAwesomeIcon icon={copySuccess ? faCopy : faLink} className="text-xs" />
+                {copySuccess ? 'Copied!' : 'Link'}
+              </button>
+            )}
 
             {/* Sidebar toggle */}
             <button
@@ -240,6 +340,73 @@ export default function StoryEditorPage() {
           </div>
         </div>
       </div>
+
+      {/* Style Panel */}
+      {showStylePanel && (
+        <div className="border-b border-[var(--theme-border)] bg-[var(--theme-headerBg)]">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-6">
+            {/* Background color */}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-medium ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Background</span>
+              <div className="flex items-center gap-1.5">
+                {BG_PRESETS.map(preset => (
+                  <button
+                    key={preset.value}
+                    onClick={() => handleBgColorChange(preset.value)}
+                    title={preset.label}
+                    className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-all ${
+                      bgColor === preset.value
+                        ? 'border-[var(--theme-primary)] scale-110'
+                        : (isLight ? 'border-gray-300 hover:border-gray-400' : 'border-gray-600 hover:border-gray-500')
+                    }`}
+                    style={{ backgroundColor: preset.value || (isLight ? '#f9fafb' : '#1a1a2e') }}
+                  />
+                ))}
+                <input
+                  type="text"
+                  value={bgColor}
+                  onChange={(e) => handleBgColorChange(e.target.value)}
+                  placeholder="#hex"
+                  className={`w-16 px-1.5 py-0.5 rounded text-xs border focus:outline-none ${
+                    isLight
+                      ? 'bg-white border-gray-300 text-gray-700 focus:border-orange-500'
+                      : 'bg-white/5 border-gray-600 text-gray-300 focus:border-[var(--theme-primary)]'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Font class */}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-medium ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Font</span>
+              <select
+                value={fontClass}
+                onChange={(e) => handleFontClassChange(e.target.value)}
+                className={`px-2 py-1 rounded text-xs border cursor-pointer focus:outline-none ${
+                  isLight
+                    ? 'bg-white border-gray-300 text-gray-700 focus:border-orange-500'
+                    : 'bg-white/5 border-gray-600 text-gray-300 focus:border-[var(--theme-primary)]'
+                }`}
+              >
+                {FONT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Preview indicator */}
+            {bgColor && (
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-8 h-4 rounded border border-[var(--theme-border)]"
+                  style={{ backgroundColor: bgColor }}
+                />
+                <span className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>{bgColor}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex max-w-6xl mx-auto">
@@ -300,9 +467,18 @@ export default function StoryEditorPage() {
                       isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
                     }`}
                   >
-                    <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
-                      "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
-                    </p>
+                    {isImageUrl(quote.text) ? (
+                      <img
+                        src={quote.text}
+                        alt="Quote image"
+                        className="w-full h-20 object-cover rounded-lg mb-1"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
+                        "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
+                      </p>
+                    )}
                     <div className="flex items-center justify-between mt-1">
                       <span className="text-[var(--theme-textMuted)]">
                         r/{quote.subreddit}
@@ -349,9 +525,18 @@ export default function StoryEditorPage() {
                         isLight ? 'hover:border-orange-600' : 'hover:border-[var(--theme-primary)]'
                       }`}
                     >
-                      <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
-                        "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
-                      </p>
+                      {isImageUrl(quote.text) ? (
+                        <img
+                          src={quote.text}
+                          alt="Quote image"
+                          className="w-full h-20 object-cover rounded-lg mb-1"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <p className="mb-1 leading-relaxed text-[var(--theme-text)]">
+                          "{quote.text.length > 150 ? quote.text.slice(0, 150) + '...' : quote.text}"
+                        </p>
+                      )}
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-[var(--theme-textMuted)]">
                           r/{quote.subreddit}

@@ -2,7 +2,9 @@ import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
+import { isImageUrl } from '../helpers/isImageUrl';
 
 export interface TiptapEditorHandle {
   insertQuote: (text: string, sourceUrl?: string, sourceLabel?: string) => void;
@@ -28,6 +30,10 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
         Link.configure({
           autolink: true,
           openOnClick: false,
+        }),
+        Image.configure({
+          inline: false,
+          allowBase64: false,
         }),
         Placeholder.configure({
           placeholder,
@@ -56,6 +62,39 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
     useImperativeHandle(ref, () => ({
       insertQuote(text: string, sourceUrl?: string, sourceLabel?: string) {
         if (!editor) return;
+
+        // If the quote text is an image URL, insert as an image inside a blockquote
+        if (isImageUrl(text)) {
+          const blockquoteContent: any[] = [
+            { type: 'image', attrs: { src: text, alt: sourceLabel || 'Quote image' } },
+          ];
+          if (sourceUrl) {
+            blockquoteContent.push({
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: '— ', marks: [{ type: 'italic' }] },
+                {
+                  type: 'text',
+                  text: sourceLabel || sourceUrl,
+                  marks: [
+                    { type: 'link', attrs: { href: sourceUrl, target: '_blank' } },
+                    { type: 'italic' },
+                  ],
+                },
+              ],
+            });
+          }
+          editor
+            .chain()
+            .focus()
+            .insertContent([
+              { type: 'blockquote', content: blockquoteContent },
+              { type: 'paragraph' },
+            ])
+            .run();
+          return;
+        }
+
         const blockquoteContent: any[] = [
           { type: 'paragraph', content: [{ type: 'text', text }] },
         ];

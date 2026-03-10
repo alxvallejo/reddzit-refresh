@@ -12,6 +12,8 @@ export interface Story {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  author?: string;
+  coverImage?: string | null;
   _count?: { quotes: number };
 }
 
@@ -24,6 +26,8 @@ export interface UpdateStoryData {
   title?: string;
   description?: string;
   content?: any;
+  bgColor?: string;
+  fontClass?: string;
 }
 
 const StoryService = {
@@ -83,6 +87,13 @@ const StoryService = {
       `${API_BASE_URL}/api/stories/${id}/unpublish`,
       {},
       { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
+  async getPublicStory(id: string): Promise<{ story: Story }> {
+    const response = await axios.get<{ story: Story }>(
+      `${API_BASE_URL}/api/stories/${id}/public`
     );
     return response.data;
   }

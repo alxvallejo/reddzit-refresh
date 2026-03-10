@@ -17,6 +17,7 @@ import PromoPage from './components/PromoPage';
 import LandingPage from './components/LandingPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import QuoteSharePage from './components/QuoteSharePage';
+import StoryViewPage from './components/StoryViewPage';
 
 function App() {
   return (
@@ -42,6 +43,8 @@ function App() {
             <Route path='/stories' element={<StoriesPage />} />
             <Route path='/stories/new' element={<StoryNewPage />} />
             <Route path='/stories/:id/edit' element={<StoryEditorPage />} />
+            <Route path='/s/:id/:slug' element={<StoryViewPage />} />
+            <Route path='/s/:id' element={<StoryViewPage />} />
             <Route path='/promo' element={<PromoPage />} />
             <Route path='/privacy' element={<PrivacyPolicy />} />
             </Routes>
