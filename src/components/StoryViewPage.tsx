@@ -76,9 +76,17 @@ export default function StoryViewPage() {
   }
 
   const bgColor = story.content?.bgColor || '';
-  const fontClass = story.content?.fontClass || 'font-sans';
+  const rawFont = story.content?.fontClass || 'outfit';
+  const LEGACY_FONT_MAP: Record<string, string> = { 'font-sans': 'outfit', 'font-serif': 'brygada', 'font-mono': 'outfit' };
+  const fontKey = LEGACY_FONT_MAP[rawFont] || rawFont;
   const bodyHtml = story.content?.text || '';
   const textColor = getTextColor(bgColor);
+  const hasCustomBg = !!bgColor;
+  const proseClass = hasCustomBg
+    ? 'prose prose-lg max-w-none'
+    : !isLight
+      ? 'prose prose-lg max-w-none prose-invert prose-p:text-[var(--theme-text)] prose-headings:text-[var(--theme-text)] prose-strong:text-[var(--theme-text)] prose-li:text-[var(--theme-text)] prose-a:text-[var(--theme-primary)]'
+      : 'prose prose-lg max-w-none prose-gray';
 
   const formattedDate = story.publishedAt
     ? new Date(story.publishedAt).toLocaleDateString('en-US', {
@@ -93,7 +101,8 @@ export default function StoryViewPage() {
       <MainHeader />
 
       <article
-        className={`min-h-[calc(100vh-4rem)] ${fontClass}`}
+        className="min-h-[calc(100vh-4rem)]"
+        data-content-font={fontKey}
         style={{
           backgroundColor: bgColor || undefined,
           color: textColor || undefined,
@@ -131,7 +140,7 @@ export default function StoryViewPage() {
 
           {/* Body */}
           <div
-            className="prose prose-lg max-w-none"
+            className={proseClass}
             style={{ color: textColor || undefined }}
             dangerouslySetInnerHTML={{ __html: bodyHtml }}
           />

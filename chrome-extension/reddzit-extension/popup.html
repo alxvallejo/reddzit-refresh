@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reddzit</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img src="icons/icon32.png" alt="Reddzit" width="24" height="24">
+        <span>Reddzit</span>
+      </div>
+    </header>
+
+    <!-- Not authenticated state -->
+    <div id="auth-required" class="section" style="display: none;">
+      <div class="hero">
+        <div class="hero-icon">📝</div>
+        <h2>Save Quotes from Anywhere</h2>
+        <p>Highlight text on any page and save it to your Reddzit library.</p>
+      </div>
+      <button id="connect-btn" class="primary-btn">
+        Connect with Reddzit
+      </button>
+      <p class="hint">You'll be redirected to log in with Reddit</p>
+    </div>
+
+    <!-- Authenticated state -->
+    <div id="authenticated" class="section" style="display: none;">
+      <div class="user-info">
+        <div class="avatar">👤</div>
+        <div class="user-details">
+          <div class="username" id="username">Loading...</div>
+          <div class="status">Connected</div>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h3>How to save quotes:</h3>
+        <ol>
+          <li>Highlight any text on a webpage</li>
+          <li>Click the "Save Quote" button that appears</li>
+          <li>View your quotes on Reddzit</li>
+        </ol>
+      </div>
+
+      <!-- Save This Page -->
+      <div id="save-link-container" class="save-link-section">
+        <button id="save-link-btn" class="save-link-btn">
+          🔗 Save This Page
+        </button>
+        <div id="save-link-status" class="save-link-status" style="display: none;"></div>
+      </div>
+
+      <div id="site-toggle-container" class="site-toggle" style="display: none;">
+        <div class="site-toggle-info">
+          <span class="site-toggle-label">Quotes on this site</span>
+          <span class="site-toggle-hostname" id="site-hostname"></span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="site-enabled" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="open-quotes-btn" class="primary-btn">
+          View Your Quotes
+        </button>
+        <button id="open-links-btn" class="primary-btn" style="background: #6366f1;">
+          View Saved Links
+        </button>
+        <button id="logout-btn" class="secondary-btn">
+          Disconnect
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading" class="section">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+
+    <footer>
+      <label class="dev-toggle" id="dev-toggle-container" style="display: none;">
+        <input type="checkbox" id="dev-mode">
+        <span>Dev mode</span>
+      </label>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

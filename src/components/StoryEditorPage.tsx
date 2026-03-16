@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, FontFamily, fontFamilies } from '../context/ThemeContext';
 import StoryService, { Story } from '../helpers/StoryService';
 import QuoteService, { Quote } from '../helpers/QuoteService';
 import MainHeader from './MainHeader';
@@ -21,11 +21,23 @@ const BG_PRESETS = [
   { label: 'Slate', value: '#334155' },
 ];
 
-const FONT_OPTIONS = [
-  { label: 'Sans-serif', value: 'font-sans' },
-  { label: 'Serif', value: 'font-serif' },
-  { label: 'Mono', value: 'font-mono' },
+const FONT_OPTIONS: { label: string; value: FontFamily }[] = [
+  { label: 'Brygada 1918', value: 'brygada' },
+  { label: 'Outfit', value: 'outfit' },
+  { label: 'Libertinus Math', value: 'libertinus' },
+  { label: 'Tirra', value: 'tirra' },
+  { label: 'Reddit Sans', value: 'reddit-sans' },
+  { label: 'Zalando Sans', value: 'zalando-sans' },
+  { label: 'Cactus Classical', value: 'cactus-classical' },
+  { label: 'Noto Znamenny', value: 'noto-znamenny' },
 ];
+
+/** Map legacy Tailwind font classes to FontFamily keys. */
+const LEGACY_FONT_MAP: Record<string, FontFamily> = {
+  'font-sans': 'outfit',
+  'font-serif': 'brygada',
+  'font-mono': 'outfit',
+};
 
 export default function StoryEditorPage() {
   const { signedIn, accessToken, redirectForAuth } = useReddit();
@@ -63,7 +75,8 @@ export default function StoryEditorPage() {
         setTitle(story.title);
         setDescription(story.description || '');
         setBgColor(story.content?.bgColor || '');
-        setFontClass(story.content?.fontClass || 'font-sans');
+        const rawFont = story.content?.fontClass || 'outfit';
+        setFontClass(LEGACY_FONT_MAP[rawFont] || rawFont);
         const rawText = story.content?.text || '';
         // Migrate plain text to HTML paragraphs if not already HTML
         const isHTML = /<[a-z][\s\S]*>/i.test(rawText);
@@ -411,7 +424,7 @@ export default function StoryEditorPage() {
       {/* Body */}
       <div className="flex max-w-6xl mx-auto">
         {/* Main editor */}
-        <main className="flex-1 px-8 py-6">
+        <main className="flex-1 px-8 py-6" data-content-font={fontClass}>
           <textarea
             ref={titleRef}
             value={title}
