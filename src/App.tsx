@@ -29,6 +29,7 @@ function App() {
             <Route index path='/' element={<LandingPage />} />
             <Route path='/news' element={<AppShell />} />
             <Route path='/top' element={<AppShell />} />
+            <Route path='/feed/:subreddit' element={<AppShell />} />
             <Route path='/foryou' element={<AppShell />} />
             <Route path='/reddit' element={<AppShell />} />
             <Route path='/links' element={<AppShell />} />

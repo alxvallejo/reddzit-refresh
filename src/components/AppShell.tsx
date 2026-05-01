@@ -36,8 +36,13 @@ const AppShell = () => {
     return localStorage.getItem('hideDailyBanner') !== 'true';
   });
 
+  const feedMatch = location.pathname.match(/^\/feed\/([a-z0-9_]+)$/i);
   const pageTitles: Record<Tab, string> = {
-    top: location.pathname === '/news' ? 'Top News' : 'Top Posts on Reddit',
+    top: location.pathname === '/news'
+      ? 'Top News'
+      : feedMatch
+        ? `r/${feedMatch[1].toLowerCase()}`
+        : 'Top Posts on Reddit',
     saved: 'Saved Posts',
     foryou: 'For You',
     links: 'Links',

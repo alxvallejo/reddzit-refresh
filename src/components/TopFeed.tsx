@@ -1,5 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 import MagazineGrid from './MagazineGrid';
@@ -35,6 +35,7 @@ const TopFeed = () => {
   const { isLight } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const { subreddit: subredditParam } = useParams<{ subreddit?: string }>();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,11 @@ const TopFeed = () => {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
   const isNewsRoute = location.pathname === '/news';
-  const selectedFeed = isNewsRoute ? 'news' : 'top';
+  const normalizedSubredditParam = subredditParam?.trim().toLowerCase();
+  const dataSubreddit = isNewsRoute ? 'news' : normalizedSubredditParam;
+  const selectedFeed = isNewsRoute
+    ? 'news'
+    : normalizedSubredditParam ?? 'top';
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -78,7 +83,7 @@ const TopFeed = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await DailyService.getTrendingRSS(isNewsRoute ? 'news' : undefined);
+      const data = await DailyService.getTrendingRSS(dataSubreddit);
       setPosts(data);
       setLastUpdatedAt(new Date());
     } catch (err) {
@@ -86,7 +91,7 @@ const TopFeed = () => {
     } finally {
       setLoading(false);
     }
-  }, [isNewsRoute]);
+  }, [dataSubreddit]);
 
   useEffect(() => {
     loadTopPosts();
@@ -141,7 +146,7 @@ const TopFeed = () => {
       navigate('/news');
       return;
     }
-    navigate(`/r/${selectedValue}`);
+    navigate(`/feed/${selectedValue}`);
   };
 
   const handleSkipPost = (postId: string) => {
@@ -175,7 +180,11 @@ const TopFeed = () => {
 
   const newestPostAgeSeconds = getNewestPostAgeSeconds();
   const isStaleData = newestPostAgeSeconds !== null && newestPostAgeSeconds > STALE_DATA_THRESHOLD_SECONDS;
-  const pageTitle = location.pathname === '/news' ? 'Top News' : 'Top Posts on Reddit';
+  const pageTitle = location.pathname === '/news'
+    ? 'Top News'
+    : normalizedSubredditParam
+      ? `r/${normalizedSubredditParam}`
+      : 'Top Posts on Reddit';
   const visiblePosts = posts.filter(post => !skippedPostIds.has(post.id));
 
   if (loading) {
