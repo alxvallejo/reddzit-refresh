@@ -41,6 +41,12 @@ const RSS_CACHE_KEY = 'rdz_trending_rss';
 const RSS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const RSS_STALE_FALLBACK_MAX_AGE = 60 * 60 * 1000; // 60 minutes
 
+export interface TrendingPostTopComment {
+  body: string;
+  author: string;
+  score: number;
+}
+
 export interface TrendingPost {
   id: string;
   title: string;
@@ -48,6 +54,12 @@ export interface TrendingPost {
   link: string;
   author?: string;
   pubDate?: string;
+  imageUrl?: string;
+  selftext?: string;
+  score?: number;
+  numComments?: number;
+  postHint?: string;
+  topComment?: TrendingPostTopComment;
 }
 
 const DailyService = {
@@ -119,10 +131,11 @@ const DailyService = {
   },
 
   async getTrendingRSS(subreddit?: string): Promise<TrendingPost[]> {
+    const normalizedSubreddit = subreddit?.trim().toLowerCase();
+    const cacheKey = normalizedSubreddit ? `${RSS_CACHE_KEY}_${normalizedSubreddit}` : RSS_CACHE_KEY;
+
+    // Check cache first
     try {
-      const normalizedSubreddit = subreddit?.trim().toLowerCase();
-      const cacheKey = normalizedSubreddit ? `${RSS_CACHE_KEY}_${normalizedSubreddit}` : RSS_CACHE_KEY;
-      // Check cache first
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const { data, timestamp } = JSON.parse(cached);
@@ -130,79 +143,45 @@ const DailyService = {
         if (Date.now() - timestamp < RSS_CACHE_DURATION && hasPosts) {
           return data;
         }
-        // Clear invalid/empty cache
         if (!hasPosts) {
           localStorage.removeItem(cacheKey);
         }
       }
+    } catch {
+      localStorage.removeItem(cacheKey);
+    }
 
-      // Fetch from multiple Reddit feeds in parallel
-      const feeds = normalizedSubreddit
-        ? [
-            `https://www.reddit.com/r/${normalizedSubreddit}/hot.json?limit=50`,
-            `https://www.reddit.com/r/${normalizedSubreddit}/rising.json?limit=25`,
-            `https://www.reddit.com/r/${normalizedSubreddit}/top.json?t=day&limit=25`,
-          ]
-        : [
-            'https://www.reddit.com/r/all/hot.json?limit=50',
-            'https://www.reddit.com/r/all/rising.json?limit=25',
-            'https://www.reddit.com/r/all/top.json?t=day&limit=25',
-            'https://www.reddit.com/r/popular/hot.json?limit=25',
-            'https://www.reddit.com/r/popular/top.json?t=day&limit=25',
-          ];
+    try {
+      const params = normalizedSubreddit ? { subreddit: normalizedSubreddit } : undefined;
+      const response = await axios.get<{ posts: TrendingPost[]; generatedAt: string; cached: boolean }>(
+        `${API_BASE_URL}/api/trending/rss`,
+        { params, timeout: 8000 }
+      );
+      const posts = response.data?.posts || [];
 
-      const responses = await Promise.allSettled(feeds.map(url => fetch(url)));
-      const allChildren: any[] = [];
-      for (const result of responses) {
-        if (result.status === 'fulfilled' && result.value.ok) {
-          const json = await result.value.json();
-          allChildren.push(...(json.data?.children || []));
-        }
-      }
-
-      if (allChildren.length === 0) {
-        throw new Error('No posts from any feed');
-      }
-
-      // Deduplicate by post id
-      const seen = new Set<string>();
-      const posts: TrendingPost[] = allChildren
-        .filter((child: { kind: string; data: { over_18: boolean; id: string } }) => {
-          if (child.kind !== 't3' || child.data.over_18 || seen.has(child.data.id)) return false;
-          seen.add(child.data.id);
-          return true;
-        })
-        .map((child: { data: { id: string; title: string; subreddit: string; permalink: string; author: string; created_utc: number } }) => ({
-          id: child.data.id,
-          title: child.data.title,
-          subreddit: child.data.subreddit,
-          link: `https://www.reddit.com${child.data.permalink}`,
-          author: child.data.author,
-          pubDate: new Date(child.data.created_utc * 1000).toISOString(),
-        }));
-
-      // Only cache if we have posts
       if (posts.length > 0) {
         localStorage.setItem(cacheKey, JSON.stringify({
           data: posts,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }));
       }
 
       return posts;
     } catch (error) {
       console.error('Failed to fetch trending posts', error);
-      // Try to return cache on error only if it's not too old
-      const normalizedSubreddit = subreddit?.trim().toLowerCase();
-      const cacheKey = normalizedSubreddit ? `${RSS_CACHE_KEY}_${normalizedSubreddit}` : RSS_CACHE_KEY;
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        const { data, timestamp } = JSON.parse(cached);
-        const hasPosts = data?.length > 0;
-        const cacheAge = typeof timestamp === 'number' ? Date.now() - timestamp : Infinity;
-        if (hasPosts && cacheAge < RSS_STALE_FALLBACK_MAX_AGE) {
-          return data;
+      // Return stale cache on error if not too old
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const hasPosts = data?.length > 0;
+          const cacheAge = typeof timestamp === 'number' ? Date.now() - timestamp : Infinity;
+          if (hasPosts && cacheAge < RSS_STALE_FALLBACK_MAX_AGE) {
+            return data;
+          }
+          localStorage.removeItem(cacheKey);
         }
+      } catch {
         localStorage.removeItem(cacheKey);
       }
       return [];
