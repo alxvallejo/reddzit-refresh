@@ -2,9 +2,7 @@ import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
-import { getDisplayTitle } from '../helpers/RedditUtils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faForward } from '@fortawesome/free-solid-svg-icons';
+import MagazineGrid from './MagazineGrid';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
@@ -260,46 +258,11 @@ const TopFeed = () => {
 
       {/* Posts Grid */}
       {visiblePosts.length > 0 ? (
-        <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
-          {visiblePosts.map((post) => (
-            <article
-              key={post.id}
-              className={`group relative p-4 rounded-xl transition border border-[var(--theme-border)] ${
-                isLight ? 'bg-[var(--theme-cardBg)] hover:border-orange-600' : 'bg-transparent hover:border-[var(--theme-primary)]'
-              }`}
-            >
-              <button
-                onClick={() => handleSkipPost(post.id)}
-                title="Skip post"
-                className={`absolute right-3 top-3 p-1.5 rounded-md transition ${
-                  isLight ? 'text-blue-600 hover:bg-blue-100' : 'text-blue-400 hover:bg-blue-500/20'
-                }`}
-              >
-                <FontAwesomeIcon icon={faForward} className="w-3 h-3" />
-              </button>
-              <div className="cursor-pointer pr-8" onClick={() => handlePostClick(post)}>
-              <div className="flex items-baseline justify-between mb-1">
-                <span className="text-xs font-normal text-[var(--theme-primary)]">
-                  r/{post.subreddit}
-                </span>
-                <span className="text-xs text-[var(--theme-textMuted)]">
-                  {formatTimeAgo(post.pubDate)}
-                </span>
-              </div>
-
-              <h2 className="font-light text-base my-2 leading-tight text-[var(--theme-text)]">
-                {getDisplayTitle(post)}
-              </h2>
-
-              {post.author && (
-                <div className="text-xs text-[var(--theme-textMuted)]">
-                  u/{post.author}
-                </div>
-              )}
-              </div>
-            </article>
-          ))}
-        </main>
+        <MagazineGrid
+          posts={visiblePosts}
+          onPostClick={handlePostClick}
+          onSkipPost={handleSkipPost}
+        />
       ) : (
         <div className="py-24 text-center text-[var(--theme-textMuted)]">
           <p className="text-xl">No posts available right now.</p>
