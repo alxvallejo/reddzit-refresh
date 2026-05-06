@@ -5,8 +5,9 @@ import type { TrendingPost, TrendingPostTopComment } from '../helpers/DailyServi
 import { useTheme } from '../context/ThemeContext';
 import { getDisplayTitle } from '../helpers/RedditUtils';
 
-const QUOTE_ROTATE_MS = 7000;
+const QUOTE_ROTATE_MS = 12000;
 const QUOTE_FADE_MS = 400;
+const QUOTE_SLOT_CLASS = 'mt-2 min-h-[3rem]';
 
 const shuffleComments = (comments: TrendingPostTopComment[]): TrendingPostTopComment[] => {
   const arr = [...comments];
@@ -98,16 +99,18 @@ const Quote = ({ post }: { post: TrendingPost }) => {
   if (comments.length === 0) {
     if (post.selftext) {
       return (
-        <p className="text-xs text-[var(--theme-textMuted)] line-clamp-3 mt-2">
-          {post.selftext}
-        </p>
+        <div className={QUOTE_SLOT_CLASS}>
+          <p className="text-xs text-[var(--theme-textMuted)] line-clamp-3">
+            {post.selftext}
+          </p>
+        </div>
       );
     }
-    return null;
+    return <div className={QUOTE_SLOT_CLASS} aria-hidden="true" />;
   }
 
   const current = comments[index];
-  const baseClass = 'block text-xs italic text-[var(--theme-textMuted)] line-clamp-3 mt-2 transition-opacity';
+  const innerClass = 'block text-xs italic text-[var(--theme-textMuted)] line-clamp-3 transition-opacity';
   const style = { opacity: visible ? 1 : 0, transitionDuration: `${QUOTE_FADE_MS}ms` };
   const inner = (
     <>
@@ -115,24 +118,25 @@ const Quote = ({ post }: { post: TrendingPost }) => {
     </>
   );
 
-  if (current.permalink) {
-    return (
-      <a
-        href={`https://www.reddit.com${current.permalink}`}
-        target="_blank"
-        rel="noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className={`${baseClass} hover:text-[var(--theme-primary)] no-underline`}
-        style={style}
-      >
-        {inner}
-      </a>
-    );
-  }
   return (
-    <p className={baseClass} style={style}>
-      {inner}
-    </p>
+    <div className={QUOTE_SLOT_CLASS}>
+      {current.permalink ? (
+        <a
+          href={`https://www.reddit.com${current.permalink}`}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className={`${innerClass} hover:text-[var(--theme-primary)] no-underline`}
+          style={style}
+        >
+          {inner}
+        </a>
+      ) : (
+        <p className={innerClass} style={style}>
+          {inner}
+        </p>
+      )}
+    </div>
   );
 };
 
