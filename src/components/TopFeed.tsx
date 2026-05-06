@@ -1,5 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 import MagazineGrid from './MagazineGrid';
@@ -7,6 +7,11 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
 const SKIPPED_POSTS_STORAGE_KEY = 'rdz_top_skipped_posts_v1';
+const NEWS_SORTS = ['best', 'hot', 'new', 'top', 'rising'] as const;
+type NewsSort = (typeof NEWS_SORTS)[number];
+const DEFAULT_NEWS_SORT: NewsSort = 'best';
+const isNewsSort = (value: string | null | undefined): value is NewsSort =>
+  !!value && (NEWS_SORTS as readonly string[]).includes(value);
 
 type SkippedPostsCache = {
   resetDate: string;
@@ -42,12 +47,16 @@ const TopFeed = () => {
   const [now, setNow] = useState(new Date());
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
+  const [searchParams, setSearchParams] = useSearchParams();
   const isNewsRoute = location.pathname === '/news' || location.pathname === '/';
   const normalizedSubredditParam = subredditParam?.trim().toLowerCase();
   const dataSubreddit = isNewsRoute ? 'news' : normalizedSubredditParam;
   const selectedFeed = isNewsRoute
     ? 'news'
     : normalizedSubredditParam ?? 'top';
+  const sortParam = searchParams.get('sort');
+  const newsSort: NewsSort = isNewsRoute && isNewsSort(sortParam) ? sortParam : DEFAULT_NEWS_SORT;
+  const dataSort = isNewsRoute ? newsSort : undefined;
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -83,7 +92,7 @@ const TopFeed = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await DailyService.getTrendingRSS(dataSubreddit);
+      const data = await DailyService.getTrendingRSS(dataSubreddit, dataSort);
       setPosts(data);
       setLastUpdatedAt(new Date());
     } catch (err) {
@@ -91,7 +100,15 @@ const TopFeed = () => {
     } finally {
       setLoading(false);
     }
-  }, [dataSubreddit]);
+  }, [dataSubreddit, dataSort]);
+
+  const handleNewsSortChange = (sort: NewsSort) => {
+    if (sort === DEFAULT_NEWS_SORT) {
+      setSearchParams({}, { replace: false });
+    } else {
+      setSearchParams({ sort }, { replace: false });
+    }
+  };
 
   useEffect(() => {
     loadTopPosts();
@@ -247,6 +264,34 @@ const TopFeed = () => {
               </span>
             </div>
           </div>
+          {isNewsRoute && (
+            <div className="flex items-center gap-1 px-4 pb-2 overflow-x-auto">
+              {NEWS_SORTS.map((sort) => {
+                const active = sort === newsSort;
+                const labelMap: Record<NewsSort, string> = {
+                  best: 'Best',
+                  hot: 'Hot',
+                  new: 'New',
+                  top: 'Top',
+                  rising: 'Rising',
+                };
+                return (
+                  <button
+                    key={sort}
+                    type="button"
+                    onClick={() => handleNewsSortChange(sort)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
+                      active
+                        ? 'bg-[var(--theme-primary)] text-[#262129] border-[var(--theme-primary)]'
+                        : 'bg-transparent text-[var(--theme-textMuted)] border-[var(--theme-border)] hover:text-[var(--theme-text)] hover:border-[var(--theme-primary)]'
+                    }`}
+                  >
+                    {labelMap[sort]}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {newestPostAgeSeconds !== null && (
             <div className="flex items-center justify-end px-4 pb-3">
               <div className="flex items-center gap-3 flex-wrap justify-end">
