@@ -7,11 +7,15 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
 const SKIPPED_POSTS_STORAGE_KEY = 'rdz_top_skipped_posts_v1';
-const NEWS_SORTS = ['best', 'hot', 'new', 'top', 'rising'] as const;
-type NewsSort = (typeof NEWS_SORTS)[number];
-const DEFAULT_NEWS_SORT: NewsSort = 'best';
-const isNewsSort = (value: string | null | undefined): value is NewsSort =>
-  !!value && (NEWS_SORTS as readonly string[]).includes(value);
+const NEWS_TOPICS = ['news', 'less-political'] as const;
+type NewsTopic = (typeof NEWS_TOPICS)[number];
+const DEFAULT_NEWS_TOPIC: NewsTopic = 'news';
+const NEWS_TOPIC_LABELS: Record<NewsTopic, string> = {
+  news: 'News',
+  'less-political': 'Less Political',
+};
+const isNewsTopic = (value: string | null | undefined): value is NewsTopic =>
+  !!value && (NEWS_TOPICS as readonly string[]).includes(value);
 
 type SkippedPostsCache = {
   resetDate: string;
@@ -50,13 +54,13 @@ const TopFeed = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const isNewsRoute = location.pathname === '/news' || location.pathname === '/';
   const normalizedSubredditParam = subredditParam?.trim().toLowerCase();
-  const dataSubreddit = isNewsRoute ? 'news' : normalizedSubredditParam;
+  const topicParam = searchParams.get('topic');
+  const newsTopic: NewsTopic = isNewsRoute && isNewsTopic(topicParam) ? topicParam : DEFAULT_NEWS_TOPIC;
+  const dataSubreddit = isNewsRoute ? undefined : normalizedSubredditParam;
+  const dataTopic = isNewsRoute ? newsTopic : undefined;
   const selectedFeed = isNewsRoute
     ? 'news'
     : normalizedSubredditParam ?? 'top';
-  const sortParam = searchParams.get('sort');
-  const newsSort: NewsSort = isNewsRoute && isNewsSort(sortParam) ? sortParam : DEFAULT_NEWS_SORT;
-  const dataSort = isNewsRoute ? newsSort : undefined;
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -92,7 +96,7 @@ const TopFeed = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await DailyService.getTrendingRSS(dataSubreddit, dataSort);
+      const data = await DailyService.getTrendingRSS(dataSubreddit, undefined, dataTopic);
       setPosts(data);
       setLastUpdatedAt(new Date());
     } catch (err) {
@@ -100,13 +104,13 @@ const TopFeed = () => {
     } finally {
       setLoading(false);
     }
-  }, [dataSubreddit, dataSort]);
+  }, [dataSubreddit, dataTopic]);
 
-  const handleNewsSortChange = (sort: NewsSort) => {
-    if (sort === DEFAULT_NEWS_SORT) {
+  const handleNewsTopicChange = (topic: NewsTopic) => {
+    if (topic === DEFAULT_NEWS_TOPIC) {
       setSearchParams({}, { replace: false });
     } else {
-      setSearchParams({ sort }, { replace: false });
+      setSearchParams({ topic }, { replace: false });
     }
   };
 
@@ -266,27 +270,20 @@ const TopFeed = () => {
           </div>
           {isNewsRoute && (
             <div className="flex items-center gap-1 px-4 pb-2 overflow-x-auto">
-              {NEWS_SORTS.map((sort) => {
-                const active = sort === newsSort;
-                const labelMap: Record<NewsSort, string> = {
-                  best: 'Best',
-                  hot: 'Hot',
-                  new: 'New',
-                  top: 'Top',
-                  rising: 'Rising',
-                };
+              {NEWS_TOPICS.map((topic) => {
+                const active = topic === newsTopic;
                 return (
                   <button
-                    key={sort}
+                    key={topic}
                     type="button"
-                    onClick={() => handleNewsSortChange(sort)}
+                    onClick={() => handleNewsTopicChange(topic)}
                     className={`px-3 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
                       active
                         ? 'bg-[var(--theme-primary)] text-[#262129] border-[var(--theme-primary)]'
                         : 'bg-transparent text-[var(--theme-textMuted)] border-[var(--theme-border)] hover:text-[var(--theme-text)] hover:border-[var(--theme-primary)]'
                     }`}
                   >
-                    {labelMap[sort]}
+                    {NEWS_TOPIC_LABELS[topic]}
                   </button>
                 );
               })}

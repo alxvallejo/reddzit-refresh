@@ -132,10 +132,11 @@ const DailyService = {
     });
   },
 
-  async getTrendingRSS(subreddit?: string, sort?: string): Promise<TrendingPost[]> {
+  async getTrendingRSS(subreddit?: string, sort?: string, topic?: string): Promise<TrendingPost[]> {
     const normalizedSubreddit = subreddit?.trim().toLowerCase();
     const normalizedSort = sort?.trim().toLowerCase();
-    const subKey = normalizedSubreddit || 'top';
+    const normalizedTopic = topic?.trim().toLowerCase();
+    const subKey = normalizedTopic ? `topic-${normalizedTopic}` : (normalizedSubreddit || 'top');
     const sortKey = normalizedSort || 'mix';
     const cacheKey = `${RSS_CACHE_KEY}_${subKey}_${sortKey}`;
 
@@ -158,7 +159,11 @@ const DailyService = {
 
     try {
       const params: Record<string, string> = {};
-      if (normalizedSubreddit) params.subreddit = normalizedSubreddit;
+      if (normalizedTopic) {
+        params.topic = normalizedTopic;
+      } else if (normalizedSubreddit) {
+        params.subreddit = normalizedSubreddit;
+      }
       if (normalizedSort) params.sort = normalizedSort;
       const response = await axios.get<{ posts: TrendingPost[]; generatedAt: string; cached: boolean }>(
         `${API_BASE_URL}/api/trending/rss`,
