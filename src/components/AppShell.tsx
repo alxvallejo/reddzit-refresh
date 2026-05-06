@@ -37,8 +37,9 @@ const AppShell = () => {
   });
 
   const feedMatch = location.pathname.match(/^\/feed\/([a-z0-9_]+)$/i);
+  const isNewsView = location.pathname === '/news' || location.pathname === '/';
   const pageTitles: Record<Tab, string> = {
-    top: location.pathname === '/news'
+    top: isNewsView
       ? 'Top News'
       : feedMatch
         ? `r/${feedMatch[1].toLowerCase()}`

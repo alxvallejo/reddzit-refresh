@@ -30,6 +30,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Brygada+1918:ital,wght@0,400..700;1,400..700&family=Cactus+Classical+Serif&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=IBM+Plex+Sans:wght@100;200;300;400&family=Libertinus+Math&family=Noto+Znamenny+Musical+Notation&family=Outfit:wght@100..900&family=Reddit+Sans:ital,wght@0,200..900;1,200..900&family=Tirra:wght@400;500;600;700;800;900&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <script>
+      // Warm the trending-news cache from the hourly snapshot before React mounts.
+      // Lets the homepage render with cached posts on first paint instead of waiting on /api/trending/rss.
+      (function () {
+        if (window.location.pathname !== '/') return;
+        try {
+          var key = 'rdz_trending_rss_news';
+          var raw = localStorage.getItem(key);
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            var ageMs = Date.now() - (parsed && parsed.timestamp ? parsed.timestamp : 0);
+            if (parsed && Array.isArray(parsed.data) && parsed.data.length > 0 && ageMs < 5 * 60 * 1000) {
+              return;
+            }
+          }
+          fetch('/snapshots/news.json', { cache: 'force-cache' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (payload) {
+              if (!payload || !Array.isArray(payload.posts) || payload.posts.length === 0) return;
+              localStorage.setItem(key, JSON.stringify({ data: payload.posts, timestamp: Date.now() }));
+            })
+            .catch(function () {});
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

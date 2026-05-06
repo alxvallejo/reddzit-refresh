@@ -310,6 +310,13 @@ export default function PostView() {
         {/* Content */}
         <main className="max-w-3xl mx-auto px-4 py-8 pb-32">
              <div className="mb-8">
+                 <Link
+                     to="/news"
+                     className="inline-flex items-center gap-1.5 text-sm opacity-70 hover:opacity-100 transition-opacity mb-4 no-underline text-inherit"
+                 >
+                     <FontAwesomeIcon icon={faArrowLeft} />
+                     <span>News</span>
+                 </Link>
                  <div className="text-[var(--theme-primary)] font-bold text-sm uppercase tracking-wide mb-2">
                      {post.subreddit}
                  </div>

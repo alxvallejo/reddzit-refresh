@@ -214,7 +214,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_font') as FontFamily | null;
-    return saved && fontFamilies[saved] ? saved : 'outfit';
+    return saved && fontFamilies[saved] ? saved : 'tirra';
   });
 
   const [contentFont, setContentFontState] = useState<FontFamily>(() => {

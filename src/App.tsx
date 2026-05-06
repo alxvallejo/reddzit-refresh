@@ -15,6 +15,7 @@ import StoryNewPage from './components/StoryNewPage';
 import StoryEditorPage from './components/StoryEditorPage';
 import PromoPage from './components/PromoPage';
 import LandingPage from './components/LandingPage';
+import HomePage from './components/HomePage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import QuoteSharePage from './components/QuoteSharePage';
 import StoryViewPage from './components/StoryViewPage';
@@ -26,7 +27,8 @@ function App() {
         <RedditProvider>
           <div className='App'>
           <Routes>
-            <Route index path='/' element={<LandingPage />} />
+            <Route index path='/' element={<HomePage />} />
+            <Route path='/welcome' element={<LandingPage />} />
             <Route path='/news' element={<AppShell />} />
             <Route path='/top' element={<AppShell />} />
             <Route path='/feed/:subreddit' element={<AppShell />} />

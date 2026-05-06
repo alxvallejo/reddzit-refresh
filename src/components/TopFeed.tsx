@@ -42,7 +42,7 @@ const TopFeed = () => {
   const [now, setNow] = useState(new Date());
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
-  const isNewsRoute = location.pathname === '/news';
+  const isNewsRoute = location.pathname === '/news' || location.pathname === '/';
   const normalizedSubredditParam = subredditParam?.trim().toLowerCase();
   const dataSubreddit = isNewsRoute ? 'news' : normalizedSubredditParam;
   const selectedFeed = isNewsRoute
@@ -180,7 +180,7 @@ const TopFeed = () => {
 
   const newestPostAgeSeconds = getNewestPostAgeSeconds();
   const isStaleData = newestPostAgeSeconds !== null && newestPostAgeSeconds > STALE_DATA_THRESHOLD_SECONDS;
-  const pageTitle = location.pathname === '/news'
+  const pageTitle = isNewsRoute
     ? 'Top News'
     : normalizedSubredditParam
       ? `r/${normalizedSubredditParam}`
