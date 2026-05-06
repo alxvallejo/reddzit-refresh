@@ -37,14 +37,16 @@ export interface DailyReport {
 
 const CACHE_KEY = 'rdz_latest_report';
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
-const RSS_CACHE_KEY = 'rdz_trending_rss';
+const RSS_CACHE_KEY = 'rdz_trending_rss_v2';
 const RSS_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const RSS_STALE_FALLBACK_MAX_AGE = 60 * 60 * 1000; // 60 minutes
 
 export interface TrendingPostTopComment {
+  id: string;
   body: string;
   author: string;
   score: number;
+  permalink: string | null;
 }
 
 export interface TrendingPost {
@@ -59,7 +61,7 @@ export interface TrendingPost {
   score?: number;
   numComments?: number;
   postHint?: string;
-  topComment?: TrendingPostTopComment;
+  topComments?: TrendingPostTopComment[];
 }
 
 const DailyService = {
