@@ -1,9 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faForward } from '@fortawesome/free-solid-svg-icons';
-import type { TrendingPost } from '../helpers/DailyService';
+import type { TrendingPost, TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { getDisplayTitle } from '../helpers/RedditUtils';
+
+const QUOTE_ROTATE_MS = 7000;
+const QUOTE_FADE_MS = 400;
+
+const shuffleComments = (comments: TrendingPostTopComment[]): TrendingPostTopComment[] => {
+  const arr = [...comments];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
 
 type TileSize = 'hero' | 'tall' | 'standard';
 
@@ -54,21 +66,74 @@ const MetaRow = ({ post }: { post: TrendingPost }) => {
 };
 
 const Quote = ({ post }: { post: TrendingPost }) => {
-  if (post.topComment) {
+  const comments = useMemo(
+    () => (post.topComments?.length ? shuffleComments(post.topComments) : []),
+    [post.topComments]
+  );
+
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (comments.length <= 1) return;
+    const stagger = (post.id.charCodeAt(0) % 5) * 700;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let fadeTimeout: ReturnType<typeof setTimeout> | null = null;
+    const startTimeout = setTimeout(() => {
+      interval = setInterval(() => {
+        setVisible(false);
+        fadeTimeout = setTimeout(() => {
+          setIndex((i) => (i + 1) % comments.length);
+          setVisible(true);
+        }, QUOTE_FADE_MS);
+      }, QUOTE_ROTATE_MS);
+    }, stagger);
+    return () => {
+      clearTimeout(startTimeout);
+      if (fadeTimeout) clearTimeout(fadeTimeout);
+      if (interval) clearInterval(interval);
+    };
+  }, [comments.length, post.id]);
+
+  if (comments.length === 0) {
+    if (post.selftext) {
+      return (
+        <p className="text-xs text-[var(--theme-textMuted)] line-clamp-3 mt-2">
+          {post.selftext}
+        </p>
+      );
+    }
+    return null;
+  }
+
+  const current = comments[index];
+  const baseClass = 'block text-xs italic text-[var(--theme-textMuted)] line-clamp-3 mt-2 transition-opacity';
+  const style = { opacity: visible ? 1 : 0, transitionDuration: `${QUOTE_FADE_MS}ms` };
+  const inner = (
+    <>
+      “{current.body}” <span className="not-italic">— u/{current.author}</span>
+    </>
+  );
+
+  if (current.permalink) {
     return (
-      <p className="text-xs italic text-[var(--theme-textMuted)] line-clamp-3 mt-2">
-        “{post.topComment.body}” <span className="not-italic">— u/{post.topComment.author}</span>
-      </p>
+      <a
+        href={`https://www.reddit.com${current.permalink}`}
+        target="_blank"
+        rel="noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className={`${baseClass} hover:text-[var(--theme-primary)] no-underline`}
+        style={style}
+      >
+        {inner}
+      </a>
     );
   }
-  if (post.selftext) {
-    return (
-      <p className="text-xs text-[var(--theme-textMuted)] line-clamp-3 mt-2">
-        {post.selftext}
-      </p>
-    );
-  }
-  return null;
+  return (
+    <p className={baseClass} style={style}>
+      {inner}
+    </p>
+  );
 };
 
 const SkipButton = ({ onSkip }: { onSkip: () => void }) => {
