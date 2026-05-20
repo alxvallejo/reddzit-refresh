@@ -1,12 +1,28 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTableCellsLarge, faRectangleList } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, { TrendingPost } from '../helpers/DailyService';
 import MagazineGrid from './MagazineGrid';
+import NewsCarousel from './NewsCarousel';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
 const SKIPPED_POSTS_STORAGE_KEY = 'rdz_top_skipped_posts_v1';
+const VIEW_MODE_STORAGE_KEY = 'rdz_news_view_mode';
+
+type ViewMode = 'grid' | 'carousel';
+
+const loadViewMode = (): ViewMode => {
+  try {
+    const v = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    return v === 'carousel' ? 'carousel' : 'grid';
+  } catch {
+    return 'grid';
+  }
+};
+
 const NEWS_TOPICS = ['news', 'less-political'] as const;
 type NewsTopic = (typeof NEWS_TOPICS)[number];
 const DEFAULT_NEWS_TOPIC: NewsTopic = 'news';
@@ -51,6 +67,7 @@ const TopFeed = () => {
   const [now, setNow] = useState(new Date());
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
+  const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [searchParams, setSearchParams] = useSearchParams();
   const isNewsRoute = location.pathname === '/news' || location.pathname === '/';
   const normalizedSubredditParam = subredditParam?.trim().toLowerCase();
@@ -76,6 +93,14 @@ const TopFeed = () => {
       postIds: Array.from(skippedPostIds),
     } as SkippedPostsCache));
   }, [skippedPostIds]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    } catch {
+      // ignore
+    }
+  }, [viewMode]);
 
   useEffect(() => {
     try {
@@ -244,6 +269,42 @@ const TopFeed = () => {
               {pageTitle}
             </h1>
             <div className="flex items-center gap-2">
+              <div
+                role="group"
+                aria-label="View mode"
+                className="inline-flex rounded-md overflow-hidden border border-[var(--theme-border)]"
+              >
+                <button
+                  type="button"
+                  aria-pressed={viewMode === 'grid'}
+                  onClick={() => setViewMode('grid')}
+                  title="Grid view"
+                  className={`px-2 py-1.5 text-xs cursor-pointer border-none transition ${
+                    viewMode === 'grid'
+                      ? isLight
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-[var(--theme-primary)] text-[#262129]'
+                      : 'bg-[var(--theme-cardBg)] text-[var(--theme-textMuted)] hover:text-[var(--theme-text)]'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faTableCellsLarge} className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={viewMode === 'carousel'}
+                  onClick={() => setViewMode('carousel')}
+                  title="Carousel view"
+                  className={`px-2 py-1.5 text-xs cursor-pointer border-none transition ${
+                    viewMode === 'carousel'
+                      ? isLight
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-[var(--theme-primary)] text-[#262129]'
+                      : 'bg-[var(--theme-cardBg)] text-[var(--theme-textMuted)] hover:text-[var(--theme-text)]'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faRectangleList} className="w-3 h-3" />
+                </button>
+              </div>
               <label htmlFor="subreddit-switcher" className="sr-only">
                 Choose subreddit
               </label>
@@ -307,13 +368,21 @@ const TopFeed = () => {
         </div>
       </header>
 
-      {/* Posts Grid */}
+      {/* Posts */}
       {visiblePosts.length > 0 ? (
-        <MagazineGrid
-          posts={visiblePosts}
-          onPostClick={handlePostClick}
-          onSkipPost={handleSkipPost}
-        />
+        viewMode === 'grid' ? (
+          <MagazineGrid
+            posts={visiblePosts}
+            onPostClick={handlePostClick}
+            onSkipPost={handleSkipPost}
+          />
+        ) : (
+          <NewsCarousel
+            posts={visiblePosts}
+            onPostClick={handlePostClick}
+            onSkipPost={handleSkipPost}
+          />
+        )
       ) : (
         <div className="py-24 text-center text-[var(--theme-textMuted)]">
           <p className="text-xl">No posts available right now.</p>

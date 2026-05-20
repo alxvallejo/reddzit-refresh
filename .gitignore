@@ -33,3 +33,6 @@ deploy_keys/
 
 # Git worktrees
 .worktrees/
+
+# Superpowers brainstorming session artifacts
+.superpowers/

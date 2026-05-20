@@ -190,7 +190,7 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
   }
 };
 
-const HeroCard = ({ post, onClick, onSkip }: CardProps) => (
+export const HeroCard = ({ post, onClick, onSkip }: CardProps) => (
   <article
     onClick={onClick}
     onKeyDown={(e) => handleCardKeyDown(e, onClick)}
