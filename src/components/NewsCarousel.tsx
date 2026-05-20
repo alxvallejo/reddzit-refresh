@@ -129,7 +129,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   const dotsToShow = Math.min(total, MAX_DOTS);
   const dotOffset = Math.max(0, Math.min(total - dotsToShow, safeIndex - Math.floor(dotsToShow / 2)));
 
-  const arrowBtnClass = `flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full border cursor-pointer transition flex items-center justify-center ${
+  const arrowBtnClass = `hidden md:flex flex-shrink-0 w-12 h-12 rounded-full border cursor-pointer transition items-center justify-center ${
     isLight
       ? 'bg-[var(--theme-cardBg)] border-[var(--theme-border)] text-[var(--theme-text)] hover:border-orange-600 disabled:opacity-40'
       : 'bg-transparent border-[var(--theme-border)] text-[var(--theme-text)] hover:border-[var(--theme-primary)] disabled:opacity-40'
@@ -143,7 +143,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={() => setIsPaused(false)}
     >
-      <div className="flex items-center gap-3 md:gap-4">
+      <div className="flex items-center gap-0 md:gap-4">
         <button
           type="button"
           onClick={goPrev}

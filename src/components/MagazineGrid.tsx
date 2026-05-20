@@ -101,7 +101,7 @@ const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: Qu
   const isOverlay = variant === 'overlay';
   const slotClass = isOverlay ? 'min-h-[3.5rem]' : QUOTE_SLOT_CLASS;
   const baseTextClass = isOverlay
-    ? 'block text-base md:text-lg italic text-white/90 line-clamp-3 transition-opacity drop-shadow'
+    ? 'block text-sm md:text-lg italic text-white/90 line-clamp-3 transition-opacity drop-shadow'
     : 'block text-sm italic text-[var(--theme-textMuted)] line-clamp-3 transition-opacity';
   const hoverClass = isOverlay
     ? 'hover:text-white'
@@ -110,7 +110,7 @@ const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: Qu
   if (comments.length === 0) {
     if (post.selftext) {
       const fallbackClass = isOverlay
-        ? 'text-base md:text-lg text-white/90 line-clamp-3 drop-shadow'
+        ? 'text-sm md:text-lg text-white/90 line-clamp-3 drop-shadow'
         : 'text-sm text-[var(--theme-textMuted)] line-clamp-3';
       return (
         <div className={slotClass}>
@@ -214,23 +214,23 @@ export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
       className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition"
     >
       <SkipButton onSkip={onSkip} />
-      <ImageArea post={post} aspect="aspect-[3/2] md:aspect-[16/9]" />
-      <div className="absolute inset-x-0 top-0 px-5 pt-4 pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
-        <div className="flex items-center justify-between mb-2 pointer-events-auto">
-          <span className="inline-block px-2 py-0.5 rounded text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129]">
+      <ImageArea post={post} aspect="aspect-[4/5] md:aspect-[16/9]" />
+      <div className="absolute inset-x-0 top-0 px-4 pt-3 pb-10 md:px-5 md:pt-4 md:pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
+        <div className="flex items-center justify-between mb-2 pointer-events-auto gap-2">
+          <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] flex-shrink-0">
             r/{post.subreddit}
           </span>
-          <div className="flex items-center gap-3 text-[0.75rem] text-white/85">
+          <div className="flex items-center gap-2 md:gap-3 text-[0.7rem] md:text-[0.75rem] text-white/85">
             <span>{formatTimeAgo(post.pubDate)}</span>
             {score && <span>▲ {score}</span>}
             {comments && <span>💬 {comments}</span>}
           </div>
         </div>
-        <h2 className="text-2xl md:text-4xl font-semibold leading-tight text-white drop-shadow-md pointer-events-auto">
+        <h2 className="text-xl md:text-4xl font-semibold leading-tight text-white drop-shadow-md pointer-events-auto">
           {getDisplayTitle(post)}
         </h2>
       </div>
-      <div className="absolute inset-x-0 bottom-0 px-5 pt-16 pb-4 bg-gradient-to-t from-black/85 via-black/55 to-transparent pointer-events-none">
+      <div className="absolute inset-x-0 bottom-0 px-4 pt-12 pb-3 md:px-5 md:pt-16 md:pb-4 bg-gradient-to-t from-black/85 via-black/55 to-transparent pointer-events-none">
         <div className="pointer-events-auto">
           <Quote post={post} variant="overlay" />
         </div>
