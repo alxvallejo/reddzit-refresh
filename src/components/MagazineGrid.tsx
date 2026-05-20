@@ -66,7 +66,9 @@ const MetaRow = ({ post }: { post: TrendingPost }) => {
   );
 };
 
-const Quote = ({ post }: { post: TrendingPost }) => {
+type QuoteVariant = 'default' | 'overlay';
+
+const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: QuoteVariant }) => {
   const comments = useMemo(
     () => (post.topComments?.length ? shuffleComments(post.topComments) : []),
     [post.topComments]
@@ -96,21 +98,30 @@ const Quote = ({ post }: { post: TrendingPost }) => {
     };
   }, [comments.length, post.id]);
 
+  const isOverlay = variant === 'overlay';
+  const slotClass = isOverlay ? 'min-h-[3.5rem]' : QUOTE_SLOT_CLASS;
+  const baseTextClass = isOverlay
+    ? 'block text-base md:text-lg italic text-white/90 line-clamp-3 transition-opacity drop-shadow'
+    : 'block text-sm italic text-[var(--theme-textMuted)] line-clamp-3 transition-opacity';
+  const hoverClass = isOverlay
+    ? 'hover:text-white'
+    : 'hover:text-[var(--theme-primary)]';
+
   if (comments.length === 0) {
     if (post.selftext) {
+      const fallbackClass = isOverlay
+        ? 'text-base md:text-lg text-white/90 line-clamp-3 drop-shadow'
+        : 'text-sm text-[var(--theme-textMuted)] line-clamp-3';
       return (
-        <div className={QUOTE_SLOT_CLASS}>
-          <p className="text-xs text-[var(--theme-textMuted)] line-clamp-3">
-            {post.selftext}
-          </p>
+        <div className={slotClass}>
+          <p className={fallbackClass}>{post.selftext}</p>
         </div>
       );
     }
-    return <div className={QUOTE_SLOT_CLASS} aria-hidden="true" />;
+    return <div className={slotClass} aria-hidden="true" />;
   }
 
   const current = comments[index];
-  const innerClass = 'block text-xs italic text-[var(--theme-textMuted)] line-clamp-3 transition-opacity';
   const style = { opacity: visible ? 1 : 0, transitionDuration: `${QUOTE_FADE_MS}ms` };
   const inner = (
     <>
@@ -119,20 +130,20 @@ const Quote = ({ post }: { post: TrendingPost }) => {
   );
 
   return (
-    <div className={QUOTE_SLOT_CLASS}>
+    <div className={slotClass}>
       {current.permalink ? (
         <a
           href={`https://www.reddit.com${current.permalink}`}
           target="_blank"
           rel="noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className={`${innerClass} hover:text-[var(--theme-primary)] no-underline`}
+          className={`${baseTextClass} ${hoverClass} no-underline`}
           style={style}
         >
           {inner}
         </a>
       ) : (
-        <p className={innerClass} style={style}>
+        <p className={baseTextClass} style={style}>
           {inner}
         </p>
       )}
@@ -190,29 +201,43 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
   }
 };
 
-export const HeroCard = ({ post, onClick, onSkip }: CardProps) => (
-  <article
-    onClick={onClick}
-    onKeyDown={(e) => handleCardKeyDown(e, onClick)}
-    role="button"
-    tabIndex={0}
-    aria-label={getDisplayTitle(post)}
-    className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition"
-  >
-    <SkipButton onSkip={onSkip} />
-    <ImageArea post={post} aspect="aspect-[21/9]" />
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-2">
-        <SubredditBadge subreddit={post.subreddit} />
-        <MetaRow post={post} />
+export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
+  const score = formatScore(post.score);
+  const comments = formatScore(post.numComments);
+  return (
+    <article
+      onClick={onClick}
+      onKeyDown={(e) => handleCardKeyDown(e, onClick)}
+      role="button"
+      tabIndex={0}
+      aria-label={getDisplayTitle(post)}
+      className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition"
+    >
+      <SkipButton onSkip={onSkip} />
+      <ImageArea post={post} aspect="aspect-[3/2] md:aspect-[16/9]" />
+      <div className="absolute inset-x-0 top-0 px-5 pt-4 pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
+        <div className="flex items-center justify-between mb-2 pointer-events-auto">
+          <span className="inline-block px-2 py-0.5 rounded text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129]">
+            r/{post.subreddit}
+          </span>
+          <div className="flex items-center gap-3 text-[0.75rem] text-white/85">
+            <span>{formatTimeAgo(post.pubDate)}</span>
+            {score && <span>▲ {score}</span>}
+            {comments && <span>💬 {comments}</span>}
+          </div>
+        </div>
+        <h2 className="text-2xl md:text-4xl font-semibold leading-tight text-white drop-shadow-md pointer-events-auto">
+          {getDisplayTitle(post)}
+        </h2>
       </div>
-      <h2 className="text-2xl font-semibold leading-tight text-[var(--theme-text)]">
-        {getDisplayTitle(post)}
-      </h2>
-      <Quote post={post} />
-    </div>
-  </article>
-);
+      <div className="absolute inset-x-0 bottom-0 px-5 pt-16 pb-4 bg-gradient-to-t from-black/85 via-black/55 to-transparent pointer-events-none">
+        <div className="pointer-events-auto">
+          <Quote post={post} variant="overlay" />
+        </div>
+      </div>
+    </article>
+  );
+};
 
 const TallCard = ({ post, onClick, onSkip }: CardProps) => (
   <article

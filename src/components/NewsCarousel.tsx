@@ -7,7 +7,8 @@ import { HeroCard } from './MagazineGrid';
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
-const AUTOPLAY_INTERVAL_MS = 7000;
+const AUTOPLAY_INTERVAL_MS = 45000;
+const FADE_DURATION_MS = 900;
 
 interface NewsCarouselProps {
   posts: TrendingPost[];
@@ -15,17 +16,15 @@ interface NewsCarouselProps {
   onSkipPost: (postId: string) => void;
 }
 
-type Direction = 'right' | 'left';
-
 const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState<Direction>('right');
   const [isPaused, setIsPaused] = useState(false);
   const [tabVisible, setTabVisible] = useState(() =>
     typeof document === 'undefined' ? true : document.visibilityState === 'visible'
   );
   const [autoplayTick, setAutoplayTick] = useState(0);
+  const [stack, setStack] = useState<TrendingPost[]>(() => (posts.length > 0 ? [posts[0]] : []));
   const swipeStartX = useRef<number | null>(null);
   const total = posts.length;
   const autoplayActive = total > 1 && !isPaused && tabVisible;
@@ -45,12 +44,10 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setDirection('left');
         setIndex(i => (i - 1 + total) % total);
         setAutoplayTick(t => t + 1);
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setDirection('right');
         setIndex(i => (i + 1) % total);
         setAutoplayTick(t => t + 1);
       }
@@ -69,29 +66,44 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   useEffect(() => {
     if (!autoplayActive) return;
     const timer = window.setTimeout(() => {
-      setDirection('right');
       setIndex(i => (i + 1) % total);
     }, AUTOPLAY_INTERVAL_MS);
     return () => window.clearTimeout(timer);
   }, [index, total, autoplayActive, autoplayTick]);
 
-  if (total === 0) return null;
+  const safeIndex = total > 0 ? Math.min(index, total - 1) : 0;
+  const post = total > 0 ? posts[safeIndex] : null;
 
-  const safeIndex = Math.min(index, total - 1);
-  const post = posts[safeIndex];
+  useEffect(() => {
+    if (!post) {
+      setStack([]);
+      return;
+    }
+    setStack(prev => {
+      if (prev.length > 0 && prev[prev.length - 1].id === post.id) return prev;
+      return [...prev, post];
+    });
+  }, [post?.id]);
+
+  useEffect(() => {
+    if (stack.length <= 1) return;
+    const t = window.setTimeout(() => {
+      setStack(prev => prev.slice(-1));
+    }, FADE_DURATION_MS);
+    return () => window.clearTimeout(t);
+  }, [stack]);
+
+  if (total === 0 || !post) return null;
 
   const goPrev = () => {
-    setDirection('left');
     setIndex(i => (i - 1 + total) % total);
     setAutoplayTick(t => t + 1);
   };
   const goNext = () => {
-    setDirection('right');
     setIndex(i => (i + 1) % total);
     setAutoplayTick(t => t + 1);
   };
   const goTo = (i: number) => {
-    setDirection(i >= safeIndex ? 'right' : 'left');
     setIndex(i);
     setAutoplayTick(t => t + 1);
   };
@@ -146,18 +158,26 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
-          <div
-            key={post.id}
-            className={direction === 'right' ? 'carousel-slide-in-right' : 'carousel-slide-in-left'}
-          >
-            <HeroCard
-              post={post}
-              onClick={() => onPostClick(post)}
-              onSkip={() => onSkipPost(post.id)}
-            />
+          <div className="relative">
+            {stack.map((p, i) => {
+              const isFirst = i === 0;
+              const isLast = i === stack.length - 1;
+              return (
+                <div
+                  key={p.id}
+                  className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
+                >
+                  <HeroCard
+                    post={p}
+                    onClick={() => onPostClick(p)}
+                    onSkip={() => onSkipPost(p.id)}
+                  />
+                </div>
+              );
+            })}
           </div>
           {total > 1 && autoplayActive && (
-            <div className="absolute left-0 right-0 bottom-0 h-[2px] pointer-events-none">
+            <div className="absolute left-0 right-0 bottom-0 h-[2px] pointer-events-none z-20">
               <div
                 key={`${safeIndex}-${autoplayTick}`}
                 className="carousel-progress-fill h-full bg-[var(--theme-primary)] opacity-60"

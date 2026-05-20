@@ -117,37 +117,25 @@ body {
   font-weight: 200 !important;
 }
 
-/* Carousel slide transitions */
-@keyframes carouselSlideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* Carousel crossfade transitions */
+@keyframes carouselFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes carouselSlideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes carouselFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
-.carousel-slide-in-right {
-  animation: carouselSlideInRight 360ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+.carousel-fade-in {
+  animation: carouselFadeIn 900ms ease-in-out;
+  will-change: opacity;
 }
 
-.carousel-slide-in-left {
-  animation: carouselSlideInLeft 360ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+.carousel-fade-out {
+  animation: carouselFadeOut 900ms ease-in-out forwards;
+  will-change: opacity;
 }
 
 /* Carousel autoplay progress */
