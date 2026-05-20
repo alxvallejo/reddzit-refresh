@@ -15,9 +15,12 @@ interface NewsCarouselProps {
   onSkipPost: (postId: string) => void;
 }
 
+type Direction = 'right' | 'left';
+
 const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState<Direction>('right');
   const [isPaused, setIsPaused] = useState(false);
   const [tabVisible, setTabVisible] = useState(() =>
     typeof document === 'undefined' ? true : document.visibilityState === 'visible'
@@ -25,6 +28,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   const [autoplayTick, setAutoplayTick] = useState(0);
   const swipeStartX = useRef<number | null>(null);
   const total = posts.length;
+  const autoplayActive = total > 1 && !isPaused && tabVisible;
 
   useEffect(() => {
     if (total === 0) {
@@ -41,10 +45,12 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
+        setDirection('left');
         setIndex(i => (i - 1 + total) % total);
         setAutoplayTick(t => t + 1);
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
+        setDirection('right');
         setIndex(i => (i + 1) % total);
         setAutoplayTick(t => t + 1);
       }
@@ -61,12 +67,13 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   }, []);
 
   useEffect(() => {
-    if (total <= 1 || isPaused || !tabVisible) return;
+    if (!autoplayActive) return;
     const timer = window.setTimeout(() => {
+      setDirection('right');
       setIndex(i => (i + 1) % total);
     }, AUTOPLAY_INTERVAL_MS);
     return () => window.clearTimeout(timer);
-  }, [index, total, isPaused, tabVisible, autoplayTick]);
+  }, [index, total, autoplayActive, autoplayTick]);
 
   if (total === 0) return null;
 
@@ -74,14 +81,17 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   const post = posts[safeIndex];
 
   const goPrev = () => {
+    setDirection('left');
     setIndex(i => (i - 1 + total) % total);
     setAutoplayTick(t => t + 1);
   };
   const goNext = () => {
+    setDirection('right');
     setIndex(i => (i + 1) % total);
     setAutoplayTick(t => t + 1);
   };
   const goTo = (i: number) => {
+    setDirection(i >= safeIndex ? 'right' : 'left');
     setIndex(i);
     setAutoplayTick(t => t + 1);
   };
@@ -132,16 +142,31 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
           <FontAwesomeIcon icon={faChevronLeft} />
         </button>
         <div
-          className="flex-1 select-none"
+          className="flex-1 select-none relative overflow-hidden rounded-xl"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
-          <HeroCard
+          <div
             key={post.id}
-            post={post}
-            onClick={() => onPostClick(post)}
-            onSkip={() => onSkipPost(post.id)}
-          />
+            className={direction === 'right' ? 'carousel-slide-in-right' : 'carousel-slide-in-left'}
+          >
+            <HeroCard
+              post={post}
+              onClick={() => onPostClick(post)}
+              onSkip={() => onSkipPost(post.id)}
+            />
+          </div>
+          {total > 1 && (
+            <div className={`absolute left-0 right-0 bottom-0 h-1 pointer-events-none ${isLight ? 'bg-black/10' : 'bg-white/10'}`}>
+              {autoplayActive && (
+                <div
+                  key={`${safeIndex}-${autoplayTick}`}
+                  className="carousel-progress-fill h-full bg-[var(--theme-primary)]"
+                  style={{ animationDuration: `${AUTOPLAY_INTERVAL_MS}ms` }}
+                />
+              )}
+            </div>
+          )}
         </div>
         <button
           type="button"
