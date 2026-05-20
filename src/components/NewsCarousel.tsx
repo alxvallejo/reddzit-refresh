@@ -7,6 +7,7 @@ import { HeroCard } from './MagazineGrid';
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
+const AUTOPLAY_INTERVAL_MS = 7000;
 
 interface NewsCarouselProps {
   posts: TrendingPost[];
@@ -17,6 +18,11 @@ interface NewsCarouselProps {
 const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const [index, setIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [tabVisible, setTabVisible] = useState(() =>
+    typeof document === 'undefined' ? true : document.visibilityState === 'visible'
+  );
+  const [autoplayTick, setAutoplayTick] = useState(0);
   const swipeStartX = useRef<number | null>(null);
   const total = posts.length;
 
@@ -36,32 +42,66 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         setIndex(i => (i - 1 + total) % total);
+        setAutoplayTick(t => t + 1);
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         setIndex(i => (i + 1) % total);
+        setAutoplayTick(t => t + 1);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [total]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onVisibility = () => setTabVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (total <= 1 || isPaused || !tabVisible) return;
+    const timer = window.setTimeout(() => {
+      setIndex(i => (i + 1) % total);
+    }, AUTOPLAY_INTERVAL_MS);
+    return () => window.clearTimeout(timer);
+  }, [index, total, isPaused, tabVisible, autoplayTick]);
+
   if (total === 0) return null;
 
   const safeIndex = Math.min(index, total - 1);
   const post = posts[safeIndex];
 
-  const goPrev = () => setIndex(i => (i - 1 + total) % total);
-  const goNext = () => setIndex(i => (i + 1) % total);
+  const goPrev = () => {
+    setIndex(i => (i - 1 + total) % total);
+    setAutoplayTick(t => t + 1);
+  };
+  const goNext = () => {
+    setIndex(i => (i + 1) % total);
+    setAutoplayTick(t => t + 1);
+  };
+  const goTo = (i: number) => {
+    setIndex(i);
+    setAutoplayTick(t => t + 1);
+  };
 
   const onPointerDown = (e: React.PointerEvent) => {
     swipeStartX.current = e.clientX;
+    if (e.pointerType === 'touch') setIsPaused(true);
   };
   const onPointerUp = (e: React.PointerEvent) => {
-    if (swipeStartX.current === null) return;
+    const touchEnd = e.pointerType === 'touch';
+    if (swipeStartX.current === null) {
+      if (touchEnd) setIsPaused(false);
+      return;
+    }
     const delta = e.clientX - swipeStartX.current;
     swipeStartX.current = null;
-    if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return;
-    if (delta < 0) goNext(); else goPrev();
+    if (Math.abs(delta) >= SWIPE_THRESHOLD_PX) {
+      if (delta < 0) goNext(); else goPrev();
+    }
+    if (touchEnd) setIsPaused(false);
   };
 
   const dotsToShow = Math.min(total, MAX_DOTS);
@@ -74,7 +114,13 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   }`;
 
   return (
-    <main className="max-w-7xl mx-auto px-4 pt-4 pb-24">
+    <main
+      className="max-w-7xl mx-auto px-4 pt-4 pb-24"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={() => setIsPaused(false)}
+    >
       <div className="flex items-center gap-3 md:gap-4">
         <button
           type="button"
@@ -121,7 +167,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setIndex(idx)}
+                    onClick={() => goTo(idx)}
                     aria-label={`Go to post ${idx + 1}`}
                     className={`rounded-full transition border-none cursor-pointer ${
                       active
@@ -139,7 +185,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
           )}
         </div>
         <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
-          ← → arrows · swipe
+          {total > 1
+            ? (isPaused ? 'paused · ← → arrows · swipe' : 'auto-advancing · hover to pause')
+            : '← → arrows · swipe'}
         </span>
       </div>
     </main>

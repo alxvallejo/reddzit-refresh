@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faForward } from '@fortawesome/free-solid-svg-icons';
+import { faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import type { TrendingPost, TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { getDisplayTitle } from '../helpers/RedditUtils';
@@ -148,13 +148,13 @@ const SkipButton = ({ onSkip }: { onSkip: () => void }) => {
         e.stopPropagation();
         onSkip();
       }}
-      title="Skip post"
-      aria-label="Skip post"
+      title="Hide post"
+      aria-label="Hide post"
       className={`absolute right-2 top-2 z-10 p-1.5 rounded-md backdrop-blur-sm transition ${
-        isLight ? 'text-blue-700 bg-white/80 hover:bg-blue-100' : 'text-blue-200 bg-black/60 hover:bg-blue-500/30'
+        isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20'
       }`}
     >
-      <FontAwesomeIcon icon={faForward} className="w-3 h-3" />
+      <FontAwesomeIcon icon={faEyeSlash} className="w-3 h-3" />
     </button>
   );
 };
