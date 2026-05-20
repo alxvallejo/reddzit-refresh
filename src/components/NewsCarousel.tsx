@@ -156,15 +156,13 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
               onSkip={() => onSkipPost(post.id)}
             />
           </div>
-          {total > 1 && (
-            <div className={`absolute left-0 right-0 bottom-0 h-1 pointer-events-none ${isLight ? 'bg-black/10' : 'bg-white/10'}`}>
-              {autoplayActive && (
-                <div
-                  key={`${safeIndex}-${autoplayTick}`}
-                  className="carousel-progress-fill h-full bg-[var(--theme-primary)]"
-                  style={{ animationDuration: `${AUTOPLAY_INTERVAL_MS}ms` }}
-                />
-              )}
+          {total > 1 && autoplayActive && (
+            <div className="absolute left-0 right-0 bottom-0 h-[2px] pointer-events-none">
+              <div
+                key={`${safeIndex}-${autoplayTick}`}
+                className="carousel-progress-fill h-full bg-[var(--theme-primary)] opacity-60"
+                style={{ animationDuration: `${AUTOPLAY_INTERVAL_MS}ms` }}
+              />
             </div>
           )}
         </div>

@@ -262,13 +262,44 @@ const TopFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header id="page-header" className="px-4 pb-2 sticky top-16 z-40 bg-[var(--theme-bg)]">
-        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
-          <div className="flex items-center justify-between py-4 pl-4 pr-4 gap-3">
-            <h1 className="text-2xl font-bold text-[var(--theme-text)]">
-              {pageTitle}
-            </h1>
-            <div className="flex items-center gap-2">
+      <header id="page-header" className="px-4 sticky top-16 z-40 bg-[var(--theme-bg)]">
+        <div className="max-w-7xl mx-auto border-b border-[var(--theme-border)]">
+          <div className="flex items-center justify-between py-2 px-4 gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-lg font-bold text-[var(--theme-text)] leading-none">
+                {pageTitle}
+              </h1>
+              {isNewsRoute && (
+                <div className="flex items-center gap-1">
+                  {NEWS_TOPICS.map((topic) => {
+                    const active = topic === newsTopic;
+                    return (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => handleNewsTopicChange(topic)}
+                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition cursor-pointer ${
+                          active
+                            ? 'bg-[var(--theme-primary)] text-[#262129] border-[var(--theme-primary)]'
+                            : 'bg-transparent text-[var(--theme-textMuted)] border-[var(--theme-border)] hover:text-[var(--theme-text)] hover:border-[var(--theme-primary)]'
+                        }`}
+                      >
+                        {NEWS_TOPIC_LABELS[topic]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              {newestPostAgeSeconds !== null && (
+                <span
+                  className={`text-[11px] ${isStaleData ? 'text-amber-600' : 'text-[var(--theme-textMuted)]'}`}
+                  title={lastUpdatedAt ? `Updated ${lastUpdatedAt.toLocaleString()}` : undefined}
+                >
+                  Newest: {formatTimeAgo(new Date(Date.now() - newestPostAgeSeconds * 1000).toISOString())}
+                </span>
+              )}
               <div
                 role="group"
                 aria-label="View mode"
@@ -279,7 +310,7 @@ const TopFeed = () => {
                   aria-pressed={viewMode === 'grid'}
                   onClick={() => setViewMode('grid')}
                   title="Grid view"
-                  className={`px-2 py-1.5 text-xs cursor-pointer border-none transition ${
+                  className={`px-2 py-1 text-xs cursor-pointer border-none transition ${
                     viewMode === 'grid'
                       ? isLight
                         ? 'bg-orange-600 text-white'
@@ -294,7 +325,7 @@ const TopFeed = () => {
                   aria-pressed={viewMode === 'carousel'}
                   onClick={() => setViewMode('carousel')}
                   title="Carousel view"
-                  className={`px-2 py-1.5 text-xs cursor-pointer border-none transition ${
+                  className={`px-2 py-1 text-xs cursor-pointer border-none transition ${
                     viewMode === 'carousel'
                       ? isLight
                         ? 'bg-orange-600 text-white'
@@ -312,7 +343,7 @@ const TopFeed = () => {
                 id="subreddit-switcher"
                 value={selectedFeed}
                 onChange={handleSubredditSelect}
-                className="px-2 py-1.5 rounded-md text-xs border border-[var(--theme-border)] bg-[var(--theme-cardBg)] text-[var(--theme-text)] cursor-pointer"
+                className="px-2 py-1 rounded-md text-xs border border-[var(--theme-border)] bg-[var(--theme-cardBg)] text-[var(--theme-text)] cursor-pointer"
               >
                 <option value="top">Top</option>
                 <option value="news">News</option>
@@ -322,49 +353,8 @@ const TopFeed = () => {
                   </option>
                 ))}
               </select>
-              <span className="text-xs whitespace-nowrap text-[var(--theme-textMuted)]">
-                {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                {' '}
-                {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-              </span>
             </div>
           </div>
-          {isNewsRoute && (
-            <div className="flex items-center gap-1 px-4 pb-2 overflow-x-auto">
-              {NEWS_TOPICS.map((topic) => {
-                const active = topic === newsTopic;
-                return (
-                  <button
-                    key={topic}
-                    type="button"
-                    onClick={() => handleNewsTopicChange(topic)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
-                      active
-                        ? 'bg-[var(--theme-primary)] text-[#262129] border-[var(--theme-primary)]'
-                        : 'bg-transparent text-[var(--theme-textMuted)] border-[var(--theme-border)] hover:text-[var(--theme-text)] hover:border-[var(--theme-primary)]'
-                    }`}
-                  >
-                    {NEWS_TOPIC_LABELS[topic]}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-          {newestPostAgeSeconds !== null && (
-            <div className="flex items-center justify-end px-4 pb-3">
-              <div className="flex items-center gap-3 flex-wrap justify-end">
-                {lastUpdatedAt && (
-                  <span className="text-xs text-[var(--theme-textMuted)]">
-                    Updated on {lastUpdatedAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}{' '}
-                    {lastUpdatedAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-                  </span>
-                )}
-                <span className={`text-xs ${isStaleData ? 'text-amber-600' : 'text-[var(--theme-textMuted)]'}`}>
-                  Newest post: {formatTimeAgo(new Date(Date.now() - newestPostAgeSeconds * 1000).toISOString())}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </header>
 
