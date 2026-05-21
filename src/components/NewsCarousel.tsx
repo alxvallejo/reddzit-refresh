@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import type { TrendingPost } from '../helpers/DailyService';
+import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { HeroCard } from './MagazineGrid';
 
@@ -9,14 +9,16 @@ const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
 const AUTOPLAY_INTERVAL_MS = 45000;
 const FADE_DURATION_MS = 900;
+const COMMENT_ROTATION_MS = 15000;
 
 interface NewsCarouselProps {
   posts: TrendingPost[];
   onPostClick: (post: TrendingPost) => void;
-  onSkipPost: (postId: string) => void;
+  onSkipPost?: (postId: string) => void;
+  onVisibleRangeChange?: (indices: number[]) => void;
 }
 
-const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => {
+const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -25,9 +27,12 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
   );
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [stack, setStack] = useState<TrendingPost[]>(() => (posts.length > 0 ? [posts[0]] : []));
+  const [commentIndex, setCommentIndex] = useState(0);
+  const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
   const swipeStartX = useRef<number | null>(null);
   const total = posts.length;
   const autoplayActive = total > 1 && !isPaused && tabVisible;
+  const rotatorActive = !isPaused && tabVisible;
 
   useEffect(() => {
     if (total === 0) {
@@ -71,6 +76,19 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
     return () => window.clearTimeout(timer);
   }, [index, total, autoplayActive, autoplayTick]);
 
+  useEffect(() => {
+    if (!onVisibleRangeChange || total === 0) return;
+    const safe = Math.min(index, total - 1);
+    if (total === 1) {
+      onVisibleRangeChange([safe]);
+      return;
+    }
+    const prev = (safe - 1 + total) % total;
+    const next = (safe + 1) % total;
+    const set = new Set<number>([prev, safe, next]);
+    onVisibleRangeChange(Array.from(set));
+  }, [index, total, onVisibleRangeChange]);
+
   const safeIndex = total > 0 ? Math.min(index, total - 1) : 0;
   const post = total > 0 ? posts[safeIndex] : null;
 
@@ -92,6 +110,42 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
     }, FADE_DURATION_MS);
     return () => window.clearTimeout(t);
   }, [stack]);
+
+  const comments = (post?.topComments ?? []).filter(isDisplayableComment);
+  const commentCount = comments.length;
+  const safeCommentIndex = commentCount > 0 ? Math.min(commentIndex, commentCount - 1) : 0;
+  const currentComment = commentCount > 0 ? comments[safeCommentIndex] : null;
+
+  useEffect(() => {
+    setCommentIndex(0);
+  }, [post?.id]);
+
+  useEffect(() => {
+    if (!currentComment) {
+      setCommentStack([]);
+      return;
+    }
+    setCommentStack(prev => {
+      if (prev.length > 0 && prev[prev.length - 1].id === currentComment.id) return prev;
+      return [...prev, currentComment];
+    });
+  }, [currentComment?.id]);
+
+  useEffect(() => {
+    if (commentStack.length <= 1) return;
+    const t = window.setTimeout(() => {
+      setCommentStack(prev => prev.slice(-1));
+    }, FADE_DURATION_MS);
+    return () => window.clearTimeout(t);
+  }, [commentStack]);
+
+  useEffect(() => {
+    if (commentCount <= 1 || !rotatorActive) return;
+    const timer = window.setTimeout(() => {
+      setCommentIndex(i => (i + 1) % commentCount);
+    }, COMMENT_ROTATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [commentIndex, commentCount, rotatorActive]);
 
   if (total === 0 || !post) return null;
 
@@ -170,7 +224,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
                   <HeroCard
                     post={p}
                     onClick={() => onPostClick(p)}
-                    onSkip={() => onSkipPost(p.id)}
+                    onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
                   />
                 </div>
               );
@@ -196,6 +250,32 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost }: NewsCarouselProps) => 
           <FontAwesomeIcon icon={faChevronRight} />
         </button>
       </div>
+      {commentCount > 0 && (
+        <div className="mt-4 max-w-3xl mx-auto px-2 select-none">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-2">
+            Top comments
+          </div>
+          <div className="relative">
+            {commentStack.map((c, i) => {
+              const isFirst = i === 0;
+              const isLast = i === commentStack.length - 1;
+              return (
+                <div
+                  key={c.id}
+                  className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
+                >
+                  <div className="text-xs text-[var(--theme-textMuted)] mb-1">
+                    ▲ {c.score.toLocaleString()} · u/{c.author}
+                  </div>
+                  <div className="text-sm text-[var(--theme-text)] line-clamp-2 min-h-[2.5rem]">
+                    {c.body}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <div className="flex flex-col items-center gap-2 mt-5">
         <div className="flex items-center gap-3">
           <span className="text-xs text-[var(--theme-textMuted)] tabular-nums">

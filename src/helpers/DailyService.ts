@@ -49,6 +49,9 @@ export interface TrendingPostTopComment {
   permalink: string | null;
 }
 
+export const isDisplayableComment = (c: TrendingPostTopComment): boolean =>
+  (c.author || '').toLowerCase() !== 'automoderator';
+
 export interface TrendingPost {
   id: string;
   title: string;
@@ -62,6 +65,7 @@ export interface TrendingPost {
   numComments?: number;
   postHint?: string;
   topComments?: TrendingPostTopComment[];
+  bodyPreview?: string;
 }
 
 const DailyService = {

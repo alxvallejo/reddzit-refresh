@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import type { TrendingPost, TrendingPostTopComment } from '../helpers/DailyService';
+import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { getDisplayTitle } from '../helpers/RedditUtils';
 
@@ -45,7 +45,7 @@ const formatScore = (n: number | undefined) => {
 interface CardProps {
   post: TrendingPost;
   onClick: () => void;
-  onSkip: () => void;
+  onSkip?: () => void;
 }
 
 const SubredditBadge = ({ subreddit }: { subreddit: string }) => (
@@ -70,7 +70,10 @@ type QuoteVariant = 'default' | 'overlay';
 
 const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: QuoteVariant }) => {
   const comments = useMemo(
-    () => (post.topComments?.length ? shuffleComments(post.topComments) : []),
+    () => {
+      const filtered = (post.topComments ?? []).filter(isDisplayableComment);
+      return filtered.length ? shuffleComments(filtered) : [];
+    },
     [post.topComments]
   );
 
@@ -205,6 +208,41 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
 export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
+  const isTextForward = !post.imageUrl && !!post.bodyPreview;
+
+  if (isTextForward) {
+    return (
+      <article
+        onClick={onClick}
+        onKeyDown={(e) => handleCardKeyDown(e, onClick)}
+        role="button"
+        tabIndex={0}
+        aria-label={getDisplayTitle(post)}
+        className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition aspect-[4/5] md:aspect-[16/9] bg-gradient-to-br from-[var(--theme-cardBg)] via-[var(--theme-bgSecondary)] to-[var(--theme-cardBg)]"
+      >
+        {onSkip && <SkipButton onSkip={onSkip} position="bottom" />}
+        <div className="absolute inset-0 flex flex-col px-5 md:px-8 py-4 md:py-6 gap-3 md:gap-4">
+          <div className="flex items-center justify-between gap-2 flex-shrink-0">
+            <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] flex-shrink-0">
+              r/{post.subreddit}
+            </span>
+            <div className="flex items-center gap-2 md:gap-3 text-[0.7rem] md:text-[0.75rem] text-[var(--theme-textMuted)]">
+              <span>{formatTimeAgo(post.pubDate)}</span>
+              {score && <span>▲ {score}</span>}
+              {comments && <span>💬 {comments}</span>}
+            </div>
+          </div>
+          <h2 className="text-lg md:text-3xl font-semibold leading-tight text-[var(--theme-text)] flex-shrink-0">
+            {getDisplayTitle(post)}
+          </h2>
+          <p className="text-sm md:text-base leading-relaxed text-[var(--theme-textMuted)] italic line-clamp-[8] md:line-clamp-[10] flex-1">
+            “{post.bodyPreview}”
+          </p>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article
       onClick={onClick}
@@ -214,7 +252,7 @@ export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
       aria-label={getDisplayTitle(post)}
       className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition"
     >
-      <SkipButton onSkip={onSkip} position="bottom" />
+      {onSkip && <SkipButton onSkip={onSkip} position="bottom" />}
       <ImageArea post={post} aspect="aspect-[4/5] md:aspect-[16/9]" />
       <div className="absolute inset-x-0 top-0 px-4 pt-3 pb-10 md:px-5 md:pt-4 md:pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
         <div className="flex items-center justify-between mb-2 pointer-events-auto gap-2">
@@ -249,7 +287,7 @@ const TallCard = ({ post, onClick, onSkip }: CardProps) => (
     aria-label={getDisplayTitle(post)}
     className="relative md:row-span-2 cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition flex flex-col"
   >
-    <SkipButton onSkip={onSkip} />
+    {onSkip && <SkipButton onSkip={onSkip} />}
     <ImageArea post={post} aspect="aspect-[4/5]" />
     <div className="p-3 flex flex-col gap-1.5 flex-1">
       <div className="flex items-center justify-between">
@@ -273,7 +311,7 @@ const StandardCard = ({ post, onClick, onSkip }: CardProps) => (
     aria-label={getDisplayTitle(post)}
     className="relative cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition flex flex-col"
   >
-    <SkipButton onSkip={onSkip} />
+    {onSkip && <SkipButton onSkip={onSkip} />}
     <ImageArea post={post} aspect="aspect-video" />
     <div className="p-3 flex flex-col gap-1.5 flex-1">
       <div className="flex items-center justify-between">
@@ -291,7 +329,7 @@ const StandardCard = ({ post, onClick, onSkip }: CardProps) => (
 interface MagazineGridProps {
   posts: TrendingPost[];
   onPostClick: (post: TrendingPost) => void;
-  onSkipPost: (postId: string) => void;
+  onSkipPost?: (postId: string) => void;
 }
 
 const MagazineGrid = ({ posts, onPostClick, onSkipPost }: MagazineGridProps) => {
@@ -300,7 +338,7 @@ const MagazineGrid = ({ posts, onPostClick, onSkipPost }: MagazineGridProps) => 
       {posts.map((post, idx) => {
         const size = tileSizeForIndex(idx);
         const onClick = () => onPostClick(post);
-        const onSkip = () => onSkipPost(post.id);
+        const onSkip = onSkipPost ? () => onSkipPost(post.id) : undefined;
         if (size === 'hero') return <HeroCard key={post.id} post={post} onClick={onClick} onSkip={onSkip} />;
         if (size === 'tall') return <TallCard key={post.id} post={post} onClick={onClick} onSkip={onSkip} />;
         return <StandardCard key={post.id} post={post} onClick={onClick} onSkip={onSkip} />;
