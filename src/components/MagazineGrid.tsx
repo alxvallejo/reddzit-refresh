@@ -151,8 +151,9 @@ const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: Qu
   );
 };
 
-const SkipButton = ({ onSkip }: { onSkip: () => void }) => {
+const SkipButton = ({ onSkip, position = 'top' }: { onSkip: () => void; position?: 'top' | 'bottom' }) => {
   const { isLight } = useTheme();
+  const positionClass = position === 'bottom' ? 'right-2 bottom-2' : 'right-2 top-2';
   return (
     <button
       onClick={(e) => {
@@ -161,7 +162,7 @@ const SkipButton = ({ onSkip }: { onSkip: () => void }) => {
       }}
       title="Hide post"
       aria-label="Hide post"
-      className={`absolute right-2 top-2 z-10 p-1.5 rounded-md backdrop-blur-sm transition ${
+      className={`absolute ${positionClass} z-10 p-1.5 rounded-md backdrop-blur-sm transition ${
         isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20'
       }`}
     >
@@ -213,7 +214,7 @@ export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
       aria-label={getDisplayTitle(post)}
       className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition"
     >
-      <SkipButton onSkip={onSkip} />
+      <SkipButton onSkip={onSkip} position="bottom" />
       <ImageArea post={post} aspect="aspect-[4/5] md:aspect-[16/9]" />
       <div className="absolute inset-x-0 top-0 px-4 pt-3 pb-10 md:px-5 md:pt-4 md:pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
         <div className="flex items-center justify-between mb-2 pointer-events-auto gap-2">
