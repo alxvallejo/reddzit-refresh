@@ -234,7 +234,7 @@ const SubredditFeed = () => {
 
 
       {/* Subreddit Header */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 pb-4">
+      <div className="max-w-screen-2xl mx-auto px-4 pt-6 pb-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             {/* Back button */}
@@ -311,7 +311,7 @@ const SubredditFeed = () => {
 
       {/* Related Subreddits */}
       {relatedSubreddits.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 pb-4">
+        <div className="max-w-screen-2xl mx-auto px-4 pb-4">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-medium text-[var(--theme-textMuted)]">
               Related:
@@ -334,14 +334,14 @@ const SubredditFeed = () => {
       )}
 
       {error && (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-screen-2xl mx-auto px-4 mt-4">
           <div className="text-red-500 text-center py-8">{error}</div>
         </div>
       )}
 
       {/* Posts grid */}
       {posts.length > 0 ? (
-        <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main className="max-w-screen-2xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {posts.map((post, index) => (
             <article
               key={post.id || index}

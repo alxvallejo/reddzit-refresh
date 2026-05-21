@@ -116,7 +116,7 @@ const TrendingMarquee = () => {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="max-w-7xl mx-auto pr-4 flex items-center">
+      <div className="max-w-screen-2xl mx-auto pr-4 flex items-center">
         <div
           className={`flex-shrink-0 px-4 py-2 pr-6 font-bold text-xs uppercase tracking-wider ${
             isLight ? 'text-white' : 'text-[#262129]'

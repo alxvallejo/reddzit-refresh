@@ -85,7 +85,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
       {/* Header / Hero - only show when not embedded */}
       {!embedded && (
         <header className="px-4 pb-2">
-          <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
+          <div className="max-w-screen-2xl mx-auto border-b-2 border-[var(--theme-border)]">
             {/* Masthead */}
             <div className="flex items-center justify-between py-4 sm:py-4 text-left">
               {/* Date (Left) */}
@@ -103,7 +103,7 @@ const DailyPulse = ({ embedded = false }: DailyPulseProps) => {
       )}
 
       {/* Stories List */}
-      <main className="max-w-7xl mx-auto px-4 pt-8 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-screen-2xl mx-auto px-4 pt-8 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {report.stories.map((story, index) => (
           <article 
             key={story.id} 

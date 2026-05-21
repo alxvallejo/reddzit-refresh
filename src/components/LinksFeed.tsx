@@ -97,7 +97,7 @@ const LinksFeed = () => {
     <div className="font-sans">
       {/* Header */}
       <header id="page-header" className="px-4 pb-2 sticky top-[6.25rem] z-30 bg-[var(--theme-bg)]">
-        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
+        <div className="max-w-screen-2xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4 pl-4">
             <h1 className="text-2xl font-bold text-[var(--theme-text)]">
               Links
@@ -107,7 +107,7 @@ const LinksFeed = () => {
       </header>
 
       {/* Quick-save input */}
-      <div className="max-w-7xl mx-auto px-4 pt-4">
+      <div className="max-w-screen-2xl mx-auto px-4 pt-4">
         <form onSubmit={handleSave} className="flex gap-2">
           <div className="relative flex-1">
             <FontAwesomeIcon
@@ -163,7 +163,7 @@ const LinksFeed = () => {
           </p>
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="max-w-screen-2xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {links.map((link) => (
             <article
               key={link.id}

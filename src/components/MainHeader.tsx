@@ -52,7 +52,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
       {/* Page title (shown when page header scrolls out of view) */}
       {pageTitle && (
         <div className="absolute left-0 right-0 top-0 h-16 hidden md:flex items-center pointer-events-none">
-          <div className="max-w-7xl mx-auto pl-14 pr-4 w-full text-[var(--theme-text)]">
+          <div className="max-w-screen-2xl mx-auto pl-14 pr-4 w-full text-[var(--theme-text)]">
             <span className="text-xl font-thin" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
               {pageTitle}
             </span>
@@ -60,7 +60,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-1 sm:px-4">
+      <div className="max-w-screen-2xl mx-auto px-1 sm:px-4">
         <div className="flex items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 no-underline">
@@ -125,7 +125,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
 
       {/* Right-side controls - desktop only */}
       <div className="absolute right-0 left-0 top-0 h-16 hidden sm:flex items-center pointer-events-none">
-        <div className="max-w-7xl mx-auto px-4 w-full flex justify-end gap-2">
+        <div className="max-w-screen-2xl mx-auto px-4 w-full flex justify-end gap-2">
           <div className="pointer-events-auto">
             <ThemeSwitcher />
           </div>

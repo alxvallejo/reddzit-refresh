@@ -333,7 +333,7 @@ interface MagazineGridProps {
 
 const MagazineGrid = ({ posts, onPostClick, onSkipPost }: MagazineGridProps) => {
   return (
-    <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 grid-flow-row-dense auto-rows-min">
+    <main className="max-w-screen-2xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 grid-flow-row-dense auto-rows-min">
       {posts.map((post, idx) => {
         const size = tileSizeForIndex(idx);
         const onClick = () => onPostClick(post);

@@ -240,7 +240,7 @@ export default function StoriesPage() {
 
       {/* Page Header */}
       <div className="border-b bg-[var(--theme-headerBg)] border-[var(--theme-border)]">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <h1 className="font-semibold text-[var(--theme-text)]">
             Your Stories
             {stories.length > 0 && (
@@ -264,7 +264,7 @@ export default function StoriesPage() {
       </div>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-screen-2xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin opacity-50" />

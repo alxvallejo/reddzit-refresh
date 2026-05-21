@@ -235,7 +235,7 @@ const SavedContent = () => {
   return (
     <>
       {/* Sub-tab bar */}
-      <div className="max-w-7xl mx-auto px-4 pt-2">
+      <div className="max-w-screen-2xl mx-auto px-4 pt-2">
         <div className="flex gap-2">
           <button onClick={() => setActiveSubTab('reddit')} className={subTabClass('reddit')}>
             Reddit

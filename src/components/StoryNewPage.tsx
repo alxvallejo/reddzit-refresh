@@ -55,7 +55,7 @@ export default function StoryNewPage() {
 
       {/* Page Header */}
       <div className="border-b bg-[var(--theme-headerBg)] border-[var(--theme-border)]">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
+        <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center gap-4">
           <Link
             to="/stories"
             className={`flex items-center no-underline ${

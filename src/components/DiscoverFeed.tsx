@@ -192,7 +192,7 @@ const DiscoverFeed = () => {
 
         {/* Header */}
         <header className="px-4 pb-2">
-          <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
+          <div className="max-w-screen-2xl mx-auto border-b-2 border-[var(--theme-border)]">
             <div className="flex items-center justify-between py-4">
               <div>
                 <h1 className="text-2xl font-bold text-[var(--theme-text)]">
@@ -275,7 +275,7 @@ const DiscoverFeed = () => {
 
         {/* Stories Grid */}
         {globalBriefing?.stories && globalBriefing.stories.length > 0 ? (
-          <main className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <main className="max-w-screen-2xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
             {globalBriefing.stories.map((story, index) => (
               <article
                 key={story.id}
@@ -544,7 +544,7 @@ const DiscoverFeed = () => {
 
       {/* Header */}
       <header className="px-4 pb-2">
-        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
+        <div className="max-w-screen-2xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4">
             <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[var(--theme-textMuted)]">
               {sourceCategories.join(' • ')}
@@ -580,7 +580,7 @@ const DiscoverFeed = () => {
       </header>
 
       {error && (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-screen-2xl mx-auto px-4 mt-4">
           <div className="p-4 rounded-lg bg-red-500/20 text-red-400 text-sm">
             {error}
           </div>
@@ -588,7 +588,7 @@ const DiscoverFeed = () => {
       )}
 
       {/* Stories Grid - Newspaper Layout */}
-      <main className="max-w-7xl mx-auto px-4 pt-8 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-screen-2xl mx-auto px-4 pt-8 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {report.stories.map((story, index) => (
           <article
             key={story.id}

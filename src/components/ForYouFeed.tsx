@@ -331,7 +331,7 @@ const ForYouFeed = () => {
     <div className="font-sans">
       {/* Header */}
       <header className="px-4 pb-2 sticky top-[6.25rem] z-30 bg-[var(--theme-bg)]">
-        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
+        <div className="max-w-screen-2xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-4">
             <div className="flex items-baseline gap-3">
               <h1 className="text-2xl font-bold text-[var(--theme-text)] whitespace-nowrap">
@@ -372,7 +372,7 @@ const ForYouFeed = () => {
 
       {/* Error display */}
       {error && (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-screen-2xl mx-auto px-4 mt-4">
           <div className="p-4 rounded-lg bg-red-500/20 text-red-400 text-sm">
             {error}
           </div>
@@ -381,7 +381,7 @@ const ForYouFeed = () => {
 
       {/* Refreshing persona notice */}
       {refreshingPersona && (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-screen-2xl mx-auto px-4 mt-4">
           <div className={`p-4 rounded-lg ${
             isLight ? 'bg-orange-50 text-orange-700' : 'bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]'
           }`}>
@@ -395,7 +395,7 @@ const ForYouFeed = () => {
         <>
           {/* Suggested Subreddits */}
           {suggestions.length > 0 && (
-            <div className="max-w-7xl mx-auto px-4 pb-4 pt-4">
+            <div className="max-w-screen-2xl mx-auto px-4 pb-4 pt-4">
               <div ref={suggestionsAnimateRef} className="flex items-center flex-wrap gap-2">
                 <span className="text-xs font-medium whitespace-nowrap text-[var(--theme-textMuted)]">
                   Discover:
@@ -439,7 +439,7 @@ const ForYouFeed = () => {
 
           {/* Posts list */}
           {posts.length > 0 ? (
-            <main ref={animateRef} className="max-w-6xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <main ref={animateRef} className="max-w-screen-2xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {posts.map((post) => (
                 <article
                   key={post.id}

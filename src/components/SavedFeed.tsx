@@ -249,7 +249,7 @@ const SavedFeed = () => {
     <div className="font-sans">
       {/* Header */}
       <header id="page-header" className="px-4 pb-2 sticky top-[6.25rem] z-30 bg-[var(--theme-bg)]">
-        <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
+        <div className="max-w-screen-2xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4 pl-4">
             <h1 className="text-2xl font-bold text-[var(--theme-text)]">
               Saved Posts
@@ -314,7 +314,7 @@ const SavedFeed = () => {
       ) : viewMode === 'grid' ? (
         <MagazineGrid posts={adaptedPosts} onPostClick={handleAdaptedClick} />
       ) : (
-        <div className="max-w-7xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="max-w-screen-2xl mx-auto px-4 pt-4 pb-24 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {posts.map((post) => {
             const commentImageUrl = isComment(post) ? getImageUrlFromText(post.body) : null;
             const fallbackImageFromPost = getImageUrlFromText(post.link_url) || getImageUrlFromText(post.url) || getPreviewImage(post);
