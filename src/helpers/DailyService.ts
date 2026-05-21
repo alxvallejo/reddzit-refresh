@@ -223,7 +223,8 @@ const DailyService = {
         { timeout: 8000 }
       );
       return response.data?.comments ?? [];
-    } catch {
+    } catch (err) {
+      console.warn('getTopCommentsForPost failed for', postId, err);
       return [];
     }
   },
