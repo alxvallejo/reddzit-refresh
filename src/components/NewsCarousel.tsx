@@ -267,7 +267,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
                   <div className="text-xs text-[var(--theme-textMuted)] mb-1">
                     ▲ {c.score.toLocaleString()} · u/{c.author}
                   </div>
-                  <div className="text-sm text-[var(--theme-text)] line-clamp-2 min-h-[2.5rem]">
+                  <div className="text-sm text-[var(--theme-text)] whitespace-pre-wrap break-words min-h-[2.5rem]">
                     {c.body}
                   </div>
                 </div>

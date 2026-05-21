@@ -49,8 +49,14 @@ export interface TrendingPostTopComment {
   permalink: string | null;
 }
 
-export const isDisplayableComment = (c: TrendingPostTopComment): boolean =>
-  (c.author || '').toLowerCase() !== 'automoderator';
+export const isDisplayableComment = (c: TrendingPostTopComment): boolean => {
+  if ((c.author || '').toLowerCase() === 'automoderator') return false;
+  const body = (c.body || '').trim();
+  if (!body) return false;
+  // Skip comments that are just a Reddit gif/emote embed, e.g. ![gif](giphy|XYZ) or ![gif](emote|XYZ)
+  if (/^!\[gif\]\(/i.test(body)) return false;
+  return true;
+};
 
 export interface TrendingPost {
   id: string;
