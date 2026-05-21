@@ -6,7 +6,6 @@ import SavedFeed from './SavedFeed';
 import LinksFeed from './LinksFeed';
 import TopFeed from './TopFeed';
 import ForYouFeed from './ForYouFeed';
-import TrendingMarquee from './TrendingMarquee';
 import DailyService from '../helpers/DailyService';
 import MainHeader from './MainHeader';
 import Footer from './Footer';
@@ -58,7 +57,7 @@ const AppShell = () => {
 
     const observer = new IntersectionObserver(
       ([entry]) => setShowPageTitle(!entry.isIntersecting),
-      { rootMargin: '-64px 0px 0px 0px', threshold: 0 }
+      { rootMargin: '-100px 0px 0px 0px', threshold: 0 }
     );
     observer.observe(header);
     return () => observer.disconnect();
@@ -201,7 +200,6 @@ const SavedContent = () => {
   if (!signedIn) {
     return (
       <>
-        <TrendingMarquee />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">🔖</div>
           <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">Your Saved Posts</h2>
@@ -236,7 +234,6 @@ const SavedContent = () => {
 
   return (
     <>
-      <TrendingMarquee />
       {/* Sub-tab bar */}
       <div className="max-w-7xl mx-auto px-4 pt-2">
         <div className="flex gap-2">
@@ -257,7 +254,6 @@ const SavedContent = () => {
 const TopContent = () => {
   return (
     <>
-      <TrendingMarquee />
       <TopFeed />
     </>
   );
@@ -271,7 +267,6 @@ const ForYouContent = () => {
   if (!signedIn) {
     return (
       <>
-        <TrendingMarquee />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">✨</div>
           <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">For You</h2>
@@ -295,7 +290,6 @@ const ForYouContent = () => {
 
   return (
     <>
-      <TrendingMarquee />
       <ForYouFeed />
     </>
   );
@@ -309,7 +303,6 @@ const LinksContent = () => {
   if (!signedIn) {
     return (
       <>
-        <TrendingMarquee />
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
           <div className="text-6xl mb-6">🔗</div>
           <h2 className="text-2xl font-bold mb-3 text-[var(--theme-text)]">Saved Links</h2>
@@ -333,7 +326,6 @@ const LinksContent = () => {
 
   return (
     <>
-      <TrendingMarquee />
       <LinksFeed />
     </>
   );

@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { HeroCard } from './MagazineGrid';
@@ -9,7 +7,14 @@ const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
 const AUTOPLAY_INTERVAL_MS = 45000;
 const FADE_DURATION_MS = 900;
-const COMMENT_ROTATION_MS = 15000;
+const COMMENT_MS_PER_WORD = 350;
+const COMMENT_MIN_MS = 5000;
+const COMMENT_MAX_MS = 30000;
+
+const getCommentDuration = (body: string) => {
+  const words = body.trim().split(/\s+/).filter(Boolean).length || 1;
+  return Math.max(COMMENT_MIN_MS, Math.min(COMMENT_MAX_MS, words * COMMENT_MS_PER_WORD));
+};
 
 interface NewsCarouselProps {
   posts: TrendingPost[];
@@ -41,25 +46,6 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     }
     if (index >= total) setIndex(Math.max(0, total - 1));
   }, [total, index]);
-
-  useEffect(() => {
-    if (total === 0) return;
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setIndex(i => (i - 1 + total) % total);
-        setAutoplayTick(t => t + 1);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        setIndex(i => (i + 1) % total);
-        setAutoplayTick(t => t + 1);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [total]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -121,6 +107,31 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   }, [post?.id]);
 
   useEffect(() => {
+    if (total === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setIndex(i => (i - 1 + total) % total);
+        setAutoplayTick(t => t + 1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setIndex(i => (i + 1) % total);
+        setAutoplayTick(t => t + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (commentCount <= 1) return;
+        e.preventDefault();
+        setCommentIndex(i =>
+          e.key === 'ArrowDown' ? (i + 1) % commentCount : (i - 1 + commentCount) % commentCount
+        );
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [total, commentCount]);
+
+  useEffect(() => {
     if (!currentComment) {
       setCommentStack([]);
       return;
@@ -140,12 +151,12 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   }, [commentStack]);
 
   useEffect(() => {
-    if (commentCount <= 1 || !rotatorActive) return;
+    if (commentCount <= 1 || !rotatorActive || !currentComment) return;
     const timer = window.setTimeout(() => {
       setCommentIndex(i => (i + 1) % commentCount);
-    }, COMMENT_ROTATION_MS);
+    }, getCommentDuration(currentComment.body));
     return () => window.clearTimeout(timer);
-  }, [commentIndex, commentCount, rotatorActive]);
+  }, [commentIndex, commentCount, rotatorActive, currentComment?.id]);
 
   if (total === 0 || !post) return null;
 
@@ -183,48 +194,34 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const dotsToShow = Math.min(total, MAX_DOTS);
   const dotOffset = Math.max(0, Math.min(total - dotsToShow, safeIndex - Math.floor(dotsToShow / 2)));
 
-  const arrowBtnClass = `hidden md:flex flex-shrink-0 w-12 h-12 rounded-full border cursor-pointer transition items-center justify-center ${
-    isLight
-      ? 'bg-[var(--theme-cardBg)] border-[var(--theme-border)] text-[var(--theme-text)] hover:border-orange-600 disabled:opacity-40'
-      : 'bg-transparent border-[var(--theme-border)] text-[var(--theme-text)] hover:border-[var(--theme-primary)] disabled:opacity-40'
-  }`;
-
   return (
     <main
-      className="max-w-7xl mx-auto px-4 pt-4 pb-24"
+      className="max-w-screen-2xl mx-auto px-4 pt-4 pb-8"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={() => setIsPaused(false)}
     >
-      <div className="flex items-center gap-0 md:gap-4">
-        <button
-          type="button"
-          onClick={goPrev}
-          aria-label="Previous post"
-          disabled={total <= 1}
-          className={arrowBtnClass}
-        >
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
+      <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
         <div
-          className="flex-1 select-none relative overflow-hidden rounded-xl"
+          className="relative w-full aspect-[4/5] md:aspect-[16/9] md:h-[calc(100vh-18rem)] md:w-auto md:flex-shrink-0 overflow-hidden rounded-xl select-none"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
-          <div className="relative">
+          <div className="relative h-full w-full">
             {stack.map((p, i) => {
               const isFirst = i === 0;
               const isLast = i === stack.length - 1;
               return (
                 <div
                   key={p.id}
-                  className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
+                  className={`${isFirst ? 'h-full w-full' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
                 >
                   <HeroCard
                     post={p}
                     onClick={() => onPostClick(p)}
                     onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
+                    fillContainer
                   />
                 </div>
               );
@@ -240,42 +237,40 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={goNext}
-          aria-label="Next post"
-          disabled={total <= 1}
-          className={arrowBtnClass}
-        >
-          <FontAwesomeIcon icon={faChevronRight} />
-        </button>
-      </div>
-      {commentCount > 0 && (
-        <div className="mt-4 max-w-3xl mx-auto px-2 select-none">
-          <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-2">
-            Top comments
-          </div>
-          <div className="relative">
-            {commentStack.map((c, i) => {
-              const isFirst = i === 0;
-              const isLast = i === commentStack.length - 1;
-              return (
-                <div
-                  key={c.id}
-                  className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
-                >
-                  <div className="text-xs text-[var(--theme-textMuted)] mb-1">
-                    ▲ {c.score.toLocaleString()} · u/{c.author}
-                  </div>
-                  <div className="text-sm text-[var(--theme-text)] whitespace-pre-wrap break-words min-h-[2.5rem]">
-                    {c.body}
-                  </div>
+        {commentCount > 0 && (
+          <aside className="mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-18rem)] md:overflow-y-auto select-none">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
+                Top comments
+              </div>
+              {commentCount > 1 && (
+                <div className="text-[10px] text-[var(--theme-textMuted)] tabular-nums opacity-70">
+                  {safeCommentIndex + 1} / {commentCount} · ↑ ↓
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
+            <div className="relative">
+              {commentStack.map((c, i) => {
+                const isFirst = i === 0;
+                const isLast = i === commentStack.length - 1;
+                return (
+                  <div
+                    key={c.id}
+                    className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
+                  >
+                    <div className="text-xs text-[var(--theme-textMuted)] mb-1">
+                      ▲ {c.score.toLocaleString()} · u/{c.author}
+                    </div>
+                    <div className="text-sm md:text-lg text-[var(--theme-text)] whitespace-pre-wrap break-words leading-relaxed">
+                      {c.body}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
+        )}
+      </div>
       <div className="flex flex-col items-center gap-2 mt-5">
         <div className="flex items-center gap-3">
           <span className="text-xs text-[var(--theme-textMuted)] tabular-nums">

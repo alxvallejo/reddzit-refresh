@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useReddit } from '../context/RedditContext';
 import ForYouService, { SubredditPost, SubredditSuggestion } from '../helpers/ForYouService';
-import TrendingMarquee from './TrendingMarquee';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faChevronDown, faUser, faCoffee, faSignOutAlt, faArrowUp, faComment } from '@fortawesome/free-solid-svg-icons';
@@ -94,7 +93,7 @@ const SubredditFeed = () => {
   // Render the header (shared between loading and loaded states)
   const renderHeader = () => (
     <header
-      className="sticky top-0 z-50 border-b border-[var(--theme-border)]"
+      className="sticky top-9 z-40 border-b border-[var(--theme-border)]"
       style={{
         backgroundColor: 'var(--theme-headerBg)',
       } as React.CSSProperties}
@@ -220,7 +219,6 @@ const SubredditFeed = () => {
     return (
       <div className="min-h-screen bg-[var(--theme-bg)]">
         {renderHeader()}
-        <TrendingMarquee />
         <div className="max-w-4xl mx-auto px-4 py-12 text-center">
           <div className="animate-pulse text-xl">Loading r/{name}...</div>
         </div>
@@ -234,7 +232,6 @@ const SubredditFeed = () => {
     >
       {renderHeader()}
 
-      <TrendingMarquee />
 
       {/* Subreddit Header */}
       <div className="max-w-7xl mx-auto px-4 pt-6 pb-4">

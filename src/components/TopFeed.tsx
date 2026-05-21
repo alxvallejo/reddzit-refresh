@@ -279,7 +279,7 @@ const TopFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header id="page-header" className="px-4 sticky top-16 z-40 bg-[var(--theme-bg)]">
+      <header id="page-header" className="px-4 sticky top-[6.25rem] z-30 bg-[var(--theme-bg)]">
         <div className="max-w-7xl mx-auto border-b border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-2 px-4 gap-3 flex-wrap">
             <div className="flex items-center gap-3 flex-wrap">

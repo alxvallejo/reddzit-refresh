@@ -46,6 +46,7 @@ interface CardProps {
   post: TrendingPost;
   onClick: () => void;
   onSkip?: () => void;
+  fillContainer?: boolean;
 }
 
 const SubredditBadge = ({ subreddit }: { subreddit: string }) => (
@@ -205,10 +206,13 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
   }
 };
 
-export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
+export const HeroCard = ({ post, onClick, onSkip, fillContainer }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
   const isTextForward = !post.imageUrl && !!post.bodyPreview;
+  const shapeClass = fillContainer
+    ? 'h-full w-full'
+    : 'col-span-full aspect-[4/5] md:aspect-[16/9]';
 
   if (isTextForward) {
     return (
@@ -218,7 +222,7 @@ export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
         role="button"
         tabIndex={0}
         aria-label={getDisplayTitle(post)}
-        className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition aspect-[4/5] md:aspect-[16/9] bg-gradient-to-br from-[var(--theme-cardBg)] via-[var(--theme-bgSecondary)] to-[var(--theme-cardBg)]"
+        className={`relative ${shapeClass} cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition bg-gradient-to-br from-[var(--theme-cardBg)] via-[var(--theme-bgSecondary)] to-[var(--theme-cardBg)]`}
       >
         {onSkip && <SkipButton onSkip={onSkip} position="bottom" />}
         <div className="absolute inset-0 flex flex-col px-5 md:px-8 py-4 md:py-6 gap-3 md:gap-4">
@@ -250,10 +254,10 @@ export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
       role="button"
       tabIndex={0}
       aria-label={getDisplayTitle(post)}
-      className="relative col-span-full cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition"
+      className={`relative ${fillContainer ? 'h-full w-full' : 'col-span-full'} cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition`}
     >
       {onSkip && <SkipButton onSkip={onSkip} position="bottom" />}
-      <ImageArea post={post} aspect="aspect-[4/5] md:aspect-[16/9]" />
+      <ImageArea post={post} aspect={fillContainer ? 'h-full' : 'aspect-[4/5] md:aspect-[16/9]'} />
       <div className="absolute inset-x-0 top-0 px-4 pt-3 pb-10 md:px-5 md:pt-4 md:pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
         <div className="flex items-center justify-between mb-2 pointer-events-auto gap-2">
           <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] flex-shrink-0">
@@ -268,11 +272,6 @@ export const HeroCard = ({ post, onClick, onSkip }: CardProps) => {
         <h2 className="text-xl md:text-4xl font-semibold leading-tight text-white drop-shadow-md pointer-events-auto">
           {getDisplayTitle(post)}
         </h2>
-      </div>
-      <div className="absolute inset-x-0 bottom-0 px-4 pt-12 pb-3 md:px-5 md:pt-16 md:pb-4 bg-gradient-to-t from-black/85 via-black/55 to-transparent pointer-events-none">
-        <div className="pointer-events-auto">
-          <Quote post={post} variant="overlay" />
-        </div>
       </div>
     </article>
   );

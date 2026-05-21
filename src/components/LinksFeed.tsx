@@ -96,7 +96,7 @@ const LinksFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header id="page-header" className="px-4 pb-2 sticky top-16 z-40 bg-[var(--theme-bg)]">
+      <header id="page-header" className="px-4 pb-2 sticky top-[6.25rem] z-30 bg-[var(--theme-bg)]">
         <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex items-center justify-between py-4 pl-4">
             <h1 className="text-2xl font-bold text-[var(--theme-text)]">

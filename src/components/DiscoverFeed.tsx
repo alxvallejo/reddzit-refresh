@@ -9,7 +9,6 @@ import DiscoverService, {
   GlobalBriefing,
   GlobalBriefingStory
 } from '../helpers/DiscoverService';
-import TrendingMarquee from './TrendingMarquee';
 
 const MAX_CATEGORIES = 3;
 
@@ -190,7 +189,6 @@ const DiscoverFeed = () => {
     return (
       <div className="font-sans">
         {/* Trending Marquee */}
-        <TrendingMarquee />
 
         {/* Header */}
         <header className="px-4 pb-2">
@@ -371,7 +369,6 @@ const DiscoverFeed = () => {
     return (
       <div>
         {/* Trending Marquee */}
-        <TrendingMarquee />
         
         <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
@@ -544,7 +541,6 @@ const DiscoverFeed = () => {
   return (
     <div className="font-sans">
       {/* Trending Marquee */}
-      <TrendingMarquee />
 
       {/* Header */}
       <header className="px-4 pb-2">

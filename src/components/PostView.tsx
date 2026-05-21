@@ -6,7 +6,6 @@ import { getPostType, handlePostType, getParsedContent, getArticlePreviewImage, 
 import { getVideoUrl } from '../helpers/UrlCrawler';
 import MainHeader from './MainHeader';
 import ReadControls from './ReadControls';
-import TrendingMarquee from './TrendingMarquee';
 import API_BASE_URL from '../config/api';
 import QuoteSelectionButton from './QuoteSelectionButton';
 import QuoteModal from './QuoteModal';
@@ -274,7 +273,7 @@ export default function PostView() {
         {signedIn ? (
           <MainHeader />
         ) : (
-          <header className={`sticky top-0 z-50 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
+          <header className={`sticky top-9 z-40 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
               <div className="flex items-center gap-4 flex-1 min-w-0">
                   <Link to="/" className="flex-shrink-0">
                       <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
@@ -305,7 +304,6 @@ export default function PostView() {
         )}
 
         {/* Trending Marquee */}
-        <TrendingMarquee />
 
         {/* Content */}
         <main className="max-w-3xl mx-auto px-4 py-8 pb-32">

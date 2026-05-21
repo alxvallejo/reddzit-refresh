@@ -43,7 +43,7 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-50 backdrop-blur-md bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]"
+      className="sticky top-9 z-40 backdrop-blur-md bg-[var(--theme-headerBg)] border-b border-[var(--theme-border)]"
       style={{
         backgroundColor: 'var(--theme-headerBg)',
         borderColor: 'var(--theme-border)'

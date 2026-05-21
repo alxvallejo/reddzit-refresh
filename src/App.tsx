@@ -4,6 +4,7 @@ import ReactGA from 'react-ga';
 import { RedditProvider } from './context/RedditContext';
 import { ThemeProvider } from './context/ThemeContext';
 import AppShell from './components/AppShell';
+import TrendingMarquee from './components/TrendingMarquee';
 import About from './components/About';
 import PostView from './components/PostView';
 import LinkView from './components/LinkView';
@@ -26,6 +27,7 @@ function App() {
       <ThemeProvider>
         <RedditProvider>
           <div className='App'>
+          <TrendingMarquee />
           <Routes>
             <Route index path='/' element={<HomePage />} />
             <Route path='/welcome' element={<LandingPage />} />

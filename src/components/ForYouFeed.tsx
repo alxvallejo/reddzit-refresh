@@ -330,7 +330,7 @@ const ForYouFeed = () => {
   return (
     <div className="font-sans">
       {/* Header */}
-      <header className="px-4 pb-2 sticky top-16 z-40 bg-[var(--theme-bg)]">
+      <header className="px-4 pb-2 sticky top-[6.25rem] z-30 bg-[var(--theme-bg)]">
         <div className="max-w-7xl mx-auto border-b-2 border-[var(--theme-border)]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-4">
             <div className="flex items-baseline gap-3">

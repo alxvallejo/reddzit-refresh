@@ -111,7 +111,7 @@ const TrendingMarquee = () => {
 
   return (
     <div
-      className="overflow-hidden border-b sticky top-16 z-40 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
+      className="overflow-hidden border-b sticky top-0 z-50 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
       style={{ backgroundColor: 'var(--theme-headerBg)' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
