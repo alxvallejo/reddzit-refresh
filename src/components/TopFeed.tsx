@@ -259,7 +259,10 @@ const TopFeed = () => {
     : normalizedSubredditParam
       ? `r/${normalizedSubredditParam}`
       : 'Top Posts on Reddit';
-  const visiblePosts = posts.filter(post => !skippedPostIds.has(post.id));
+  const visiblePosts = useMemo(
+    () => posts.filter(post => !skippedPostIds.has(post.id)),
+    [posts, skippedPostIds]
+  );
 
   const handleVisibleRange = useCallback((indices: number[]) => {
     if (indices.length === 0) return;
@@ -285,9 +288,7 @@ const TopFeed = () => {
       lazyInFlight.current.add(post.id);
       DailyService.getTopCommentsForPost(post.id)
         .then((comments) => {
-          if (comments && comments.length > 0) {
-            setLazyComments((prev) => ({ ...prev, [post.id]: comments }));
-          }
+          setLazyComments((prev) => ({ ...prev, [post.id]: comments ?? [] }));
         })
         .finally(() => {
           lazyInFlight.current.delete(post.id);
