@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableCellsLarge, faRectangleList } from '@fortawesome/free-solid-svg-icons';
@@ -17,10 +17,20 @@ type ViewMode = 'grid' | 'carousel';
 const loadViewMode = (): ViewMode => {
   try {
     const v = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
-    return v === 'carousel' ? 'carousel' : 'grid';
+    if (v === 'grid') return 'grid';
+    return 'carousel';
   } catch {
-    return 'grid';
+    return 'carousel';
   }
+};
+
+const shuffleArray = <T,>(arr: T[]): T[] => {
+  const next = arr.slice();
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
 };
 
 const NEWS_TOPICS = ['news', 'less-political'] as const;
@@ -68,6 +78,7 @@ const TopFeed = () => {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
+  const lastShuffledRouteRef = useRef<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const isNewsRoute = location.pathname === '/news' || location.pathname === '/';
   const normalizedSubredditParam = subredditParam?.trim().toLowerCase();
@@ -122,7 +133,13 @@ const TopFeed = () => {
     setError(null);
     try {
       const data = await DailyService.getTrendingRSS(dataSubreddit, undefined, dataTopic);
-      setPosts(data);
+      const routeKey = `${dataSubreddit ?? ''}|${dataTopic ?? ''}`;
+      if (lastShuffledRouteRef.current !== routeKey) {
+        setPosts(shuffleArray(data));
+        lastShuffledRouteRef.current = routeKey;
+      } else {
+        setPosts(data);
+      }
       setLastUpdatedAt(new Date());
     } catch (err) {
       setError('Failed to load top posts');
