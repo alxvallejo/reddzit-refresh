@@ -1,10 +1,10 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTableCellsLarge, faRectangleList } from '@fortawesome/free-solid-svg-icons';
+import { faTableCellsLarge, faRectangleList, faShuffle } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, {
-  INLINE_TOP_COMMENTS_CAP,
+  isDisplayableComment,
   TrendingPost,
   TrendingPostTopComment,
 } from '../helpers/DailyService';
@@ -15,6 +15,18 @@ const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
 const SKIPPED_POSTS_STORAGE_KEY = 'rdz_top_skipped_posts_v1';
 const VIEW_MODE_STORAGE_KEY = 'rdz_news_view_mode';
+const CAROUSEL_RANDOMIZE_STORAGE_KEY = 'rdz_carousel_randomize_v1';
+
+const loadRandomize = (): boolean => {
+  try {
+    return localStorage.getItem(CAROUSEL_RANDOMIZE_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const postHasDisplayableComments = (p: TrendingPost): boolean =>
+  (p.topComments ?? []).some(isDisplayableComment);
 
 type ViewMode = 'grid' | 'carousel';
 
@@ -82,6 +94,21 @@ const TopFeed = () => {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
+  const [randomize, setRandomize] = useState<boolean>(() => loadRandomize());
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+
+  const toggleRandomize = useCallback(() => {
+    setRandomize(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(CAROUSEL_RANDOMIZE_STORAGE_KEY, next ? '1' : '0');
+      } catch {
+        // ignore
+      }
+      if (next) setShuffleSeed(s => s + 1);
+      return next;
+    });
+  }, []);
   const [lazyComments, setLazyComments] = useState<Record<string, TrendingPostTopComment[]>>({});
   const lazyInFlight = useRef<Set<string>>(new Set());
   const lastShuffledRouteRef = useRef<string | null>(null);
@@ -266,6 +293,28 @@ const TopFeed = () => {
     [posts, skippedPostIds]
   );
 
+  const postsWithComments = useMemo(() => {
+    if (Object.keys(lazyComments).length === 0) return visiblePosts;
+    return visiblePosts.map((p) => {
+      if (p.topComments && p.topComments.length > 0) return p;
+      const lazy = lazyComments[p.id];
+      return lazy ? { ...p, topComments: lazy } : p;
+    });
+  }, [visiblePosts, lazyComments]);
+
+  const carouselPosts = useMemo(() => {
+    if (!randomize) return postsWithComments;
+    const withComments: TrendingPost[] = [];
+    const withoutComments: TrendingPost[] = [];
+    for (const p of postsWithComments) {
+      if (postHasDisplayableComments(p)) withComments.push(p);
+      else withoutComments.push(p);
+    }
+    return [...shuffleArray(withComments), ...shuffleArray(withoutComments)];
+    // shuffleSeed is intentionally in the dep list to re-shuffle on toggle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postsWithComments, randomize, shuffleSeed]);
+
   const handleVisibleRange = useCallback((indices: number[]) => {
     if (indices.length === 0) return;
     // NewsCarousel calls onVisibleRangeChange with Array.from(new Set([prev, current, next])).
@@ -276,12 +325,11 @@ const TopFeed = () => {
     const targets: number[] = [];
     for (let offset = 0; offset <= 2; offset++) {
       const idx = current + offset;
-      if (idx < visiblePosts.length) targets.push(idx);
+      if (idx < carouselPosts.length) targets.push(idx);
     }
 
     for (const idx of targets) {
-      if (idx < INLINE_TOP_COMMENTS_CAP) continue;
-      const post = visiblePosts[idx];
+      const post = carouselPosts[idx];
       if (!post) continue;
       if (post.topComments && post.topComments.length > 0) continue;
       if (lazyComments[post.id]) continue;
@@ -296,16 +344,7 @@ const TopFeed = () => {
           lazyInFlight.current.delete(post.id);
         });
     }
-  }, [visiblePosts, lazyComments]);
-
-  const postsWithComments = useMemo(() => {
-    if (Object.keys(lazyComments).length === 0) return visiblePosts;
-    return visiblePosts.map((p) => {
-      if (p.topComments && p.topComments.length > 0) return p;
-      const lazy = lazyComments[p.id];
-      return lazy ? { ...p, topComments: lazy } : p;
-    });
-  }, [visiblePosts, lazyComments]);
+  }, [carouselPosts, lazyComments]);
 
   if (loading) {
     return (
@@ -410,6 +449,23 @@ const TopFeed = () => {
                   <FontAwesomeIcon icon={faRectangleList} className="w-3 h-3" />
                 </button>
               </div>
+              {viewMode === 'carousel' && (
+                <button
+                  type="button"
+                  aria-pressed={randomize}
+                  onClick={toggleRandomize}
+                  title={randomize ? 'Shuffle: on (click to disable)' : 'Shuffle carousel order'}
+                  className={`px-2 py-1 text-xs rounded-md cursor-pointer border transition ${
+                    randomize
+                      ? isLight
+                        ? 'bg-orange-600 text-white border-orange-600'
+                        : 'bg-[var(--theme-primary)] text-[#262129] border-[var(--theme-primary)]'
+                      : 'bg-[var(--theme-cardBg)] text-[var(--theme-textMuted)] border-[var(--theme-border)] hover:text-[var(--theme-text)]'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faShuffle} className="w-3 h-3" />
+                </button>
+              )}
               <label htmlFor="subreddit-switcher" className="sr-only">
                 Choose subreddit
               </label>
@@ -442,7 +498,7 @@ const TopFeed = () => {
           />
         ) : (
           <NewsCarousel
-            posts={postsWithComments}
+            posts={carouselPosts}
             onPostClick={handlePostClick}
             onSkipPost={handleSkipPost}
             onVisibleRangeChange={handleVisibleRange}

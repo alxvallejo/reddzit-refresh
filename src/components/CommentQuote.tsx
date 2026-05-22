@@ -69,7 +69,7 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
         “
       </span>
       <blockquote
-        className={`m-0 italic text-[var(--theme-text)] whitespace-pre-wrap break-words ${bodyClass}`}
+        className={`m-0 text-[var(--theme-text)] whitespace-pre-wrap break-words ${bodyClass}`}
       >
         {bodyNodes}
       </blockquote>
