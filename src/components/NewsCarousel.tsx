@@ -239,7 +239,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
           )}
         </div>
         {commentCount > 0 && (
-          <aside className="mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none">
+          <aside
+            className={`mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none ${
+              isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-5 md:p-6' : ''
+            }`}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
                 Top comments
