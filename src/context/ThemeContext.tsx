@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { deriveColors, luminance } from '../utils/deriveColors';
 
-export type ThemeName = 'classic' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
+export type ThemeName = 'classic' | 'noir' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
 export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans' | 'cactus-classical' | 'noto-znamenny';
 
 export const fontFamilies: Record<FontFamily, string> = {
@@ -45,24 +45,48 @@ export const themes: Record<ThemeName, Theme> = {
     name: 'classic',
     label: 'Classic Purple',
     colors: {
-      bg: '#4a3f7a',
-      bgSecondary: '#3d3466',
-      text: '#f0eef5',
-      textMuted: '#c4b8e8',
+      bg: '#221f36',
+      bgSecondary: '#1a1828',
+      text: '#ece9f5',
+      textMuted: '#a89dc4',
       primary: '#b6aaf1',
       primaryHover: '#9f8de8',
       accent: '#9f72d6',
-      border: 'rgba(182, 170, 241, 0.3)',
-      cardBg: 'rgba(255, 255, 255, 0.08)',
-      headerBg: 'rgba(38, 33, 41, 0.85)',
-      bannerBg: '#3d3466',
-      bannerText: '#f0eef5',
+      border: 'rgba(182, 170, 241, 0.18)',
+      cardBg: 'rgba(255, 255, 255, 0.05)',
+      headerBg: 'rgba(26, 24, 40, 0.85)',
+      bannerBg: '#1a1828',
+      bannerText: '#ece9f5',
       bannerButtonBg: '#b6aaf1',
-      bannerButtonText: '#262129',
+      bannerButtonText: '#1a1828',
       bannerErrorText: '#e8b4b4',
-      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
-      bannerInputText: '#f0eef5',
-      bannerInputPlaceholder: '#a89cc4',
+      bannerInputBg: 'rgba(255, 255, 255, 0.12)',
+      bannerInputText: '#ece9f5',
+      bannerInputPlaceholder: '#8d83a8',
+    },
+  },
+  noir: {
+    name: 'noir',
+    label: 'Noir',
+    colors: {
+      bg: '#18181b',
+      bgSecondary: '#0f0f10',
+      text: '#fafafa',
+      textMuted: '#a1a1aa',
+      primary: '#f97316',
+      primaryHover: '#ea580c',
+      accent: '#f59e0b',
+      border: 'rgba(250, 250, 250, 0.1)',
+      cardBg: 'rgba(255, 255, 255, 0.04)',
+      headerBg: 'rgba(15, 15, 16, 0.85)',
+      bannerBg: '#0f0f10',
+      bannerText: '#fafafa',
+      bannerButtonBg: '#f97316',
+      bannerButtonText: '#18181b',
+      bannerErrorText: '#fca5a5',
+      bannerInputBg: 'rgba(255, 255, 255, 0.08)',
+      bannerInputText: '#fafafa',
+      bannerInputPlaceholder: '#71717a',
     },
   },
   violet: {
@@ -209,7 +233,11 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeName, setThemeName] = useState<ThemeName>(() => {
     const saved = localStorage.getItem('reddzit_theme') as ThemeName | null;
-    return saved && themes[saved] ? saved : 'classic';
+    if (saved && themes[saved]) return saved;
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'noir';
+    }
+    return 'light';
   });
 
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
@@ -275,7 +303,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const toggleTheme = () => {
-    setThemeName(prev => prev === 'classic' ? 'light' : 'classic');
+    setThemeName(prev => prev === 'light' ? 'noir' : 'light');
   };
 
   const setFontFamily = (font: FontFamily) => {

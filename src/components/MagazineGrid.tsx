@@ -256,22 +256,22 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer }: CardProps) =>
       aria-label={getDisplayTitle(post)}
       className={`relative ${fillContainer ? 'h-full w-full' : 'col-span-full'} cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition`}
     >
-      {onSkip && <SkipButton onSkip={onSkip} position="bottom" />}
+      {onSkip && <SkipButton onSkip={onSkip} />}
       <ImageArea post={post} aspect={fillContainer ? 'h-full' : 'aspect-[4/5] md:aspect-[16/9]'} />
-      <div className="absolute inset-x-0 top-0 px-4 pt-3 pb-10 md:px-5 md:pt-4 md:pb-12 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none">
-        <div className="flex items-center justify-between mb-2 pointer-events-auto gap-2">
-          <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] flex-shrink-0">
-            r/{post.subreddit}
-          </span>
-          <div className="flex items-center gap-2 md:gap-3 text-[0.7rem] md:text-[0.75rem] text-white/85">
-            <span>{formatTimeAgo(post.pubDate)}</span>
-            {score && <span>▲ {score}</span>}
-            {comments && <span>💬 {comments}</span>}
-          </div>
-        </div>
-        <h2 className="text-xl md:text-4xl font-semibold leading-tight text-white drop-shadow-md pointer-events-auto">
+      <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10 pointer-events-none">
+        <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] pointer-events-auto">
+          r/{post.subreddit}
+        </span>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 px-4 pt-24 pb-4 md:px-5 md:pt-32 md:pb-5 bg-gradient-to-t from-black/95 via-black/70 to-transparent pointer-events-none">
+        <h2 className="text-xl md:text-4xl font-semibold leading-tight text-white drop-shadow-md mb-2 pointer-events-auto">
           {getDisplayTitle(post)}
         </h2>
+        <div className="flex items-center gap-2 md:gap-3 text-[0.7rem] md:text-[0.75rem] text-white/85 pointer-events-auto">
+          <span>{formatTimeAgo(post.pubDate)}</span>
+          {score && <span>▲ {score}</span>}
+          {comments && <span>💬 {comments}</span>}
+        </div>
       </div>
     </article>
   );
