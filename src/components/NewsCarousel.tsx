@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { HeroCard } from './MagazineGrid';
@@ -27,7 +29,8 @@ interface NewsCarouselProps {
 const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const [index, setIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHoverPaused, setIsHoverPaused] = useState(false);
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
   const [tabVisible, setTabVisible] = useState(() =>
     typeof document === 'undefined' ? true : document.visibilityState === 'visible'
   );
@@ -37,8 +40,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
   const swipeStartX = useRef<number | null>(null);
   const total = posts.length;
-  const autoplayActive = total > 1 && !isPaused && tabVisible;
-  const rotatorActive = !isPaused && tabVisible;
+  const effectivelyPaused = isHoverPaused || isManuallyPaused;
+  const autoplayActive = total > 1 && !effectivelyPaused && tabVisible;
+  const rotatorActive = !effectivelyPaused && tabVisible;
 
   useEffect(() => {
     if (total === 0) {
@@ -176,12 +180,12 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
 
   const onPointerDown = (e: React.PointerEvent) => {
     swipeStartX.current = e.clientX;
-    if (e.pointerType === 'touch') setIsPaused(true);
+    if (e.pointerType === 'touch') setIsHoverPaused(true);
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const touchEnd = e.pointerType === 'touch';
     if (swipeStartX.current === null) {
-      if (touchEnd) setIsPaused(false);
+      if (touchEnd) setIsHoverPaused(false);
       return;
     }
     const delta = e.clientX - swipeStartX.current;
@@ -189,7 +193,16 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     if (Math.abs(delta) >= SWIPE_THRESHOLD_PX) {
       if (delta < 0) goNext(); else goPrev();
     }
-    if (touchEnd) setIsPaused(false);
+    if (touchEnd) setIsHoverPaused(false);
+  };
+
+  const togglePlayback = () => {
+    if (effectivelyPaused) {
+      setIsManuallyPaused(false);
+      setIsHoverPaused(false);
+    } else {
+      setIsManuallyPaused(true);
+    }
   };
 
   const dotsToShow = Math.min(total, MAX_DOTS);
@@ -198,10 +211,10 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   return (
     <main
       className="max-w-screen-2xl mx-auto px-4 pt-4 pb-8"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocusCapture={() => setIsPaused(true)}
-      onBlurCapture={() => setIsPaused(false)}
+      onMouseEnter={() => setIsHoverPaused(true)}
+      onMouseLeave={() => setIsHoverPaused(false)}
+      onFocusCapture={() => setIsHoverPaused(true)}
+      onBlurCapture={() => setIsHoverPaused(false)}
     >
       <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
         <div
@@ -277,34 +290,47 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
             {safeIndex + 1} / {total}
           </span>
           {total > 1 && (
-            <div className="flex items-center gap-1">
-              {Array.from({ length: dotsToShow }).map((_, i) => {
-                const idx = i + dotOffset;
-                const active = idx === safeIndex;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => goTo(idx)}
-                    aria-label={`Go to post ${idx + 1}`}
-                    className={`rounded-full transition border-none cursor-pointer ${
-                      active
-                        ? 'bg-[var(--theme-primary)]'
-                        : isLight ? 'bg-gray-300 hover:bg-gray-400' : 'bg-white/20 hover:bg-white/40'
-                    }`}
-                    style={{
-                      width: active ? '18px' : '6px',
-                      height: '6px',
-                    }}
-                  />
-                );
-              })}
-            </div>
+            <>
+              <button
+                type="button"
+                onClick={togglePlayback}
+                aria-label={effectivelyPaused ? 'Play' : 'Pause'}
+                title={effectivelyPaused ? 'Play' : 'Pause'}
+                className={`w-6 h-6 flex items-center justify-center rounded-full border-none cursor-pointer transition-colors text-[var(--theme-textMuted)] bg-transparent ${
+                  isLight ? 'hover:bg-gray-100 hover:text-gray-700' : 'hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <FontAwesomeIcon icon={effectivelyPaused ? faPlay : faPause} className="text-[10px]" />
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: dotsToShow }).map((_, i) => {
+                  const idx = i + dotOffset;
+                  const active = idx === safeIndex;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => goTo(idx)}
+                      aria-label={`Go to post ${idx + 1}`}
+                      className={`rounded-full transition border-none cursor-pointer ${
+                        active
+                          ? 'bg-[var(--theme-primary)]'
+                          : isLight ? 'bg-gray-300 hover:bg-gray-400' : 'bg-white/20 hover:bg-white/40'
+                      }`}
+                      style={{
+                        width: active ? '18px' : '6px',
+                        height: '6px',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
         <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
           {total > 1
-            ? (isPaused ? 'paused · ← → arrows · swipe' : 'auto-advancing · hover to pause')
+            ? (effectivelyPaused ? 'paused · ← → arrows · swipe' : 'auto-advancing · hover to pause')
             : '← → arrows · swipe'}
         </span>
       </div>
