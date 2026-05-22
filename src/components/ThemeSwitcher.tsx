@@ -112,7 +112,7 @@ const ThemeSwitcher = () => {
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-60 rounded-xl shadow-xl py-2 border z-50 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
+          className="absolute right-0 top-full mt-2 w-60 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl shadow-xl py-2 border z-50 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
         >
           <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-textMuted)]">
             Theme
