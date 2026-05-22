@@ -207,7 +207,9 @@ const TopFeed = () => {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .slice(0, 60);
-    navigate(`/p/${fullname}/${slug}`);
+    navigate(`/p/${fullname}/${slug}`, {
+      state: post.topComments?.length ? { topComments: post.topComments } : undefined,
+    });
   };
 
   const handleSubredditSelect = (event: ChangeEvent<HTMLSelectElement>) => {

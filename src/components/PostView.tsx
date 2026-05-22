@@ -14,6 +14,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt, faBook, faPlus, faCheck, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import StoryService, { Story } from '../helpers/StoryService';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import DailyService, { isDisplayableComment, type TrendingPostTopComment } from '../helpers/DailyService';
+import { decodeHtmlEntities } from '../helpers/htmlEntities';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -44,6 +46,9 @@ export default function PostView() {
   const [newStoryTitle, setNewStoryTitle] = useState('');
   const [newStorySaving, setNewStorySaving] = useState(false);
   const storyPickerRef = useRef<HTMLDivElement>(null);
+  const [topComments, setTopComments] = useState<TrendingPostTopComment[]>(
+    () => location.state?.topComments ?? []
+  );
 
   const showToast = (message: string) => {
     setToast(message);
@@ -149,6 +154,16 @@ export default function PostView() {
     load();
     return () => { cancelled = true; };
   }, [fullname, location.state]);
+
+  // Lazy-fetch top comments if not seeded from navigation state.
+  useEffect(() => {
+    if (!post?.id || topComments.length > 0) return;
+    let cancelled = false;
+    DailyService.getTopCommentsForPost(post.id).then(list => {
+      if (!cancelled) setTopComments(list);
+    });
+    return () => { cancelled = true; };
+  }, [post?.id, topComments.length]);
 
   const { isLight, contentFont, setContentFont } = useTheme();
   const bgColor = 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
@@ -352,6 +367,53 @@ export default function PostView() {
              <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }} data-content-font={contentFont}>
                  {getParsedContent(content, false, post, fontSize, !!getArticlePreviewImage(post))}
              </article>
+
+             {/* Top Comments */}
+             {(() => {
+               const displayable = topComments.filter(isDisplayableComment);
+               if (displayable.length === 0) return null;
+               return (
+                 <section className="mt-12 pt-8 border-t border-[var(--theme-border)]">
+                   <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-4">
+                     Top comments
+                   </h2>
+                   <ul className="flex flex-col gap-5 list-none p-0 m-0">
+                     {displayable.map(c => {
+                       const body = decodeHtmlEntities(c.body);
+                       const href = c.permalink ? `https://www.reddit.com${c.permalink}` : null;
+                       return (
+                         <li key={c.id}>
+                           {href ? (
+                             <a
+                               href={href}
+                               target="_blank"
+                               rel="noreferrer"
+                               className="block no-underline text-inherit hover:text-[var(--theme-primary)] transition-colors"
+                             >
+                               <div className="text-xs text-[var(--theme-textMuted)] mb-1">
+                                 ▲ {c.score.toLocaleString()} · u/{c.author}
+                               </div>
+                               <div className="text-base leading-relaxed whitespace-pre-wrap break-words">
+                                 {body}
+                               </div>
+                             </a>
+                           ) : (
+                             <>
+                               <div className="text-xs text-[var(--theme-textMuted)] mb-1">
+                                 ▲ {c.score.toLocaleString()} · u/{c.author}
+                               </div>
+                               <div className="text-base leading-relaxed whitespace-pre-wrap break-words">
+                                 {body}
+                               </div>
+                             </>
+                           )}
+                         </li>
+                       );
+                     })}
+                   </ul>
+                 </section>
+               );
+             })()}
         </main>
         
         {/* Sticky Footer Actions */}
