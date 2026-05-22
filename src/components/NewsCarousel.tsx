@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
-import { decodeHtmlEntities } from '../helpers/htmlEntities';
 import { useTheme } from '../context/ThemeContext';
 import { HeroCard } from './MagazineGrid';
+import CommentQuote from './CommentQuote';
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
@@ -254,35 +254,12 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
               {commentStack.map((c, i) => {
                 const isFirst = i === 0;
                 const isLast = i === commentStack.length - 1;
-                const body = decodeHtmlEntities(c.body);
-                const href = c.permalink ? `https://www.reddit.com${c.permalink}` : null;
-                const inner = (
-                  <>
-                    <div className="text-xs text-[var(--theme-textMuted)] mb-1">
-                      ▲ {c.score.toLocaleString()} · u/{c.author}
-                    </div>
-                    <div className="text-sm md:text-lg text-[var(--theme-text)] whitespace-pre-wrap break-words leading-relaxed">
-                      {body}
-                    </div>
-                  </>
-                );
                 return (
                   <div
                     key={c.id}
                     className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
                   >
-                    {href ? (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block no-underline text-inherit hover:text-[var(--theme-primary)] transition-colors"
-                      >
-                        {inner}
-                      </a>
-                    ) : (
-                      inner
-                    )}
+                    <CommentQuote comment={c} />
                   </div>
                 );
               })}

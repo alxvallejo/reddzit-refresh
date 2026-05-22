@@ -15,7 +15,7 @@ import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, 
 import StoryService, { Story } from '../helpers/StoryService';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import DailyService, { isDisplayableComment, type TrendingPostTopComment } from '../helpers/DailyService';
-import { decodeHtmlEntities } from '../helpers/htmlEntities';
+import CommentQuote from './CommentQuote';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -374,42 +374,15 @@ export default function PostView() {
                if (displayable.length === 0) return null;
                return (
                  <section className="mt-12 pt-8 border-t border-[var(--theme-border)]">
-                   <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-4">
+                   <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-6">
                      Top comments
                    </h2>
-                   <ul className="flex flex-col gap-5 list-none p-0 m-0">
-                     {displayable.map(c => {
-                       const body = decodeHtmlEntities(c.body);
-                       const href = c.permalink ? `https://www.reddit.com${c.permalink}` : null;
-                       return (
-                         <li key={c.id}>
-                           {href ? (
-                             <a
-                               href={href}
-                               target="_blank"
-                               rel="noreferrer"
-                               className="block no-underline text-inherit hover:text-[var(--theme-primary)] transition-colors"
-                             >
-                               <div className="text-xs text-[var(--theme-textMuted)] mb-1">
-                                 ▲ {c.score.toLocaleString()} · u/{c.author}
-                               </div>
-                               <div className="text-base leading-relaxed whitespace-pre-wrap break-words">
-                                 {body}
-                               </div>
-                             </a>
-                           ) : (
-                             <>
-                               <div className="text-xs text-[var(--theme-textMuted)] mb-1">
-                                 ▲ {c.score.toLocaleString()} · u/{c.author}
-                               </div>
-                               <div className="text-base leading-relaxed whitespace-pre-wrap break-words">
-                                 {body}
-                               </div>
-                             </>
-                           )}
-                         </li>
-                       );
-                     })}
+                   <ul className="flex flex-col gap-10 list-none p-0 m-0">
+                     {displayable.map(c => (
+                       <li key={c.id}>
+                         <CommentQuote comment={c} />
+                       </li>
+                     ))}
                    </ul>
                  </section>
                );
