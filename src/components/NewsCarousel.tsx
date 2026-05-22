@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
+import { useCoarsePointer } from '../helpers/useCoarsePointer';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
 
@@ -28,6 +29,7 @@ interface NewsCarouselProps {
 
 const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: NewsCarouselProps) => {
   const { isLight } = useTheme();
+  const isCoarsePointer = useCoarsePointer();
   const [index, setIndex] = useState(0);
   const [isHoverPaused, setIsHoverPaused] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
@@ -339,7 +341,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
               </div>
               {commentCount > 1 && (
                 <div className="text-[10px] text-[var(--theme-textMuted)] tabular-nums opacity-70">
-                  {safeCommentIndex + 1} / {commentCount} · ↑ ↓
+                  {safeCommentIndex + 1} / {commentCount}
+                  {!isCoarsePointer && ' · ↑ ↓'}
                 </div>
               )}
             </div>
@@ -413,8 +416,10 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
         </div>
         <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
           {total > 1
-            ? (effectivelyPaused ? 'paused · ← → arrows · swipe' : 'auto-advancing · hover to pause')
-            : '← → arrows · swipe'}
+            ? (effectivelyPaused
+                ? (isCoarsePointer ? 'paused · swipe' : 'paused · ← → arrows · swipe')
+                : 'auto-advancing · hover to pause')
+            : (isCoarsePointer ? 'swipe' : '← → arrows · swipe')}
         </span>
       </div>
     </main>
