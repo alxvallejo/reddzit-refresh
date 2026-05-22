@@ -205,7 +205,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     >
       <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
         <div
-          className="relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/5 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
+          className="relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
