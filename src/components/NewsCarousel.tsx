@@ -205,7 +205,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     >
       <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
         <div
-          className="relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/5 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
+          className="relative w-full aspect-[4/5] md:aspect-auto md:h-[calc(100vh-16rem)] md:min-h-[420px] md:max-h-[720px] md:basis-3/5 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
@@ -239,7 +239,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
           )}
         </div>
         {commentCount > 0 && (
-          <aside className="mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-18rem)] md:overflow-y-auto select-none">
+          <aside className="mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none">
             <div className="flex items-center justify-between mb-3">
               <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
                 Top comments

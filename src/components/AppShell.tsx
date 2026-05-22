@@ -84,7 +84,7 @@ const AppShell = () => {
 
   return (
     <div
-      className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]"
+      className="min-h-screen flex flex-col bg-[var(--theme-bg)] text-[var(--theme-text)]"
       style={{
         backgroundColor: 'var(--theme-bg)',
         color: 'var(--theme-text)'
@@ -94,7 +94,7 @@ const AppShell = () => {
       <MainHeader pageTitle={showPageTitle ? pageTitles[activeTab] : undefined} />
 
       {/* Content */}
-      <main>
+      <main className="flex-1">
         {activeTab === 'saved' && <SavedContent />}
         {activeTab === 'top' && <TopContent />}
         {activeTab === 'foryou' && <ForYouContent />}
