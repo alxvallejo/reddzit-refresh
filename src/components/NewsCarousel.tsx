@@ -276,7 +276,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
                     key={c.id}
                     className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
                   >
-                    <CommentQuote comment={c} />
+                    <CommentQuote comment={c} size="sm" />
                   </div>
                 );
               })}
