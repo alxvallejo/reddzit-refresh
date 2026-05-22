@@ -74,6 +74,11 @@ export interface TrendingPost {
   bodyPreview?: string;
 }
 
+// Mirrors the backend TOP_COMMENT_TARGET_COUNT in services/rssService.js.
+// Posts at index < this number have topComments hydrated server-side;
+// posts at index >= this number must be fetched via getTopCommentsForPost.
+export const INLINE_TOP_COMMENTS_CAP = 25;
+
 const DailyService = {
   async getLatestReport(): Promise<DailyReport | null> {
     try {
@@ -208,7 +213,21 @@ const DailyService = {
       }
       return [];
     }
-  }
+  },
+
+  async getTopCommentsForPost(postId: string): Promise<TrendingPostTopComment[]> {
+    if (!postId || !/^[a-z0-9]{4,10}$/.test(postId)) return [];
+    try {
+      const response = await axios.get<{ comments: TrendingPostTopComment[] }>(
+        `${API_BASE_URL}/api/trending/posts/${encodeURIComponent(postId)}/top-comments`,
+        { timeout: 8000 }
+      );
+      return response.data?.comments ?? [];
+    } catch (err) {
+      console.warn('getTopCommentsForPost failed for', postId, err);
+      return [];
+    }
+  },
 };
 
 export default DailyService;

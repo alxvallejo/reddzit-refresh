@@ -1,9 +1,13 @@
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableCellsLarge, faRectangleList } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
-import DailyService, { TrendingPost } from '../helpers/DailyService';
+import DailyService, {
+  INLINE_TOP_COMMENTS_CAP,
+  TrendingPost,
+  TrendingPostTopComment,
+} from '../helpers/DailyService';
 import MagazineGrid from './MagazineGrid';
 import NewsCarousel from './NewsCarousel';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -78,6 +82,8 @@ const TopFeed = () => {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
+  const [lazyComments, setLazyComments] = useState<Record<string, TrendingPostTopComment[]>>({});
+  const lazyInFlight = useRef<Set<string>>(new Set());
   const lastShuffledRouteRef = useRef<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const isNewsRoute = location.pathname === '/news' || location.pathname === '/';
@@ -159,6 +165,11 @@ const TopFeed = () => {
   useEffect(() => {
     loadTopPosts();
   }, [loadTopPosts]);
+
+  useEffect(() => {
+    setLazyComments({});
+    lazyInFlight.current = new Set();
+  }, [dataSubreddit, dataTopic]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -248,7 +259,51 @@ const TopFeed = () => {
     : normalizedSubredditParam
       ? `r/${normalizedSubredditParam}`
       : 'Top Posts on Reddit';
-  const visiblePosts = posts.filter(post => !skippedPostIds.has(post.id));
+  const visiblePosts = useMemo(
+    () => posts.filter(post => !skippedPostIds.has(post.id)),
+    [posts, skippedPostIds]
+  );
+
+  const handleVisibleRange = useCallback((indices: number[]) => {
+    if (indices.length === 0) return;
+    // NewsCarousel calls onVisibleRangeChange with Array.from(new Set([prev, current, next])).
+    // JS Set iteration is insertion order, so element [1] is `current` when length >= 2.
+    // When total <= 1 the array has 1 element; fall back to [0].
+    const current = indices.length >= 2 ? indices[1] : indices[0];
+
+    const targets: number[] = [];
+    for (let offset = 0; offset <= 2; offset++) {
+      const idx = current + offset;
+      if (idx < visiblePosts.length) targets.push(idx);
+    }
+
+    for (const idx of targets) {
+      if (idx < INLINE_TOP_COMMENTS_CAP) continue;
+      const post = visiblePosts[idx];
+      if (!post) continue;
+      if (post.topComments && post.topComments.length > 0) continue;
+      if (lazyComments[post.id]) continue;
+      if (lazyInFlight.current.has(post.id)) continue;
+
+      lazyInFlight.current.add(post.id);
+      DailyService.getTopCommentsForPost(post.id)
+        .then((comments) => {
+          setLazyComments((prev) => ({ ...prev, [post.id]: comments ?? [] }));
+        })
+        .finally(() => {
+          lazyInFlight.current.delete(post.id);
+        });
+    }
+  }, [visiblePosts, lazyComments]);
+
+  const postsWithComments = useMemo(() => {
+    if (Object.keys(lazyComments).length === 0) return visiblePosts;
+    return visiblePosts.map((p) => {
+      if (p.topComments && p.topComments.length > 0) return p;
+      const lazy = lazyComments[p.id];
+      return lazy ? { ...p, topComments: lazy } : p;
+    });
+  }, [visiblePosts, lazyComments]);
 
   if (loading) {
     return (
@@ -385,9 +440,10 @@ const TopFeed = () => {
           />
         ) : (
           <NewsCarousel
-            posts={visiblePosts}
+            posts={postsWithComments}
             onPostClick={handlePostClick}
             onSkipPost={handleSkipPost}
+            onVisibleRangeChange={handleVisibleRange}
           />
         )
       ) : (
