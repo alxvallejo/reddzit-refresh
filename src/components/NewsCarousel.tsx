@@ -39,6 +39,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const [commentIndex, setCommentIndex] = useState(0);
   const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
   const swipeStartX = useRef<number | null>(null);
+  const wasSwipingRef = useRef(false);
   const total = posts.length;
   const effectivelyPaused = isHoverPaused || isManuallyPaused;
   const autoplayActive = total > 1 && !effectivelyPaused && tabVisible;
@@ -180,8 +181,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
 
   const onPointerDown = (e: React.PointerEvent) => {
     swipeStartX.current = e.clientX;
+    wasSwipingRef.current = false;
     if (e.pointerType === 'touch') setIsHoverPaused(true);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // setPointerCapture can throw in non-real-pointer environments; swipe still works without capture.
+    }
   };
+
   const onPointerUp = (e: React.PointerEvent) => {
     const touchEnd = e.pointerType === 'touch';
     if (swipeStartX.current === null) {
@@ -191,9 +199,23 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     const delta = e.clientX - swipeStartX.current;
     swipeStartX.current = null;
     if (Math.abs(delta) >= SWIPE_THRESHOLD_PX) {
+      wasSwipingRef.current = true;
       if (delta < 0) goNext(); else goPrev();
     }
     if (touchEnd) setIsHoverPaused(false);
+  };
+
+  const onPointerCancel = (e: React.PointerEvent) => {
+    swipeStartX.current = null;
+    if (e.pointerType === 'touch') setIsHoverPaused(false);
+  };
+
+  const onClickCaptureHero = (e: React.MouseEvent) => {
+    if (wasSwipingRef.current) {
+      e.stopPropagation();
+      e.preventDefault();
+      wasSwipingRef.current = false;
+    }
   };
 
   const togglePlayback = () => {
@@ -219,8 +241,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
       <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
         <div
           className="relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
+          style={{ touchAction: 'pan-y' }}
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+          onClickCapture={onClickCaptureHero}
         >
           <div className="relative h-full w-full">
             {stack.map((p, i) => {
