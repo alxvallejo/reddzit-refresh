@@ -40,6 +40,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const [stack, setStack] = useState<TrendingPost[]>(() => (posts.length > 0 ? [posts[0]] : []));
   const [commentIndex, setCommentIndex] = useState(0);
   const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
+  const [commentPinHeight, setCommentPinHeight] = useState<number | null>(null);
+  const commentStackRef = useRef<HTMLDivElement>(null);
   const swipeStartX = useRef<number | null>(null);
   const wasSwipingRef = useRef(false);
   const commentSwipeStartX = useRef<number | null>(null);
@@ -155,7 +157,20 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   useEffect(() => {
     if (commentStack.length <= 1) return;
     const t = window.setTimeout(() => {
+      // Capture pre-collapse height (the grid-max of both items) so we can pin
+      // it and ease the height back down to the surviving comment's natural size
+      // — otherwise removing the outgoing comment snaps the container height.
+      const heldHeight = commentStackRef.current?.offsetHeight ?? 0;
       setCommentStack(prev => prev.slice(-1));
+      if (heldHeight > 0) {
+        setCommentPinHeight(heldHeight);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setCommentPinHeight(0);
+            window.setTimeout(() => setCommentPinHeight(null), 450);
+          });
+        });
+      }
     }, FADE_DURATION_MS);
     return () => window.clearTimeout(t);
   }, [commentStack]);
@@ -347,20 +362,24 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
               )}
             </div>
             <div
-              className="relative select-none"
-              style={{ touchAction: 'pan-y' }}
+              ref={commentStackRef}
+              className="relative grid select-none"
+              style={{
+                touchAction: 'pan-y',
+                minHeight: commentPinHeight !== null ? `${commentPinHeight}px` : undefined,
+                transition: commentPinHeight !== null ? 'min-height 400ms ease' : undefined,
+              }}
               onPointerDown={onCommentPointerDown}
               onPointerUp={onCommentPointerUp}
               onPointerCancel={onCommentPointerCancel}
               onClickCapture={onCommentClickCapture}
             >
               {commentStack.map((c, i) => {
-                const isFirst = i === 0;
                 const isLast = i === commentStack.length - 1;
                 return (
                   <div
                     key={c.id}
-                    className={`${isFirst ? '' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
+                    className={`col-start-1 row-start-1 ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
                   >
                     <CommentQuote comment={c} size="sm" />
                   </div>
