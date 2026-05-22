@@ -17,7 +17,7 @@ const fontOptions: { key: FontFamily; label: string }[] = [
 ];
 
 const ThemeSwitcher = () => {
-  const { themeName, setTheme, fontFamily, setFontFamily, theme, bgShade, setBgShade, accentShade, setAccentShade, isLight } = useTheme();
+  const { themeName, setTheme, fontFamily, setFontFamily, theme, bgShade, setBgShade, accentShade, setAccentShade, isLight, mode } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [palettes, setPalettes] = useState<SavedPalette[]>(loadPalettes);
@@ -115,7 +115,7 @@ const ThemeSwitcher = () => {
           className="absolute right-0 top-full mt-2 w-60 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl shadow-xl py-2 border z-50 bg-[var(--theme-bgSecondary)] border-[var(--theme-border)]"
         >
           <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--theme-textMuted)]">
-            Theme
+            Theme · {mode === 'night' ? 'Night' : 'Day'}
           </div>
           {(Object.keys(themes) as ThemeName[]).map((key) => {
             const t = themes[key];

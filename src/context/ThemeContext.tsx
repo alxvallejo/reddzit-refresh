@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { deriveColors, luminance } from '../utils/deriveColors';
 
 export type ThemeName = 'classic' | 'noir' | 'violet' | 'indigo' | 'dusk' | 'lavender' | 'light';
 export type FontFamily = 'brygada' | 'outfit' | 'libertinus' | 'tirra' | 'reddit-sans' | 'zalando-sans' | 'cactus-classical' | 'noto-znamenny';
+export type Mode = 'day' | 'night';
 
 export const fontFamilies: Record<FontFamily, string> = {
   'brygada': '"Brygada 1918", "Outfit", system-ui, serif',
@@ -45,24 +46,24 @@ export const themes: Record<ThemeName, Theme> = {
     name: 'classic',
     label: 'Classic Purple',
     colors: {
-      bg: '#221f36',
-      bgSecondary: '#1a1828',
-      text: '#ece9f5',
-      textMuted: '#a89dc4',
+      bg: '#4a3f7a',
+      bgSecondary: '#3d3466',
+      text: '#f0eef5',
+      textMuted: '#c4b8e8',
       primary: '#b6aaf1',
       primaryHover: '#9f8de8',
       accent: '#9f72d6',
-      border: 'rgba(182, 170, 241, 0.18)',
-      cardBg: 'rgba(255, 255, 255, 0.05)',
-      headerBg: 'rgba(26, 24, 40, 0.85)',
-      bannerBg: '#1a1828',
-      bannerText: '#ece9f5',
+      border: 'rgba(182, 170, 241, 0.3)',
+      cardBg: 'rgba(255, 255, 255, 0.08)',
+      headerBg: 'rgba(38, 33, 41, 0.85)',
+      bannerBg: '#3d3466',
+      bannerText: '#f0eef5',
       bannerButtonBg: '#b6aaf1',
-      bannerButtonText: '#1a1828',
+      bannerButtonText: '#262129',
       bannerErrorText: '#e8b4b4',
-      bannerInputBg: 'rgba(255, 255, 255, 0.12)',
-      bannerInputText: '#ece9f5',
-      bannerInputPlaceholder: '#8d83a8',
+      bannerInputBg: 'rgba(255, 255, 255, 0.15)',
+      bannerInputText: '#f0eef5',
+      bannerInputPlaceholder: '#a89cc4',
     },
   },
   noir: {
@@ -211,11 +212,73 @@ export const themes: Record<ThemeName, Theme> = {
   },
 };
 
+interface ThemeSlot {
+  themeName: ThemeName;
+  bgShade: string | null;
+  accentShade: string | null;
+}
+
+const DEFAULT_DAY_SLOT: ThemeSlot = { themeName: 'light', bgShade: null, accentShade: null };
+const DEFAULT_NIGHT_SLOT: ThemeSlot = { themeName: 'classic', bgShade: null, accentShade: null };
+
+const DAY_KEY = 'reddzit_theme_day';
+const NIGHT_KEY = 'reddzit_theme_night';
+const LEGACY_THEME_KEY = 'reddzit_theme';
+const LEGACY_BG_KEY = 'reddzit_bg_shade';
+const LEGACY_ACCENT_KEY = 'reddzit_accent_shade';
+
+const readSlot = (key: string, fallback: ThemeSlot): ThemeSlot => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<ThemeSlot>;
+    if (!parsed.themeName || !themes[parsed.themeName as ThemeName]) return fallback;
+    return {
+      themeName: parsed.themeName as ThemeName,
+      bgShade: typeof parsed.bgShade === 'string' ? parsed.bgShade : null,
+      accentShade: typeof parsed.accentShade === 'string' ? parsed.accentShade : null,
+    };
+  } catch {
+    return fallback;
+  }
+};
+
+const writeSlot = (key: string, slot: ThemeSlot) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(slot));
+  } catch {
+    // localStorage may be disabled; in-memory state still works for the session
+  }
+};
+
+const runLegacyMigration = () => {
+  const legacyName = localStorage.getItem(LEGACY_THEME_KEY) as ThemeName | null;
+  if (!legacyName || !themes[legacyName]) return;
+  const legacyBg = localStorage.getItem(LEGACY_BG_KEY);
+  const legacyAccent = localStorage.getItem(LEGACY_ACCENT_KEY);
+  const slot: ThemeSlot = {
+    themeName: legacyName,
+    bgShade: legacyBg,
+    accentShade: legacyAccent,
+  };
+  const effectiveBg = slot.bgShade ?? themes[slot.themeName].colors.bg;
+  const targetKey = luminance(effectiveBg) >= 0.2 ? DAY_KEY : NIGHT_KEY;
+  // Only fill the target slot; leave the other at its default.
+  writeSlot(targetKey, slot);
+  localStorage.removeItem(LEGACY_THEME_KEY);
+  localStorage.removeItem(LEGACY_BG_KEY);
+  localStorage.removeItem(LEGACY_ACCENT_KEY);
+};
+
+const resolveMode = (): Mode => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'day';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
+};
+
 interface ThemeContextType {
   theme: Theme;
   themeName: ThemeName;
   setTheme: (name: ThemeName) => void;
-  toggleTheme: () => void;
   fontFamily: FontFamily;
   setFontFamily: (font: FontFamily) => void;
   toggleFont: () => void;
@@ -226,19 +289,19 @@ interface ThemeContextType {
   accentShade: string | null;
   setAccentShade: (color: string | null) => void;
   isLight: boolean;
+  mode: Mode;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [themeName, setThemeName] = useState<ThemeName>(() => {
-    const saved = localStorage.getItem('reddzit_theme') as ThemeName | null;
-    if (saved && themes[saved]) return saved;
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'noir';
-    }
-    return 'light';
+  const [mode, setMode] = useState<Mode>(() => {
+    if (typeof window !== 'undefined') runLegacyMigration();
+    return resolveMode();
   });
+
+  const [daySlot, setDaySlotState] = useState<ThemeSlot>(() => readSlot(DAY_KEY, DEFAULT_DAY_SLOT));
+  const [nightSlot, setNightSlotState] = useState<ThemeSlot>(() => readSlot(NIGHT_KEY, DEFAULT_NIGHT_SLOT));
 
   const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => {
     const saved = localStorage.getItem('reddzit_font') as FontFamily | null;
@@ -250,24 +313,25 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return saved && fontFamilies[saved] ? saved : 'reddit-sans';
   });
 
-  const [bgShade, setBgShadeState] = useState<string | null>(() => {
-    return localStorage.getItem('reddzit_bg_shade');
-  });
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e: MediaQueryListEvent) => setMode(e.matches ? 'night' : 'day');
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
 
-  const [accentShade, setAccentShadeState] = useState<string | null>(() => {
-    return localStorage.getItem('reddzit_accent_shade');
-  });
-
-  const theme = themes[themeName];
+  const activeSlot = mode === 'night' ? nightSlot : daySlot;
+  const theme = themes[activeSlot.themeName];
+  const themeName = activeSlot.themeName;
+  const bgShade = activeSlot.bgShade;
+  const accentShade = activeSlot.accentShade;
   const effectiveBg = bgShade ?? theme.colors.bg;
   const isLight = luminance(effectiveBg) >= 0.2;
 
   useEffect(() => {
-    localStorage.setItem('reddzit_theme', themeName);
     const root = document.documentElement;
-
     if (accentShade || bgShade) {
-      const effectiveBg = bgShade ?? theme.colors.bg;
       const effectiveAccent = accentShade ?? theme.colors.primary;
       const derived = deriveColors(effectiveBg, effectiveAccent);
       Object.entries(derived).forEach(([key, value]) => {
@@ -282,11 +346,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       document.body.style.backgroundColor = theme.colors.bg;
       document.body.style.color = theme.colors.text;
     }
-  }, [themeName, theme, bgShade, accentShade]);
+  }, [theme, bgShade, accentShade, effectiveBg]);
 
   useEffect(() => {
     localStorage.setItem('reddzit_font', fontFamily);
-    // Set data attribute for CSS to use
     document.documentElement.setAttribute('data-font', fontFamily);
   }, [fontFamily]);
 
@@ -294,54 +357,66 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('reddzit_content_font', contentFont);
   }, [contentFont]);
 
-  const setTheme = (name: ThemeName) => {
-    if (themes[name]) {
-      setBgShade(null);
-      setAccentShade(null);
-      setThemeName(name);
+  const updateActiveSlot = (updater: (slot: ThemeSlot) => ThemeSlot) => {
+    if (mode === 'night') {
+      setNightSlotState(prev => {
+        const next = updater(prev);
+        writeSlot(NIGHT_KEY, next);
+        return next;
+      });
+    } else {
+      setDaySlotState(prev => {
+        const next = updater(prev);
+        writeSlot(DAY_KEY, next);
+        return next;
+      });
     }
   };
 
-  const toggleTheme = () => {
-    setThemeName(prev => prev === 'light' ? 'noir' : 'light');
+  const setTheme = (name: ThemeName) => {
+    if (!themes[name]) return;
+    updateActiveSlot(() => ({ themeName: name, bgShade: null, accentShade: null }));
+  };
+
+  const setBgShade = (color: string | null) => {
+    updateActiveSlot(prev => ({ ...prev, bgShade: color }));
+  };
+
+  const setAccentShade = (color: string | null) => {
+    updateActiveSlot(prev => ({ ...prev, accentShade: color }));
   };
 
   const setFontFamily = (font: FontFamily) => {
-    if (fontFamilies[font]) {
-      setFontFamilyState(font);
-    }
+    if (fontFamilies[font]) setFontFamilyState(font);
   };
 
   const setContentFont = (font: FontFamily) => {
-    if (fontFamilies[font]) {
-      setContentFontState(font);
-    }
+    if (fontFamilies[font]) setContentFontState(font);
   };
 
   const toggleFont = () => {
     setFontFamilyState(prev => prev === 'brygada' ? 'outfit' : 'brygada');
   };
 
-  const setBgShade = (color: string | null) => {
-    setBgShadeState(color);
-    if (color) {
-      localStorage.setItem('reddzit_bg_shade', color);
-    } else {
-      localStorage.removeItem('reddzit_bg_shade');
-    }
-  };
-
-  const setAccentShade = (color: string | null) => {
-    setAccentShadeState(color);
-    if (color) {
-      localStorage.setItem('reddzit_accent_shade', color);
-    } else {
-      localStorage.removeItem('reddzit_accent_shade');
-    }
-  };
+  const value = useMemo<ThemeContextType>(() => ({
+    theme,
+    themeName,
+    setTheme,
+    fontFamily,
+    setFontFamily,
+    toggleFont,
+    contentFont,
+    setContentFont,
+    bgShade,
+    setBgShade,
+    accentShade,
+    setAccentShade,
+    isLight,
+    mode,
+  }), [theme, themeName, fontFamily, contentFont, bgShade, accentShade, isLight, mode]);
 
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme, toggleTheme, fontFamily, setFontFamily, toggleFont, contentFont, setContentFont, bgShade, setBgShade, accentShade, setAccentShade, isLight }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
