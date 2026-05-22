@@ -40,6 +40,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
   const swipeStartX = useRef<number | null>(null);
   const wasSwipingRef = useRef(false);
+  const commentSwipeStartX = useRef<number | null>(null);
+  const commentWasSwipingRef = useRef(false);
   const total = posts.length;
   const effectivelyPaused = isHoverPaused || isManuallyPaused;
   const autoplayActive = total > 1 && !effectivelyPaused && tabVisible;
@@ -179,6 +181,55 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     setAutoplayTick(t => t + 1);
   };
 
+  const goPrevComment = () => {
+    if (commentCount <= 1) return;
+    setCommentIndex(i => (i - 1 + commentCount) % commentCount);
+  };
+  const goNextComment = () => {
+    if (commentCount <= 1) return;
+    setCommentIndex(i => (i + 1) % commentCount);
+  };
+
+  const onCommentPointerDown = (e: React.PointerEvent) => {
+    if (commentCount <= 1) return;
+    commentSwipeStartX.current = e.clientX;
+    commentWasSwipingRef.current = false;
+    if (e.pointerType === 'touch') setIsHoverPaused(true);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // see hero onPointerDown — capture is best-effort.
+    }
+  };
+
+  const onCommentPointerUp = (e: React.PointerEvent) => {
+    const touchEnd = e.pointerType === 'touch';
+    if (commentSwipeStartX.current === null) {
+      if (touchEnd) setIsHoverPaused(false);
+      return;
+    }
+    const delta = e.clientX - commentSwipeStartX.current;
+    commentSwipeStartX.current = null;
+    if (Math.abs(delta) >= SWIPE_THRESHOLD_PX) {
+      commentWasSwipingRef.current = true;
+      if (delta < 0) goNextComment(); else goPrevComment();
+    }
+    if (touchEnd) setIsHoverPaused(false);
+  };
+
+  const onCommentPointerCancel = (e: React.PointerEvent) => {
+    commentSwipeStartX.current = null;
+    if (e.pointerType === 'touch') setIsHoverPaused(false);
+  };
+
+  const onCommentClickCapture = (e: React.MouseEvent) => {
+    if (commentWasSwipingRef.current) {
+      e.stopPropagation();
+      e.preventDefault();
+      commentWasSwipingRef.current = false;
+    }
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
     swipeStartX.current = e.clientX;
     wasSwipingRef.current = false;
@@ -292,7 +343,14 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
                 </div>
               )}
             </div>
-            <div className="relative">
+            <div
+              className="relative select-none"
+              style={{ touchAction: 'pan-y' }}
+              onPointerDown={onCommentPointerDown}
+              onPointerUp={onCommentPointerUp}
+              onPointerCancel={onCommentPointerCancel}
+              onClickCapture={onCommentClickCapture}
+            >
               {commentStack.map((c, i) => {
                 const isFirst = i === 0;
                 const isLast = i === commentStack.length - 1;
