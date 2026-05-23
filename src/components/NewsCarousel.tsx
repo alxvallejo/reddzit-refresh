@@ -4,8 +4,12 @@ import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { useCoarsePointer } from '../helpers/useCoarsePointer';
+import { useReddit } from '../context/RedditContext';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark as faBookmarkSolid, faShareNodes } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
@@ -18,6 +22,53 @@ const COMMENT_MAX_MS = 30000;
 const getCommentDuration = (body: string) => {
   const words = body.trim().split(/\s+/).filter(Boolean).length || 1;
   return Math.max(COMMENT_MIN_MS, Math.min(COMMENT_MAX_MS, words * COMMENT_MS_PER_WORD));
+};
+
+interface SlideActionsProps {
+  isSaved: boolean;
+  onToggleSave: (e: React.MouseEvent) => void;
+  onShare: (e: React.MouseEvent) => void;
+  variant: 'stack' | 'row';
+}
+
+const SlideActions = ({ isSaved, onToggleSave, onShare, variant }: SlideActionsProps) => {
+  const { isLight } = useTheme();
+
+  const isStack = variant === 'stack';
+  const containerClass = isStack
+    ? 'hidden md:flex absolute right-2 bottom-1/3 flex-col gap-2 z-10 pointer-events-auto'
+    : 'flex md:hidden gap-3 mt-2 pointer-events-auto';
+
+  const idleClass = isStack
+    ? (isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20')
+    : 'text-white bg-white/12 hover:bg-white/25';
+
+  const savedActiveClass = 'bg-[var(--theme-primary)]/70 text-[#262129] hover:bg-[var(--theme-primary)]/80';
+  const buttonBase = 'w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center';
+
+  return (
+    <div className={containerClass}>
+      <button
+        type="button"
+        onClick={onToggleSave}
+        title={isSaved ? 'Unsave' : 'Save'}
+        aria-label={isSaved ? 'Unsave post' : 'Save post'}
+        aria-pressed={isSaved}
+        className={`${buttonBase} ${isSaved ? savedActiveClass : idleClass}`}
+      >
+        <FontAwesomeIcon icon={isSaved ? faBookmarkSolid : faBookmarkRegular} className="w-3.5 h-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={onShare}
+        title="Share"
+        aria-label="Share post"
+        className={`${buttonBase} ${idleClass}`}
+      >
+        <FontAwesomeIcon icon={faShareNodes} className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
 };
 
 interface NewsCarouselProps {
