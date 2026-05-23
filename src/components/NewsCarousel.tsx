@@ -264,7 +264,16 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!post) return;
-    const url = post.link || `https://www.reddit.com/r/${post.subreddit}/comments/${post.id}`;
+    const slug = (post.title || '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/, '');
+    const path = slug ? `/p/t3_${post.id}/${slug}` : `/p/t3_${post.id}`;
+    const url = `${window.location.origin}${path}`;
     const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
     if (isTouch && typeof navigator !== 'undefined' && 'share' in navigator) {
       try {
