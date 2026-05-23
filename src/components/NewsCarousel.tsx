@@ -81,6 +81,7 @@ interface NewsCarouselProps {
 const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const isCoarsePointer = useCoarsePointer();
+  const { saved, signedIn, savePost, unsavePost, redirectForAuth } = useReddit();
   const [index, setIndex] = useState(0);
   const [isHoverPaused, setIsHoverPaused] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
@@ -89,6 +90,22 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   );
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const next = new Set<string>();
+    for (const item of saved as Array<{ id?: string; name?: string }>) {
+      if (item?.id) next.add(item.id);
+      else if (item?.name?.startsWith('t3_')) next.add(item.name.slice(3));
+    }
+    setSavedIds(prev => {
+      // Preserve any optimistic adds that aren't yet reflected in the context array.
+      const merged = new Set(next);
+      for (const id of prev) merged.add(id);
+      return merged;
+    });
+  }, [saved]);
+
   const toastTimerRef = useRef<number | null>(null);
   const showToast = (msg: string) => {
     setToast(msg);
@@ -278,6 +295,40 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     }
   };
 
+  const handleToggleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!post) return;
+    if (!signedIn) {
+      redirectForAuth();
+      return;
+    }
+    const fullname = `t3_${post.id}`;
+    const wasSaved = savedIds.has(post.id);
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(post.id); else next.add(post.id);
+      return next;
+    });
+    try {
+      if (wasSaved) {
+        await unsavePost(fullname);
+        showToast('Post unsaved');
+      } else {
+        await savePost(fullname);
+        showToast('Post saved!');
+      }
+    } catch {
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(post.id); else next.delete(post.id);
+        return next;
+      });
+      showToast("Couldn't save — try again");
+    }
+  };
+
+  const isCurrentSaved = post ? savedIds.has(post.id) : false;
+
   if (total === 0 || !post) return null;
 
   const goPrev = () => {
@@ -424,6 +475,14 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
                     onClick={() => onPostClick(p)}
                     onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
                     fillContainer
+                    actionsSlot={isLast ? (
+                      <SlideActions
+                        isSaved={isCurrentSaved}
+                        onToggleSave={handleToggleSave}
+                        onShare={handleShare}
+                        variant="row"
+                      />
+                    ) : undefined}
                   />
                 </div>
               );
@@ -438,6 +497,12 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
               />
             </div>
           )}
+          <SlideActions
+            isSaved={isCurrentSaved}
+            onToggleSave={handleToggleSave}
+            onShare={handleShare}
+            variant="stack"
+          />
         </div>
         {commentCount > 0 && (
           <aside
