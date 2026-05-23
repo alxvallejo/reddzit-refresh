@@ -35,8 +35,8 @@ const SlideActions = ({ isSaved, onToggleSave, onShare, variant }: SlideActionsP
 
   const isStack = variant === 'stack';
   const containerClass = isStack
-    ? 'hidden md:flex absolute right-2 bottom-1/3 flex-col gap-2 z-10 pointer-events-auto'
-    : 'flex md:hidden gap-3 mt-2 pointer-events-auto';
+    ? 'hidden md:flex absolute right-2 bottom-1/3 flex-col gap-2 z-30 pointer-events-auto'
+    : 'flex md:hidden gap-3 mt-2 pointer-events-auto relative z-30';
 
   const idleClass = isStack
     ? (isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20')
@@ -45,11 +45,18 @@ const SlideActions = ({ isSaved, onToggleSave, onShare, variant }: SlideActionsP
   const savedActiveClass = 'bg-[var(--theme-primary)]/70 text-[#262129] hover:bg-[var(--theme-primary)]/80';
   const buttonBase = 'w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center';
 
+  // Stop pointer events on the buttons so the swipe container doesn't capture
+  // the pointer (setPointerCapture on the parent can swallow the synthesized
+  // click on touch devices, leaving the handler silent).
+  const stopPointer = (e: React.PointerEvent) => e.stopPropagation();
+
   return (
     <div className={containerClass}>
       <button
         type="button"
         onClick={onToggleSave}
+        onPointerDown={stopPointer}
+        onPointerUp={stopPointer}
         title={isSaved ? 'Unsave' : 'Save'}
         aria-label={isSaved ? 'Unsave post' : 'Save post'}
         aria-pressed={isSaved}
@@ -60,6 +67,8 @@ const SlideActions = ({ isSaved, onToggleSave, onShare, variant }: SlideActionsP
       <button
         type="button"
         onClick={onShare}
+        onPointerDown={stopPointer}
+        onPointerUp={stopPointer}
         title="Share"
         aria-label="Share post"
         className={`${buttonBase} ${idleClass}`}
