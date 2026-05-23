@@ -47,6 +47,7 @@ interface CardProps {
   onClick: () => void;
   onSkip?: () => void;
   fillContainer?: boolean;
+  actionsSlot?: React.ReactNode;
 }
 
 const SubredditBadge = ({ subreddit }: { subreddit: string }) => (
@@ -206,7 +207,7 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
   }
 };
 
-export const HeroCard = ({ post, onClick, onSkip, fillContainer }: CardProps) => {
+export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
   const isTextForward = !post.imageUrl && !!post.bodyPreview;
@@ -242,6 +243,7 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer }: CardProps) =>
           <p className="text-sm md:text-base leading-relaxed text-[var(--theme-textMuted)] italic line-clamp-[8] md:line-clamp-[10] flex-1">
             “{post.bodyPreview}”
           </p>
+          {actionsSlot && <div className="flex-shrink-0">{actionsSlot}</div>}
         </div>
       </article>
     );
@@ -272,6 +274,7 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer }: CardProps) =>
           {score && <span>▲ {score}</span>}
           {comments && <span>💬 {comments}</span>}
         </div>
+        {actionsSlot}
       </div>
     </article>
   );
