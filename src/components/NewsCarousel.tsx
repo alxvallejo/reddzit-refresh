@@ -7,7 +7,6 @@ import { useCoarsePointer } from '../helpers/useCoarsePointer';
 import { useReddit } from '../context/RedditContext';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faShareNodes } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
