@@ -91,6 +91,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  // Tracks optimistic adds that haven't propagated to RedditContext.saved yet.
+  // RedditContext.savePost only flips `saved: true` on existing entries — it does
+  // not append new ones — so without this side-channel a freshly-saved post would
+  // disappear from savedIds whenever the saved array refreshes.
+  const optimisticAddsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const next = new Set<string>();
@@ -98,12 +103,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
       if (item?.id) next.add(item.id);
       else if (item?.name?.startsWith('t3_')) next.add(item.name.slice(3));
     }
-    setSavedIds(prev => {
-      // Preserve any optimistic adds that aren't yet reflected in the context array.
-      const merged = new Set(next);
-      for (const id of prev) merged.add(id);
-      return merged;
-    });
+    for (const id of optimisticAddsRef.current) next.add(id);
+    setSavedIds(next);
   }, [saved]);
 
   const toastTimerRef = useRef<number | null>(null);
@@ -309,6 +310,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
       if (wasSaved) next.delete(post.id); else next.add(post.id);
       return next;
     });
+    if (wasSaved) optimisticAddsRef.current.delete(post.id);
+    else optimisticAddsRef.current.add(post.id);
     try {
       if (wasSaved) {
         await unsavePost(fullname);
@@ -323,6 +326,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
         if (wasSaved) next.add(post.id); else next.delete(post.id);
         return next;
       });
+      if (wasSaved) optimisticAddsRef.current.add(post.id);
+      else optimisticAddsRef.current.delete(post.id);
       showToast("Couldn't save — try again");
     }
   };
