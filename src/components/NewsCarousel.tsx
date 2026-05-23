@@ -88,6 +88,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     typeof document === 'undefined' ? true : document.visibilityState === 'visible'
   );
   const [autoplayTick, setAutoplayTick] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    window.setTimeout(() => setToast(null), 2000);
+  };
   const [stack, setStack] = useState<TrendingPost[]>(() => (posts.length > 0 ? [posts[0]] : []));
   const [commentIndex, setCommentIndex] = useState(0);
   const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
@@ -233,6 +238,40 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     }, getCommentDuration(currentComment.body));
     return () => window.clearTimeout(timer);
   }, [commentIndex, commentCount, rotatorActive, currentComment?.id]);
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!post) return;
+    const url = `https://www.reddit.com/comments/${post.id}`;
+    const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+    if (isTouch && typeof navigator !== 'undefined' && 'share' in navigator) {
+      try {
+        await navigator.share({ url, title: post.title });
+        return;
+      } catch {
+        // user cancelled or share failed — fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Link copied!');
+    } catch {
+      // Insecure context / permission denied — fallback to legacy execCommand
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('Link copied!');
+      } catch {
+        showToast('Copy failed');
+      }
+    }
+  };
 
   if (total === 0 || !post) return null;
 
@@ -492,6 +531,14 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
             : (isCoarsePointer ? 'swipe' : '← → arrows · swipe')}
         </span>
       </div>
+      {toast && (
+        <div
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]"
+          style={{ backgroundColor: 'var(--theme-primary)' }}
+        >
+          {toast}
+        </div>
+      )}
     </main>
   );
 };
