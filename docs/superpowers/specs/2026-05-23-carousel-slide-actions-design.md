@@ -20,20 +20,25 @@ gradient and the existing skip-post button.
 
 ## Placement and visual
 
-### Position
+The placement is **responsive**: the same three buttons live in two different
+layouts depending on viewport width. The desktop layout is the vertical edge
+stack we approved; the mobile layout moves the buttons into the title gradient
+as a horizontal row, which keeps the right swipe edge clean and avoids
+covering imagery on a small card. The Tailwind breakpoint is `md` (≥768px),
+matching every other responsive switch in `NewsCarousel`.
 
-The action stack lives on the **inner right edge of the hero card**, vertically
-positioned so it sits **between the top-right skip button and the bottom title
-gradient**. Concretely, anchored to the card's bottom with `bottom: ~30%` (or
-`bottom-1/3`), `right: 8px`, above the title gradient on the z-axis.
+### Desktop (≥md) — vertical edge stack
+
+Inner right edge of the hero card, vertically positioned **between the
+top-right skip button and the bottom title gradient**. Anchored to the card
+with `right: 8px`, `bottom: ~30%` (above the title gradient on the z-axis).
 
 ```
 ┌─────────────────────────────────┐
 │ [r/news]                  [👁]  │ ← subreddit chip + existing skip
 │                                 │
-│                                 │
 │                            (♡)  │
-│                            (🔖) │ ← new action stack
+│                            (🔖) │ ← vertical action stack
 │                            (↗)  │
 │                                 │
 │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │
@@ -42,18 +47,49 @@ gradient**. Concretely, anchored to the card's bottom with `bottom: ~30%` (or
 └─────────────────────────────────┘
 ```
 
-Same placement on mobile and desktop. The desktop "side-by-side with comments"
-layout is unaffected because the actions stay on the hero column.
+### Mobile (<md) — horizontal row in the gradient
+
+Buttons render as a horizontal row **inside** the existing title gradient,
+below the meta line (`2h · ▲ 12k · 💬 850`). The right edge of the hero stays
+empty, so the swipe zone is uninterrupted.
+
+```
+┌─────────────────────────────────┐
+│ [r/news]                  [👁]  │
+│                                 │
+│                                 │
+│                                 │
+│                                 │
+│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │
+│ Headline of the post...         │
+│ 2h · ▲ 12k · 💬 850             │
+│ (♡)   (🔖)   (↗)                │ ← horizontal row in gradient
+└─────────────────────────────────┘
+```
+
+The horizontal row uses a lighter button background (`bg-white/12`) since it
+sits on top of the darker portion of the gradient and doesn't need its own
+dimming.
 
 ### Button style
 
 Match the existing `SkipButton` glass-morphic style
-(`src/components/MagazineGrid.tsx:158`):
+(`src/components/MagazineGrid.tsx:158`).
 
-- Container: `absolute right-2`, `flex flex-col gap-2`
-- Each button: `w-9 h-9 rounded-full backdrop-blur-sm`
-  - Dark theme: `text-gray-200 bg-black/60 hover:bg-white/20`
-  - Light theme: `text-gray-700 bg-white/80 hover:bg-gray-200`
+- Desktop stack container: `hidden md:flex absolute right-2 bottom-1/3
+  flex-col gap-2 z-10`
+- Mobile row container: rendered **inside the title gradient block** below the
+  meta line — `flex md:hidden gap-3 mt-2 pointer-events-auto`
+- Each button: `rounded-full backdrop-blur-sm transition`
+  - Mobile size: `w-9 h-9` (~36px), comfortable thumb target.
+  - Desktop size: `md:w-9 md:h-9` (same — kept identical so the icon scale
+    matches between viewports).
+  - Dark theme on the gradient (mobile): `text-white bg-white/12
+    hover:bg-white/25`
+  - Dark theme on the image (desktop stack): `text-gray-200 bg-black/60
+    hover:bg-white/20`
+  - Light theme: `text-gray-700 bg-white/80 hover:bg-gray-200` (used only by
+    the desktop stack — the gradient is dark in both themes)
 - Active/toggled state (saved or liked): icon swaps to filled variant; button
   background tints with `bg-[var(--theme-primary)]/70 text-[#262129]`.
 - Icons (FontAwesome, already in the bundle):
@@ -148,13 +184,37 @@ interface SlideActionsProps {
   onToggleLike: () => void;
   onShare: () => void;
   signedIn: boolean;
+  variant: 'stack' | 'row';
 }
 ```
 
-`NewsCarousel` owns the `saved` / `liked` sets and the handlers, passes the
-booleans for the *current* slide into `<SlideActions />`, which renders the
-vertical stack. The stack is rendered inside the same swipe container as the
-slide, layered on top of the `HeroCard` (z-index above the title gradient).
+`SlideActions` renders the three buttons in either layout based on `variant`.
+The two variants share the same handlers and toggled-state logic — only
+positioning and background tint differ.
+
+### Wiring the two variants
+
+`NewsCarousel` owns the `saved` / `liked` sets and the handlers. It renders
+**two** `<SlideActions />` instances per slide, each gated by a Tailwind
+responsive class so only one is visible at a time:
+
+- **Desktop stack:** rendered as a sibling of `HeroCard` inside the swipe
+  container, absolutely positioned over the hero (`hidden md:flex …`). This
+  works the same as the existing `SkipButton` overlay.
+- **Mobile row:** rendered **inside the title gradient block** of `HeroCard`,
+  below the meta line. This requires a small change to `HeroCard`:
+  - Add an optional `actionsSlot?: React.ReactNode` prop on `CardProps`.
+  - In both the image branch and the `isTextForward` branch, render
+    `{actionsSlot}` immediately after the meta row (the `flex items-center
+    gap-2 …` row that shows time / score / comments).
+  - Only `NewsCarousel` passes `actionsSlot`; `MagazineGrid` continues to
+    pass nothing, so the slot is empty there.
+
+### When to render
+
+The desktop stack and mobile row are both rendered for every visible slide
+when `total > 0`. They share state, so toggling on mobile and resizing to
+desktop (or vice versa) reflects immediately.
 
 The component is **not** rendered when there are zero posts (`total === 0`).
 
@@ -205,6 +265,10 @@ User taps ♡ on slide N
 
 - **Visual smoke test:** in dev, the action stack appears on every slide and
   swaps icons on click.
+- **Responsive switch:** narrow the browser below the `md` breakpoint and
+  confirm the vertical stack disappears and the horizontal row appears inside
+  the gradient (and vice versa when widening). Toggled state survives the
+  switch.
 - **Auth gate:** signed-out user clicking Save or Like is redirected to OAuth;
   Share works without auth.
 - **Swipe isolation:** tapping a button does not advance the slide and does
@@ -220,8 +284,14 @@ User taps ♡ on slide N
 
 Frontend (`reddzit-refresh`):
 
-- `src/components/NewsCarousel.tsx` — add `SlideActions` component, overlay it
-  on the hero, manage `savedIds` / `likedIds` state, wire to `RedditContext`.
+- `src/components/NewsCarousel.tsx` — add `SlideActions` component, render
+  both the desktop stack and mobile row variants per slide, manage
+  `savedIds` / `likedIds` state, wire to `RedditContext`.
+- `src/components/MagazineGrid.tsx` — add optional `actionsSlot?:
+  React.ReactNode` to `CardProps` and render it inside the title gradient
+  block of `HeroCard` (below the meta row), in both the image branch and the
+  text-forward branch. Existing `MagazineGrid` callers pass nothing, so the
+  grid view is unaffected.
 - `src/context/RedditContext.tsx` — add `likePost` / `unlikePost`, expose
   alongside `savePost`. Hydrate `likedIds` from `sessionStorage`.
 - `src/helpers/Reddit.js` — add `vote(fullname, dir)` method.
