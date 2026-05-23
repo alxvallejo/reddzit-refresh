@@ -89,10 +89,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   );
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const showToast = (msg: string) => {
     setToast(msg);
-    window.setTimeout(() => setToast(null), 2000);
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2000);
   };
+  useEffect(() => () => {
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+  }, []);
   const [stack, setStack] = useState<TrendingPost[]>(() => (posts.length > 0 ? [posts[0]] : []));
   const [commentIndex, setCommentIndex] = useState(0);
   const [commentStack, setCommentStack] = useState<TrendingPostTopComment[]>([]);
@@ -242,7 +247,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!post) return;
-    const url = `https://www.reddit.com/comments/${post.id}`;
+    const url = post.link || `https://www.reddit.com/r/${post.subreddit}/comments/${post.id}`;
     const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
     if (isTouch && typeof navigator !== 'undefined' && 'share' in navigator) {
       try {
@@ -533,6 +538,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
       </div>
       {toast && (
         <div
+          role="status"
           className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]"
           style={{ backgroundColor: 'var(--theme-primary)' }}
         >

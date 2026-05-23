@@ -153,9 +153,11 @@ demonstrated in `src/components/PostView.tsx:408`.
 Copy the Reddit permalink to the clipboard. Matches
 `PostView.handleShare` (`src/components/PostView.tsx:175`).
 
-- URL: `` `https://www.reddit.com/comments/${post.id}` `` —
-  `TrendingPost` does not include a `permalink`, but the canonical
-  `/comments/<id>` form redirects to the full permalink server-side.
+- URL: prefer `post.link` (the backend populates this as
+  `` `https://www.reddit.com${data.permalink}` `` — full canonical form
+  with subreddit and slug) with a fallback to
+  `` `https://www.reddit.com/r/${post.subreddit}/comments/${post.id}` ``
+  if `post.link` is somehow missing.
 - Web Share API: if `navigator.share` is available **and** the user is
   on a touch device, prefer it for the native share sheet; otherwise
   fall back to clipboard copy. The fallback is the existing behavior in
