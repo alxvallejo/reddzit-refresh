@@ -172,11 +172,11 @@ const SkipButton = ({ onSkip, position = 'top' }: { onSkip: () => void; position
       onPointerUp={stopPointer}
       title="Hide post"
       aria-label="Hide post"
-      className={`absolute ${positionClass} z-10 p-1.5 rounded-md backdrop-blur-sm transition ${
+      className={`absolute ${positionClass} z-10 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center ${
         isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20'
       }`}
     >
-      <FontAwesomeIcon icon={faEyeSlash} className="w-3 h-3" />
+      <FontAwesomeIcon icon={faEyeSlash} className="w-3.5 h-3.5" />
     </button>
   );
 };
@@ -215,7 +215,7 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
 export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
-  const isTextForward = !post.imageUrl && !!post.bodyPreview;
+  const isTextForward = !post.imageUrl;
   const shapeClass = fillContainer
     ? 'h-full w-full'
     : 'col-span-full aspect-[4/5] md:aspect-[16/9]';
@@ -242,12 +242,18 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot }: 
               {comments && <span>💬 {comments}</span>}
             </div>
           </div>
-          <h2 className="text-lg md:text-3xl font-semibold leading-tight text-[var(--theme-text)] flex-shrink-0">
+          <h2 className={`font-semibold leading-tight text-[var(--theme-text)] flex-shrink-0 ${
+            post.bodyPreview
+              ? 'text-lg md:text-3xl'
+              : 'text-3xl md:text-5xl flex-1 flex items-center'
+          }`}>
             {getDisplayTitle(post)}
           </h2>
-          <p className="text-sm md:text-base leading-relaxed text-[var(--theme-textMuted)] italic line-clamp-[8] md:line-clamp-[10] flex-1">
-            “{post.bodyPreview}”
-          </p>
+          {post.bodyPreview && (
+            <p className="text-sm md:text-base leading-relaxed text-[var(--theme-textMuted)] italic line-clamp-[8] md:line-clamp-[10] flex-1">
+              “{post.bodyPreview}”
+            </p>
+          )}
           {actionsSlot && <div className="flex-shrink-0">{actionsSlot}</div>}
         </div>
       </article>
