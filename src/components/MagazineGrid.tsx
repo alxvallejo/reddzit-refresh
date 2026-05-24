@@ -159,12 +159,17 @@ const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: Qu
 const SkipButton = ({ onSkip, position = 'top' }: { onSkip: () => void; position?: 'top' | 'bottom' }) => {
   const { isLight } = useTheme();
   const positionClass = position === 'bottom' ? 'right-2 bottom-2' : 'right-2 top-2';
+  // Stop pointer events so a swipe-capturing ancestor (e.g. NewsCarousel's slide)
+  // doesn't setPointerCapture on this tap and swallow the synthesized click on touch.
+  const stopPointer = (e: React.PointerEvent) => e.stopPropagation();
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         onSkip();
       }}
+      onPointerDown={stopPointer}
+      onPointerUp={stopPointer}
       title="Hide post"
       aria-label="Hide post"
       className={`absolute ${positionClass} z-10 p-1.5 rounded-md backdrop-blur-sm transition ${
