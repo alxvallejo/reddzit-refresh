@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { TrendingPostTopComment } from '../helpers/DailyService';
 import { decodeHtmlEntities } from '../helpers/htmlEntities';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShareNodes } from '@fortawesome/free-solid-svg-icons';
 
 interface CommentQuoteProps {
   comment: TrendingPostTopComment;
@@ -151,6 +154,45 @@ function renderBody(body: string, bodyClass: string): { nodes: ReactNode[]; hasL
   return { nodes, hasLinks };
 }
 
+function buildCommentFullname(id: string): string {
+  return id.startsWith('t1_') ? id : `t1_${id}`;
+}
+
+function ShareCommentButton({ commentId }: { commentId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fullname = buildCommentFullname(commentId);
+    const url = `${window.location.origin}/c/${fullname}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const input = document.createElement('input');
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 -my-0.5 rounded text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)] transition-colors border-none bg-transparent cursor-pointer text-xs"
+      title={copied ? 'Link copied!' : 'Share this comment'}
+    >
+      <FontAwesomeIcon icon={faShareNodes} className="text-xs" />
+      <span>{copied ? 'Copied!' : 'Share'}</span>
+    </button>
+  );
+}
+
 export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps) {
   const body = decodeHtmlEntities(comment.body);
   const href = comment.permalink ? `https://www.reddit.com${comment.permalink}` : null;
@@ -184,17 +226,21 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
     return (
       <figure className="m-0">
         {figureInner}
-        <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic">
-          —{' '}
-          <a
-            href={href}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-[var(--theme-primary)] transition-colors"
-          >
-            u/{comment.author}
-          </a>{' '}
-          · ▲ {comment.score.toLocaleString()}
+        <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic flex items-center gap-1.5 flex-wrap">
+          <span>
+            —{' '}
+            <a
+              href={href}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-[var(--theme-primary)] transition-colors"
+            >
+              u/{comment.author}
+            </a>{' '}
+            · ▲ {comment.score.toLocaleString()}
+          </span>
+          <span className="opacity-40">·</span>
+          <ShareCommentButton commentId={comment.id} />
         </figcaption>
       </figure>
     );
@@ -203,8 +249,10 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
   const figure = (
     <figure className="m-0">
       {figureInner}
-      <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic">
-        — u/{comment.author} · ▲ {comment.score.toLocaleString()}
+      <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic flex items-center gap-1.5 flex-wrap">
+        <span>— u/{comment.author} · ▲ {comment.score.toLocaleString()}</span>
+        <span className="opacity-40">·</span>
+        <ShareCommentButton commentId={comment.id} />
       </figcaption>
     </figure>
   );
