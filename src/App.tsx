@@ -19,6 +19,7 @@ import LandingPage from './components/LandingPage';
 import HomePage from './components/HomePage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import QuoteSharePage from './components/QuoteSharePage';
+import CommentSharePage from './components/CommentSharePage';
 import StoryViewPage from './components/StoryViewPage';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
             <Route path='/admin' element={<Admin />} />
             <Route path='/quotes' element={<QuotesPage />} />
             <Route path='/q/:id' element={<QuoteSharePage />} />
+            <Route path='/c/:fullname' element={<CommentSharePage />} />
             <Route path='/stories' element={<StoriesPage />} />
             <Route path='/stories/new' element={<StoryNewPage />} />
             <Route path='/stories/:id/edit' element={<StoryEditorPage />} />
