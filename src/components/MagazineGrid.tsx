@@ -215,7 +215,8 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
 export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
-  const isTextForward = !post.imageUrl;
+  const [imageErrored, setImageErrored] = useState(false);
+  const isTextForward = !post.imageUrl || imageErrored;
   const shapeClass = fillContainer
     ? 'h-full w-full'
     : 'col-span-full aspect-[4/5] md:aspect-[16/9]';
@@ -270,7 +271,14 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot }: 
       className={`relative ${fillContainer ? 'h-full w-full' : 'col-span-full'} cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-cardBg)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition`}
     >
       {onSkip && <SkipButton onSkip={onSkip} />}
-      <ImageArea post={post} aspect={fillContainer ? 'h-full' : 'aspect-[4/5] md:aspect-[16/9]'} />
+      <img
+        src={post.imageUrl}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onError={() => setImageErrored(true)}
+        className={`${fillContainer ? 'h-full' : 'aspect-[4/5] md:aspect-[16/9]'} w-full object-cover`}
+      />
       <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10 pointer-events-none">
         <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] pointer-events-auto">
           r/{post.subreddit}
