@@ -101,8 +101,9 @@ How it works:
 - Nginx proxies only `/p/` requests to read-api (port 3000 by default).
 - read-api injects `<title>`, `og:*`, and Twitter tags into `index.html` at request time using the built assets from this repo.
 
-Canonical share URL:
-- Use `/p/:fullname` (e.g., `https://reddzit.com/p/t3_abcdef`).
+Canonical share URLs:
+- Post: `/p/:fullname` (e.g., `https://reddzit.com/p/t3_abcdef`).
+- Comment: `/c/:fullname` (e.g., `https://reddzit.com/c/t1_abcdef`). Mirrors `/p/`: nginx proxies `/c/` to read-api, which serves a focused-comment SSR page with OG/Twitter tags. The read-api endpoint `GET /api/reddit/public/comment/:fullname` returns `{ comment, post }` for the client to render.
 
 What the frontend must do:
 - Continue deploying the built `dist/` to the path configured in read-api (`FRONTEND_DIST_DIR`, e.g., `/var/www/reddzit-refresh/dist`).
