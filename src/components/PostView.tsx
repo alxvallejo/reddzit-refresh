@@ -278,7 +278,9 @@ export default function PostView() {
         {/* Trending Marquee */}
 
         {/* Content */}
-        <main className="max-w-3xl mx-auto px-4 py-8 pb-32">
+        <main className="max-w-screen-xl mx-auto px-4 py-8 pb-32">
+          <div className="md:flex md:gap-8 md:items-start">
+            <div className="md:flex-1 md:min-w-0 md:max-w-3xl">
              <div className="mb-8">
                  <Link
                      to="/news"
@@ -295,7 +297,7 @@ export default function PostView() {
                         {getDisplayTitle(post)}
                      </a>
                  </h1>
-                 
+
                  {/* Preview Image - skip for video posts since video has its own thumbnail */}
                  {getArticlePreviewImage(post) && !getVideoUrl(post) && (
                      <div className="rounded-xl overflow-hidden my-6 shadow-md">
@@ -322,26 +324,28 @@ export default function PostView() {
              <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }} data-content-font={contentFont}>
                  {getParsedContent(content, false, post, fontSize, !!getArticlePreviewImage(post))}
              </article>
+            </div>
 
-             {/* Top Comments */}
-             {(() => {
-               const displayable = topComments.filter(isDisplayableComment);
-               if (displayable.length === 0) return null;
-               return (
-                 <section className="mt-12 pt-8 border-t border-[var(--theme-border)]">
-                   <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-6">
-                     Top comments
-                   </h2>
-                   <ul className="flex flex-col gap-10 list-none p-0 m-0">
-                     {displayable.map(c => (
-                       <li key={c.id}>
-                         <CommentQuote comment={c} />
-                       </li>
-                     ))}
-                   </ul>
-                 </section>
-               );
-             })()}
+            {/* Top Comments — sticky right column at md+, stacked below on mobile */}
+            {(() => {
+              const displayable = topComments.filter(isDisplayableComment);
+              if (displayable.length === 0) return null;
+              return (
+                <aside className="mt-12 md:mt-0 md:w-80 md:flex-shrink-0 md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto border-t md:border-t-0 border-[var(--theme-border)] pt-8 md:pt-0">
+                  <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-6">
+                    Top comments
+                  </h2>
+                  <ul className="flex flex-col gap-10 list-none p-0 m-0">
+                    {displayable.map(c => (
+                      <li key={c.id}>
+                        <CommentQuote comment={c} />
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+              );
+            })()}
+          </div>
         </main>
         
         {/* Sticky Footer Actions */}
