@@ -437,6 +437,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     if (Math.abs(delta) >= SWIPE_THRESHOLD_PX) {
       wasSwipingRef.current = true;
       if (delta < 0) goNext(); else goPrev();
+    } else if (post) {
+      // setPointerCapture on this wrapper retargets the synthesized click to the
+      // wrapper itself, so HeroCard's onClick never fires. Treat a non-swipe
+      // pointerup as a tap and navigate directly.
+      onPostClick(post);
     }
     if (touchEnd) setIsHoverPaused(false);
   };
