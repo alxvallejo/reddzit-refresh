@@ -7,6 +7,7 @@ import StoryService, { Story } from '../helpers/StoryService';
 import QuoteCard from './QuoteCard';
 import QuoteFullScreen from './QuoteFullScreen';
 import MainHeader from './MainHeader';
+import StickyPromoFooter from './StickyPromoFooter';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft, faPuzzlePiece, faBook, faPlus, faCheck, faTimes, faFilter, faChevronDown, faSync, faGlobe } from '@fortawesome/free-solid-svg-icons';
 
@@ -230,6 +231,7 @@ export default function QuotesPage() {
             Connect with Reddit
           </button>
         </div>
+        <StickyPromoFooter />
       </div>
     );
   }

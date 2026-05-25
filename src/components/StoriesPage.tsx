@@ -4,6 +4,7 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import StoryService, { Story } from '../helpers/StoryService';
 import MainHeader from './MainHeader';
+import StickyPromoFooter from './StickyPromoFooter';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faPen, faTrash, faGlobe, faEyeSlash, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { faFileAlt } from '@fortawesome/free-regular-svg-icons';
@@ -228,6 +229,7 @@ export default function StoriesPage() {
             Connect with Reddit
           </button>
         </div>
+        <StickyPromoFooter />
       </div>
     );
   }
