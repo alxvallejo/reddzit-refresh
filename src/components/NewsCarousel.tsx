@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPause, faPlay, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { useCoarsePointer } from '../helpers/useCoarsePointer';
@@ -9,6 +9,12 @@ import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
 import { faBookmark as faBookmarkSolid, faShareNodes } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+
+const Kbd = ({ children }: { children: ReactNode }) => (
+  <kbd className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.25rem] px-1 rounded border border-[var(--theme-border)] bg-[var(--theme-bgSecondary)] text-[var(--theme-text)] font-mono text-[10px] leading-none normal-case">
+    {children}
+  </kbd>
+);
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
@@ -649,13 +655,38 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, to
             </>
           )}
         </div>
-        <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
-          {total > 1
-            ? (effectivelyPaused
-                ? (isCoarsePointer ? 'paused · swipe' : 'paused · ← → arrows · swipe')
-                : 'auto-advancing · hover to pause')
-            : (isCoarsePointer ? 'swipe' : '← → arrows · swipe')}
-        </span>
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
+          {(() => {
+            if (total > 1) {
+              if (effectivelyPaused) {
+                if (isCoarsePointer) return <span>paused · swipe</span>;
+                return (
+                  <span className="inline-flex items-center gap-1.5">
+                    paused · <Kbd>←</Kbd><Kbd>→</Kbd> arrows · swipe
+                  </span>
+                );
+              }
+              return <span>auto-advancing · hover to pause</span>;
+            }
+            if (isCoarsePointer) return <span>swipe</span>;
+            return (
+              <span className="inline-flex items-center gap-1.5">
+                <Kbd>←</Kbd><Kbd>→</Kbd> arrows · swipe
+              </span>
+            );
+          })()}
+          {onReplayTour && !isCoarsePointer && (
+            <button
+              type="button"
+              onClick={onReplayTour}
+              aria-label="Show keyboard shortcuts tour"
+              title="Show keyboard shortcuts"
+              className="ml-1 w-5 h-5 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-[var(--theme-textMuted)] hover:text-[var(--theme-text)] transition-colors"
+            >
+              <FontAwesomeIcon icon={faCircleQuestion} className="text-[10px]" />
+            </button>
+          )}
+        </div>
       </div>
       {toast && (
         <div

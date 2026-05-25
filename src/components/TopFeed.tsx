@@ -504,6 +504,7 @@ const TopFeed = () => {
             onPostClick={handlePostClick}
             onSkipPost={handleSkipPost}
             onVisibleRangeChange={handleVisibleRange}
+            onReplayTour={() => console.log('tour replay clicked')}
           />
         )
       ) : (
