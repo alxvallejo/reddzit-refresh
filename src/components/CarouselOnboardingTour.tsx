@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -46,10 +45,10 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
     const [active, setActive] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
 
-    const visibleSteps = useMemo(() => {
-      if (typeof document === 'undefined') return ALL_STEPS;
-      return ALL_STEPS.filter(s => document.querySelector(`[data-tour="${s.anchor}"]`) !== null);
-    }, [active]);
+    const visibleSteps =
+      typeof document === 'undefined'
+        ? ALL_STEPS
+        : ALL_STEPS.filter(s => document.querySelector(`[data-tour="${s.anchor}"]`) !== null);
 
     const close = useCallback(() => {
       setActive(false);
@@ -103,7 +102,7 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
         }
       };
       window.addEventListener('keydown', onKey, { capture: true });
-      return () => window.removeEventListener('keydown', onKey, { capture: true } as EventListenerOptions);
+      return () => window.removeEventListener('keydown', onKey, { capture: true });
     }, [active, visibleSteps.length, close]);
 
     if (!active || isCoarsePointer || visibleSteps.length === 0 || typeof document === 'undefined') {
