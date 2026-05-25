@@ -203,6 +203,8 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
         window.removeEventListener('scroll', schedule, { capture: true } as EventListenerOptions);
         if (rafId !== null) window.cancelAnimationFrame(rafId);
       };
+      // visibleSteps is recomputed every render but its content is stable (filtered from ALL_STEPS); depending on .length captures real changes without thrashing.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active, stepIndex, visibleSteps.length]);
 
     useEffect(() => {
@@ -218,6 +220,8 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
         anchor.style.zIndex = prevZ;
         if (!prevPosition) anchor.style.position = '';
       };
+      // visibleSteps is recomputed every render but its content is stable (filtered from ALL_STEPS); depending on .length captures real changes without thrashing.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active, stepIndex, visibleSteps.length]);
 
     // Focus trap and initial focus management
