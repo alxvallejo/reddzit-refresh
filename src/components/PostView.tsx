@@ -34,7 +34,6 @@ export default function PostView() {
   const [content, setContent] = useState<any>(location.state?.content || null);
   const [loading, setLoading] = useState(!location.state?.post);
   const [error, setError] = useState<string | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [selectedText, setSelectedText] = useState('');
   const [selectionPosition, setSelectionPosition] = useState<{ top: number; left: number } | null>(null);
@@ -66,16 +65,6 @@ export default function PostView() {
       document.title = post.title;
     }
   }, [post?.title]);
-
-  // Handle scroll for sticky header
-  useEffect(() => {
-      const handleScroll = () => {
-          const scrollTop = window.scrollY || document.documentElement.scrollTop;
-          setIsScrolled(scrollTop > 50);
-      };
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Handle text selection for quote feature
   useEffect(() => {
@@ -167,7 +156,6 @@ export default function PostView() {
 
   const { isLight, contentFont, setContentFont } = useTheme();
   const bgColor = 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
-  const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
   const articleClass = !isLight
     ? 'prose-invert prose-p:text-[var(--theme-text)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-text)] prose-li:font-light prose-ul:text-[var(--theme-text)] prose-ol:text-[var(--theme-text)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-white'
     : 'prose-gray prose-p:font-light prose-headings:font-normal prose-strong:font-medium prose-li:font-light';
@@ -285,38 +273,7 @@ export default function PostView() {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${bgColor} w-full`}>
         {/* Header */}
-        {signedIn ? (
-          <MainHeader />
-        ) : (
-          <header className={`sticky top-9 z-40 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Link to="/" className="flex-shrink-0">
-                      <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
-                  </Link>
-
-                  <div className={`transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 hidden sm:block'}`}>
-                       <h2 className="text-sm font-medium truncate max-w-[200px] sm:max-w-md text-white">
-                          {getDisplayTitle(post)}
-                       </h2>
-                  </div>
-
-                  {!isScrolled && (
-                       <div className="text-white">
-                          <Link to="/" className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
-                       </div>
-                  )}
-              </div>
-
-              <div className="flex-shrink-0">
-                  <ReadControls
-                      fontSize={fontSize}
-                      setSize={setFontSize}
-                      contentFont={contentFont}
-                      setContentFont={setContentFont}
-                  />
-              </div>
-          </header>
-        )}
+        <MainHeader />
 
         {/* Trending Marquee */}
 
@@ -351,17 +308,15 @@ export default function PostView() {
                  )}
              </div>
 
-             {/* Read Controls (signed-in users get these inline; signed-out get them in the header) */}
-             {signedIn && (
-               <div className="flex justify-end mb-4">
-                 <ReadControls
-                   fontSize={fontSize}
-                   setSize={setFontSize}
-                   contentFont={contentFont}
-                   setContentFont={setContentFont}
-                 />
-               </div>
-             )}
+             {/* Read Controls */}
+             <div className="flex justify-end mb-4">
+               <ReadControls
+                 fontSize={fontSize}
+                 setSize={setFontSize}
+                 contentFont={contentFont}
+                 setContentFont={setContentFont}
+               />
+             </div>
 
              {/* Article Content */}
              <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }} data-content-font={contentFont}>
