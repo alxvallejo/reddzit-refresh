@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPause, faPlay, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { useCoarsePointer } from '../helpers/useCoarsePointer';
@@ -9,6 +9,12 @@ import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
 import { faBookmark as faBookmarkSolid, faShareNodes } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+
+const Kbd = ({ children }: { children: ReactNode }) => (
+  <kbd className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.25rem] px-1 rounded border border-[var(--theme-border)] bg-[var(--theme-bgSecondary)] text-[var(--theme-text)] font-mono text-[10px] leading-none normal-case">
+    {children}
+  </kbd>
+);
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
@@ -84,9 +90,13 @@ interface NewsCarouselProps {
   onPostClick: (post: TrendingPost) => void;
   onSkipPost?: (postId: string) => void;
   onVisibleRangeChange?: (indices: number[]) => void;
+  /** When true, the carousel's keyboard handler is suspended so an overlay can own input. */
+  tourActive?: boolean;
+  /** Optional callback wired to the footer "?" button; when omitted, the button is not rendered. */
+  onReplayTour?: () => void;
 }
 
-const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: NewsCarouselProps) => {
+const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, tourActive = false, onReplayTour }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const isCoarsePointer = useCoarsePointer();
   const { saved, signedIn, savePost, unsavePost, redirectForAuth } = useReddit();
@@ -133,6 +143,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const wasSwipingRef = useRef(false);
   const commentSwipeStartX = useRef<number | null>(null);
   const commentWasSwipingRef = useRef(false);
+  const tourActiveRef = useRef(tourActive);
+  const isHoverPausedRef = useRef(isHoverPaused);
+  const isManuallyPausedRef = useRef(isManuallyPaused);
   const total = posts.length;
   const effectivelyPaused = isHoverPaused || isManuallyPaused;
   const autoplayActive = total > 1 && !effectivelyPaused && tabVisible;
@@ -206,8 +219,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   }, [post?.id]);
 
   useEffect(() => {
+    tourActiveRef.current = tourActive;
+    isHoverPausedRef.current = isHoverPaused;
+    isManuallyPausedRef.current = isManuallyPaused;
+  });
+
+  useEffect(() => {
     if (total === 0) return;
     const onKey = (e: KeyboardEvent) => {
+      if (tourActiveRef.current) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') {
@@ -224,6 +244,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
         setCommentIndex(i =>
           e.key === 'ArrowDown' ? (i + 1) % commentCount : (i - 1 + commentCount) % commentCount
         );
+      } else if (e.key === ' ' || e.code === 'Space') {
+        if (total <= 1) return;
+        e.preventDefault();
+        if (isHoverPausedRef.current || isManuallyPausedRef.current) {
+          setIsManuallyPaused(false);
+          setIsHoverPaused(false);
+        } else {
+          setIsManuallyPaused(true);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -481,6 +510,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
     >
       <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
         <div
+          data-tour="hero"
+          aria-keyshortcuts="ArrowLeft ArrowRight"
           className="relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
           style={{ touchAction: 'pan-y' }}
           onPointerDown={onPointerDown}
@@ -533,6 +564,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
         </div>
         {commentCount > 0 && (
           <aside
+            data-tour="comments"
+            aria-keyshortcuts="ArrowUp ArrowDown"
             className={`mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none ${
               isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-5 md:p-6' : ''
             }`}
@@ -585,6 +618,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
             <>
               <button
                 type="button"
+                data-tour="pause"
+                aria-keyshortcuts="Space"
                 onClick={togglePlayback}
                 aria-label={effectivelyPaused ? 'Play' : 'Pause'}
                 title={effectivelyPaused ? 'Play' : 'Pause'}
@@ -620,13 +655,38 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
             </>
           )}
         </div>
-        <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
-          {total > 1
-            ? (effectivelyPaused
-                ? (isCoarsePointer ? 'paused · swipe' : 'paused · ← → arrows · swipe')
-                : 'auto-advancing · hover to pause')
-            : (isCoarsePointer ? 'swipe' : '← → arrows · swipe')}
-        </span>
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
+          {(() => {
+            if (total > 1) {
+              if (effectivelyPaused) {
+                if (isCoarsePointer) return <span>paused · swipe</span>;
+                return (
+                  <span className="inline-flex items-center gap-1.5">
+                    paused · <Kbd>←</Kbd><Kbd>→</Kbd> arrows · swipe
+                  </span>
+                );
+              }
+              return <span>auto-advancing · hover to pause</span>;
+            }
+            if (isCoarsePointer) return <span>swipe</span>;
+            return (
+              <span className="inline-flex items-center gap-1.5">
+                <Kbd>←</Kbd><Kbd>→</Kbd> arrows · swipe
+              </span>
+            );
+          })()}
+          {onReplayTour && !isCoarsePointer && (
+            <button
+              type="button"
+              onClick={onReplayTour}
+              aria-label="Show keyboard shortcuts tour"
+              title="Show keyboard shortcuts"
+              className="ml-1 w-5 h-5 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-[var(--theme-textMuted)] hover:text-[var(--theme-text)] transition-colors"
+            >
+              <FontAwesomeIcon icon={faCircleQuestion} className="text-[10px]" />
+            </button>
+          )}
+        </div>
       </div>
       {toast && (
         <div
