@@ -16,6 +16,8 @@ import StoryService, { Story } from '../helpers/StoryService';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import DailyService, { isDisplayableComment, type TrendingPostTopComment } from '../helpers/DailyService';
 import CommentQuote from './CommentQuote';
+import StickyPromoFooter from './StickyPromoFooter';
+import { usePromoDismissed } from '../helpers/usePromoDismissed';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -29,6 +31,9 @@ export default function PostView() {
     signedIn, redirectForAuth,
     accessToken
   } = useReddit();
+
+  const promoDismissed = usePromoDismissed();
+  const promoVisible = !signedIn && !promoDismissed;
 
   const [post, setPost] = useState<any>(location.state?.post || null);
   const [content, setContent] = useState<any>(location.state?.content || null);
@@ -349,7 +354,7 @@ export default function PostView() {
         </main>
         
         {/* Sticky Footer Actions */}
-        <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pointer-events-none flex justify-center">
+        <div className={`fixed bottom-0 left-0 right-0 px-4 pb-6 pointer-events-none flex justify-center transition-[margin] duration-200 ${promoVisible ? 'mb-20' : ''}`}>
             <div className={`pointer-events-auto flex w-full sm:w-auto justify-evenly sm:justify-center gap-0 sm:gap-3 backdrop-blur-xl border px-2 sm:px-6 py-3 rounded-full shadow-2xl items-center ${
               !isLight
                 ? 'bg-white/8 border-white/15 text-white/80'
@@ -596,6 +601,8 @@ export default function PostView() {
             {toast}
           </div>
         )}
+
+        <StickyPromoFooter />
     </div>
   );
 }
