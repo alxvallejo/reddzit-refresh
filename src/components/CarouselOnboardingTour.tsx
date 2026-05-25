@@ -194,6 +194,21 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
       };
     }, [active, stepIndex, visibleSteps.length]);
 
+    useEffect(() => {
+      if (!active || visibleSteps.length === 0) return;
+      const step = visibleSteps[Math.min(stepIndex, visibleSteps.length - 1)];
+      const anchor = document.querySelector(`[data-tour="${step.anchor}"]`) as HTMLElement | null;
+      if (!anchor) return;
+      const prevPosition = anchor.style.position;
+      const prevZ = anchor.style.zIndex;
+      if (!prevPosition) anchor.style.position = 'relative';
+      anchor.style.zIndex = '65';
+      return () => {
+        anchor.style.zIndex = prevZ;
+        if (!prevPosition) anchor.style.position = '';
+      };
+    }, [active, stepIndex, visibleSteps.length]);
+
     if (!active || isCoarsePointer || visibleSteps.length === 0 || typeof document === 'undefined' || !position) {
       return null;
     }
@@ -214,57 +229,66 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
     const caretColorClass = isLight ? 'border-white' : 'border-[var(--theme-bgSecondary)]';
 
     return createPortal(
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="carousel-tour-headline"
-        style={{ position: 'fixed', top: position.top, left: position.left, width: POPOVER_W, zIndex: 70 }}
-        className={`rounded-xl shadow-2xl border ${
-          isLight ? 'bg-white border-gray-200 text-gray-900' : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)] text-[var(--theme-text)]'
-        } p-4`}
-      >
-        <span
-          aria-hidden
-          style={caretStyle}
-          className={`absolute w-0 h-0 border-solid border-transparent ${caretColorClass}`}
-        />
-        <button
-          type="button"
+      <>
+        <div
           onClick={close}
-          aria-label="Close tour"
-          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-[var(--theme-textMuted)] hover:bg-[var(--theme-cardBg)]"
+          style={{ position: 'fixed', inset: 0, zIndex: 60 }}
+          className={`carousel-tour-overlay-enter ${isLight ? 'bg-black/35' : 'bg-black/55'} backdrop-blur-sm`}
+          aria-hidden
+        />
+        <div
+          key={stepIndex}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="carousel-tour-headline"
+          style={{ position: 'fixed', top: position.top, left: position.left, width: POPOVER_W, zIndex: 70 }}
+          className={`carousel-tour-popover-enter rounded-xl shadow-2xl border ${
+            isLight ? 'bg-white border-gray-200 text-gray-900' : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)] text-[var(--theme-text)]'
+          } p-4`}
         >
-          <FontAwesomeIcon icon={faXmark} className="text-xs" />
-        </button>
-        <h3 id="carousel-tour-headline" className="text-sm font-semibold mb-1 pr-6">{step.headline}</h3>
-        <p className="text-xs text-[var(--theme-textMuted)] leading-relaxed mb-4">{step.body}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
-            {safeIndex + 1} of {visibleSteps.length}
-          </span>
-          <div className="flex gap-2">
-            {safeIndex > 0 && (
+          <span
+            aria-hidden
+            style={caretStyle}
+            className={`absolute w-0 h-0 border-solid border-transparent ${caretColorClass}`}
+          />
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close tour"
+            className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-[var(--theme-textMuted)] hover:bg-[var(--theme-cardBg)]"
+          >
+            <FontAwesomeIcon icon={faXmark} className="text-xs" />
+          </button>
+          <h3 id="carousel-tour-headline" className="text-sm font-semibold mb-1 pr-6">{step.headline}</h3>
+          <p className="text-xs text-[var(--theme-textMuted)] leading-relaxed mb-4">{step.body}</p>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
+              {safeIndex + 1} of {visibleSteps.length}
+            </span>
+            <div className="flex gap-2">
+              {safeIndex > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStepIndex(i => Math.max(0, i - 1))}
+                  className="px-3 py-1.5 text-xs rounded-full border border-[var(--theme-border)] bg-transparent text-[var(--theme-text)] cursor-pointer hover:bg-[var(--theme-cardBg)]"
+                >
+                  Back
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setStepIndex(i => Math.max(0, i - 1))}
-                className="px-3 py-1.5 text-xs rounded-full border border-[var(--theme-border)] bg-transparent text-[var(--theme-text)] cursor-pointer hover:bg-[var(--theme-cardBg)]"
+                onClick={() => {
+                  if (isLast) close();
+                  else setStepIndex(i => i + 1);
+                }}
+                className="px-3 py-1.5 text-xs rounded-full border-none cursor-pointer bg-[var(--theme-primary)] text-[#262129] font-semibold hover:opacity-90"
               >
-                Back
+                {isLast ? 'Got it' : 'Next'}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                if (isLast) close();
-                else setStepIndex(i => i + 1);
-              }}
-              className="px-3 py-1.5 text-xs rounded-full border-none cursor-pointer bg-[var(--theme-primary)] text-[#262129] font-semibold hover:opacity-90"
-            >
-              {isLast ? 'Got it' : 'Next'}
-            </button>
+            </div>
           </div>
         </div>
-      </div>,
+      </>,
       document.body
     );
   }
