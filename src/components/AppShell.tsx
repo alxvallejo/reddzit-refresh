@@ -6,11 +6,8 @@ import SavedFeed from './SavedFeed';
 import LinksFeed from './LinksFeed';
 import TopFeed from './TopFeed';
 import ForYouFeed from './ForYouFeed';
-import DailyService from '../helpers/DailyService';
 import MainHeader from './MainHeader';
 import Footer from './Footer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 type Tab = 'top' | 'saved' | 'foryou' | 'stories' | 'quotes' | 'links';
 
@@ -28,12 +25,7 @@ const AppShell = () => {
   const { signedIn, redirectForAuth } = useReddit();
   const location = useLocation();
   const activeTab = getTabFromPath(location.pathname);
-  const [email, setEmail] = useState('');
-  const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [showPageTitle, setShowPageTitle] = useState(false);
-  const [showBanner, setShowBanner] = useState(() => {
-    return localStorage.getItem('hideDailyBanner') !== 'true';
-  });
 
   const feedMatch = location.pathname.match(/^\/feed\/([a-z0-9_]+)$/i);
   const isNewsView = location.pathname === '/news' || location.pathname === '/';
@@ -63,25 +55,6 @@ const AppShell = () => {
     return () => observer.disconnect();
   }, [activeTab]);
 
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || subscribeStatus === 'loading') return;
-    
-    setSubscribeStatus('loading');
-    try {
-      await DailyService.subscribe(email, [], 'header_banner');
-      setSubscribeStatus('success');
-      DailyService.trackEngagement('SUBSCRIBE_CLICK', { placement: 'header_banner' });
-    } catch (err) {
-      setSubscribeStatus('error');
-    }
-  };
-
-  const dismissBanner = () => {
-    setShowBanner(false);
-    localStorage.setItem('hideDailyBanner', 'true');
-  };
-
   return (
     <div
       className="min-h-screen flex flex-col bg-[var(--theme-bg)] text-[var(--theme-text)]"
@@ -103,78 +76,6 @@ const AppShell = () => {
 
       {/* Footer with feedback */}
       <Footer />
-
-      {/* Subscribe Banner - Fixed at bottom */}
-      {showBanner && subscribeStatus !== 'success' && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-40"
-          style={{
-            background: 'var(--theme-bannerBg)',
-            color: 'var(--theme-bannerText)'
-          }}
-        >
-          <div className="max-w-4xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <p className="text-sm font-medium">
-                Get a daily pulse delivered to you every morning
-              </p>
-              <div className="flex items-center gap-2 flex-1 max-w-md">
-                <form onSubmit={handleSubscribe} className="flex gap-2 flex-1">
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 px-3 py-1.5 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-white/50 min-w-0 placeholder:text-[var(--theme-bannerInputPlaceholder)]"
-                    style={{
-                      backgroundColor: 'var(--theme-bannerInputBg)',
-                      color: 'var(--theme-bannerInputText)'
-                    }}
-                    disabled={subscribeStatus === 'loading'}
-                  />
-                  <button
-                    type="submit"
-                    disabled={subscribeStatus === 'loading'}
-                    className="px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-colors border-none cursor-pointer disabled:opacity-70 whitespace-nowrap"
-                    style={{
-                      backgroundColor: 'var(--theme-bannerButtonBg)',
-                      color: 'var(--theme-bannerButtonText)'
-                    }}
-                  >
-                    {subscribeStatus === 'loading' ? '...' : 'Subscribe'}
-                  </button>
-                </form>
-                <button
-                  onClick={dismissBanner}
-                  className="opacity-80 hover:opacity-100 p-1 border-none bg-transparent cursor-pointer"
-                  style={{ color: 'var(--theme-bannerText)' }}
-                  aria-label="Dismiss"
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
-              </div>
-            </div>
-            {subscribeStatus === 'error' && (
-              <p className="text-xs mt-1" style={{ color: 'var(--theme-bannerErrorText)' }}>Something went wrong. Please try again.</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Success Banner - Fixed at bottom */}
-      {subscribeStatus === 'success' && showBanner && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-green-500 text-white">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <p className="text-sm font-medium">✓ You're subscribed! Check your inbox tomorrow morning.</p>
-            <button
-              onClick={dismissBanner}
-              className="text-white/80 hover:text-white p-1 border-none bg-transparent cursor-pointer"
-            >
-              <FontAwesomeIcon icon={faTimes} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
