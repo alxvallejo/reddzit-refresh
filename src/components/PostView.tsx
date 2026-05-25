@@ -336,14 +336,18 @@ export default function PostView() {
               const displayable = topComments.filter(isDisplayableComment);
               if (displayable.length === 0) return null;
               return (
-                <aside className="mt-12 md:mt-0 md:w-80 md:flex-shrink-0 md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto border-t md:border-t-0 border-[var(--theme-border)] pt-8 md:pt-0">
+                <aside
+                  className={`mt-12 md:mt-0 md:w-80 md:flex-shrink-0 md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto md:ml-4 lg:ml-8 border-t md:border-t-0 border-[var(--theme-border)] pt-8 md:pt-0 ${
+                    isLight ? 'md:rounded-2xl md:bg-[rgba(249,115,22,0.08)] md:p-5 lg:p-6' : ''
+                  }`}
+                >
                   <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-6">
                     Top comments
                   </h2>
-                  <ul className="flex flex-col gap-10 list-none p-0 m-0">
+                  <ul className="flex flex-col gap-8 list-none p-0 m-0">
                     {displayable.map(c => (
                       <li key={c.id}>
-                        <CommentQuote comment={c} />
+                        <CommentQuote comment={c} size="sm" />
                       </li>
                     ))}
                   </ul>
