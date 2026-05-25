@@ -137,6 +137,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, to
   const wasSwipingRef = useRef(false);
   const commentSwipeStartX = useRef<number | null>(null);
   const commentWasSwipingRef = useRef(false);
+  const tourActiveRef = useRef(tourActive);
+  const isHoverPausedRef = useRef(isHoverPaused);
+  const isManuallyPausedRef = useRef(isManuallyPaused);
   const total = posts.length;
   const effectivelyPaused = isHoverPaused || isManuallyPaused;
   const autoplayActive = total > 1 && !effectivelyPaused && tabVisible;
@@ -210,9 +213,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, to
   }, [post?.id]);
 
   useEffect(() => {
+    tourActiveRef.current = tourActive;
+    isHoverPausedRef.current = isHoverPaused;
+    isManuallyPausedRef.current = isManuallyPaused;
+  });
+
+  useEffect(() => {
     if (total === 0) return;
     const onKey = (e: KeyboardEvent) => {
-      if (tourActive) return;
+      if (tourActiveRef.current) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') {
@@ -232,7 +241,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, to
       } else if (e.key === ' ' || e.code === 'Space') {
         if (total <= 1) return;
         e.preventDefault();
-        if (isHoverPaused || isManuallyPaused) {
+        if (isHoverPausedRef.current || isManuallyPausedRef.current) {
           setIsManuallyPaused(false);
           setIsHoverPaused(false);
         } else {
@@ -242,7 +251,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, to
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [total, commentCount, tourActive, isHoverPaused, isManuallyPaused]);
+  }, [total, commentCount]);
 
   useEffect(() => {
     if (!currentComment) {
