@@ -11,7 +11,7 @@ import QuoteSelectionButton from './QuoteSelectionButton';
 import QuoteModal from './QuoteModal';
 import QuoteService from '../helpers/QuoteService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt, faBook, faPlus, faCheck, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt, faBook, faPlus, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import StoryService, { Story } from '../helpers/StoryService';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import DailyService, { isDisplayableComment, type TrendingPostTopComment } from '../helpers/DailyService';
