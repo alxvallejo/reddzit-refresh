@@ -337,7 +337,7 @@ export default function PostView() {
               if (displayable.length === 0) return null;
               return (
                 <aside
-                  className={`mt-12 md:mt-0 md:w-80 md:flex-shrink-0 md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto md:ml-4 lg:ml-8 border-t md:border-t-0 border-[var(--theme-border)] pt-8 md:pt-0 ${
+                  className={`mt-12 md:mt-0 md:w-80 md:flex-shrink-0 md:sticky md:top-28 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:ml-4 lg:ml-8 border-t md:border-t-0 border-[var(--theme-border)] pt-8 md:pt-0 ${
                     isLight ? 'md:rounded-2xl md:bg-[rgba(249,115,22,0.08)] md:p-5 lg:p-6' : ''
                   }`}
                 >
