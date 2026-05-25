@@ -138,8 +138,11 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
     useEffect(() => {
       if (seen || isCoarsePointer) return;
       const timer = window.setTimeout(() => {
-        setStepIndex(0);
-        setActive(true);
+        setActive(prev => {
+          if (prev) return prev; // already opened manually via ?
+          setStepIndex(0);
+          return true;
+        });
       }, AUTO_DELAY_MS);
       return () => window.clearTimeout(timer);
     }, [seen, isCoarsePointer]);
