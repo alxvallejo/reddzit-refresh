@@ -10,6 +10,7 @@ import DailyService, {
 } from '../helpers/DailyService';
 import MagazineGrid from './MagazineGrid';
 import NewsCarousel from './NewsCarousel';
+import CarouselOnboardingTour, { type CarouselOnboardingTourHandle } from './CarouselOnboardingTour';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
@@ -96,6 +97,8 @@ const TopFeed = () => {
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [randomize, setRandomize] = useState<boolean>(() => loadRandomize());
   const [shuffleSeed, setShuffleSeed] = useState(0);
+  const tourRef = useRef<CarouselOnboardingTourHandle>(null);
+  const [tourActive, setTourActive] = useState(false);
 
   const toggleRandomize = useCallback(() => {
     setRandomize(prev => {
@@ -499,13 +502,17 @@ const TopFeed = () => {
             onSkipPost={handleSkipPost}
           />
         ) : (
-          <NewsCarousel
-            posts={carouselPosts}
-            onPostClick={handlePostClick}
-            onSkipPost={handleSkipPost}
-            onVisibleRangeChange={handleVisibleRange}
-            onReplayTour={() => console.log('tour replay clicked')}
-          />
+          <>
+            <NewsCarousel
+              posts={carouselPosts}
+              onPostClick={handlePostClick}
+              onSkipPost={handleSkipPost}
+              onVisibleRangeChange={handleVisibleRange}
+              tourActive={tourActive}
+              onReplayTour={() => tourRef.current?.open()}
+            />
+            <CarouselOnboardingTour ref={tourRef} onActiveChange={setTourActive} />
+          </>
         )
       ) : (
         <div className="py-24 text-center text-[var(--theme-textMuted)]">
