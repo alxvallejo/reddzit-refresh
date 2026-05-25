@@ -346,7 +346,9 @@ const TopFeed = () => {
     }
   }, [carouselPosts, lazyComments]);
 
-  if (loading) {
+  const isInitialLoad = posts.length === 0;
+
+  if (loading && isInitialLoad) {
     return (
       <div className="py-24 text-center text-[var(--theme-textMuted)]">
         <div className="animate-pulse text-xl">{isNewsRoute ? 'Loading Top News...' : 'Loading Top Posts...'}</div>
@@ -354,7 +356,7 @@ const TopFeed = () => {
     );
   }
 
-  if (error) {
+  if (error && isInitialLoad) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
         <p className="text-[var(--theme-textMuted)]">{error}</p>
