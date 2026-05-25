@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -101,6 +102,9 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
     const [stepIndex, setStepIndex] = useState(0);
     const [position, setPosition] = useState<Position | null>(null);
 
+    const triggerElRef = useRef<HTMLElement | null>(null);
+    const popoverRef = useRef<HTMLDivElement>(null);
+
     const visibleSteps =
       typeof document === 'undefined'
         ? ALL_STEPS
@@ -109,10 +113,17 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
     const close = useCallback(() => {
       setActive(false);
       markSeen();
+      const trigger = triggerElRef.current;
+      triggerElRef.current = null;
+      // Defer to next frame so the popover unmounts first
+      window.requestAnimationFrame(() => {
+        if (trigger && document.contains(trigger)) trigger.focus();
+      });
     }, [markSeen]);
 
     const open = useCallback(() => {
       if (isCoarsePointer) return;
+      triggerElRef.current = (document.activeElement instanceof HTMLElement) ? document.activeElement : null;
       setStepIndex(0);
       setActive(true);
     }, [isCoarsePointer]);
@@ -209,6 +220,45 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
       };
     }, [active, stepIndex, visibleSteps.length]);
 
+    // Focus trap and initial focus management
+    useEffect(() => {
+      if (!active) return;
+      // Move focus into popover after it renders
+      const focusFirst = () => {
+        const el = popoverRef.current;
+        if (!el) return;
+        const primary = el.querySelector<HTMLElement>('[data-tour-primary]');
+        (primary ?? el).focus();
+      };
+      const rafId = window.requestAnimationFrame(focusFirst);
+
+      // Trap Tab inside the popover
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+        const el = popoverRef.current;
+        if (!el) return;
+        const focusable = el.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const activeEl = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && activeEl === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && activeEl === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      };
+      document.addEventListener('keydown', onKey, { capture: true });
+      return () => {
+        window.cancelAnimationFrame(rafId);
+        document.removeEventListener('keydown', onKey, { capture: true });
+      };
+    }, [active, stepIndex]);
+
     if (!active || isCoarsePointer || visibleSteps.length === 0 || typeof document === 'undefined' || !position) {
       return null;
     }
@@ -237,10 +287,12 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
           aria-hidden
         />
         <div
+          ref={popoverRef}
           key={stepIndex}
           role="dialog"
           aria-modal="true"
           aria-labelledby="carousel-tour-headline"
+          tabIndex={-1}
           style={{ position: 'fixed', top: position.top, left: position.left, width: POPOVER_W, zIndex: 70 }}
           className={`carousel-tour-popover-enter rounded-xl shadow-2xl border ${
             isLight ? 'bg-white border-gray-200 text-gray-900' : 'bg-[var(--theme-bgSecondary)] border-[var(--theme-border)] text-[var(--theme-text)]'
@@ -277,6 +329,7 @@ const CarouselOnboardingTour = forwardRef<CarouselOnboardingTourHandle, Props>(
               )}
               <button
                 type="button"
+                data-tour-primary
                 onClick={() => {
                   if (isLast) close();
                   else setStepIndex(i => i + 1);
