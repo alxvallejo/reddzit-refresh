@@ -115,12 +115,45 @@ interface FullscreenShellProps {
 
 const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
   const { isLight } = useTheme();
+  const rootRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     document.documentElement.classList.add('fullscreen-open');
+
+    const el = rootRef.current;
+    // Fullscreen API — best effort. iPhone Safari rejects; we ignore.
+    if (el?.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    }
+    // Orientation lock — best effort. iPad/iPhone reject; we ignore.
+    // `screen.orientation.lock` is not in the standard `Screen` lib types
+    // for all TS configs, so we narrow through `unknown`.
+    const orientation = (screen as unknown as { orientation?: { lock?: (o: string) => Promise<void>; unlock?: () => void } }).orientation;
+    if (orientation?.lock) {
+      orientation.lock('landscape').catch(() => {});
+    }
+
+    const onFsChange = () => {
+      if (!document.fullscreenElement) {
+        // The browser exited fullscreen on us (Esc, back gesture, etc.).
+        // Mirror that to our state so the overlay closes.
+        onClose();
+      }
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+
     return () => {
       document.documentElement.classList.remove('fullscreen-open');
+      document.removeEventListener('fullscreenchange', onFsChange);
+      const orientationCleanup = (screen as unknown as { orientation?: { unlock?: () => void } }).orientation;
+      if (orientationCleanup?.unlock) {
+        try { orientationCleanup.unlock(); } catch { /* not always allowed; ignore */ }
+      }
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
     };
-  }, []);
+  }, [onClose]);
 
   const closeButtonClass = isLight
     ? 'text-gray-700 bg-white/80 hover:bg-gray-200'
@@ -128,6 +161,7 @@ const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
 
   return createPortal(
     <div
+      ref={rootRef}
       className="fixed inset-0 z-[9999] flex flex-col bg-[var(--theme-bg)]"
       style={{
         width: '100dvw',
