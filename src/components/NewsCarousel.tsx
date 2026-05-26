@@ -116,6 +116,16 @@ interface FullscreenShellProps {
 const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
   const { isLight } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
+  const [isPortrait, setIsPortrait] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(orientation: portrait)').matches
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(orientation: portrait)');
+    const onChange = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
   const onCloseRef = useRef(onClose);
 
   // Keep the ref pointed at the latest onClose without re-running the effect.
@@ -190,6 +200,16 @@ const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
       >
         <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
       </button>
+      {isPortrait && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-full text-xs font-medium shadow-lg pointer-events-none bg-black/70 text-white"
+          style={{ top: 'max(env(safe-area-inset-top), 0.5rem)' }}
+        >
+          Rotate your phone for landscape
+        </div>
+      )}
       <div className="flex-1 min-h-0 w-full overflow-hidden">
         {children}
       </div>
