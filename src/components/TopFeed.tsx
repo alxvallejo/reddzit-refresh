@@ -502,6 +502,7 @@ const TopFeed = () => {
             onPostClick={handlePostClick}
             onSkipPost={handleSkipPost}
             onVisibleRangeChange={handleVisibleRange}
+            enableFullscreen
           />
         )
       ) : (
