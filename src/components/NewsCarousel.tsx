@@ -548,15 +548,13 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   const dotsToShow = Math.min(total, MAX_DOTS);
   const dotOffset = Math.max(0, Math.min(total - dotsToShow, safeIndex - Math.floor(dotsToShow / 2)));
 
-  const variant: 'inline' | 'fullscreen' = isFullscreen ? 'fullscreen' : 'inline';
-
   const heroWrapperClass =
-    variant === 'fullscreen'
+    isFullscreen
       ? 'relative basis-[62%] flex-shrink-0 min-h-0 overflow-hidden rounded-xl select-none'
       : 'relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none';
 
   const asideClass =
-    variant === 'fullscreen'
+    isFullscreen
       ? `flex-1 min-w-0 max-h-full overflow-y-auto select-none ${
           isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-3' : ''
         }`
@@ -565,14 +563,21 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
         }`;
 
   const rowClass =
-    variant === 'fullscreen'
+    isFullscreen
       ? `flex flex-row gap-3 items-stretch flex-1 min-h-0 ${commentCount === 0 ? 'justify-center' : ''}`
       : `md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`;
 
   const footerClass =
-    variant === 'fullscreen'
+    isFullscreen
       ? 'flex flex-col items-center gap-2 mt-2 flex-shrink-0'
       : 'flex flex-col items-center gap-2 mt-5';
+
+  const pauseHandlers = {
+    onMouseEnter: () => setIsHoverPaused(true),
+    onMouseLeave: () => setIsHoverPaused(false),
+    onFocusCapture: () => setIsHoverPaused(true),
+    onBlurCapture: () => setIsHoverPaused(false),
+  };
 
   const carouselBody = (
     <>
@@ -599,7 +604,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                     onClick={() => onPostClick(p)}
                     onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
                     fillContainer
-                    headerSlot={enableFullscreen && isCoarsePointer && isLast && variant === 'inline' ? (
+                    headerSlot={enableFullscreen && isCoarsePointer && isLast && !isFullscreen ? (
                       <FullscreenEnterButton onEnter={() => setIsFullscreen(true)} />
                     ) : undefined}
                     actionsSlot={isLast ? (
@@ -741,10 +746,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
       <FullscreenShell onClose={() => setIsFullscreen(false)}>
         <main
           className="flex flex-col h-full w-full"
-          onMouseEnter={() => setIsHoverPaused(true)}
-          onMouseLeave={() => setIsHoverPaused(false)}
-          onFocusCapture={() => setIsHoverPaused(true)}
-          onBlurCapture={() => setIsHoverPaused(false)}
+          {...pauseHandlers}
         >
           {carouselBody}
         </main>
@@ -755,10 +757,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   return (
     <main
       className="max-w-screen-2xl mx-auto px-4 pt-4 pb-8"
-      onMouseEnter={() => setIsHoverPaused(true)}
-      onMouseLeave={() => setIsHoverPaused(false)}
-      onFocusCapture={() => setIsHoverPaused(true)}
-      onBlurCapture={() => setIsHoverPaused(false)}
+      {...pauseHandlers}
     >
       {carouselBody}
     </main>
