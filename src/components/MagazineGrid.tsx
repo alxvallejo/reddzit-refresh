@@ -296,7 +296,7 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, he
           {score && <span>▲ {score}</span>}
           {comments && <span>💬 {comments}</span>}
         </div>
-        {actionsSlot}
+        <div className="pointer-events-auto">{actionsSlot}</div>
       </div>
     </article>
   );
