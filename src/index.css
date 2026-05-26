@@ -283,3 +283,9 @@ body {
 .tiptap-editor-content .tiptap > *:first-child {
   margin-top: 0;
 }
+
+html.fullscreen-open,
+html.fullscreen-open body {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
