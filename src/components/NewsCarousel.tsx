@@ -84,9 +84,10 @@ interface NewsCarouselProps {
   onPostClick: (post: TrendingPost) => void;
   onSkipPost?: (postId: string) => void;
   onVisibleRangeChange?: (indices: number[]) => void;
+  enableFullscreen?: boolean;
 }
 
-const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: NewsCarouselProps) => {
+const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, enableFullscreen }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const isCoarsePointer = useCoarsePointer();
   const { saved, signedIn, savePost, unsavePost, redirectForAuth } = useReddit();
@@ -99,6 +100,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange }: 
   const [autoplayTick, setAutoplayTick] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // Tracks optimistic adds that haven't propagated to RedditContext.saved yet.
   // RedditContext.savePost only flips `saved: true` on existing entries — it does
   // not append new ones — so without this side-channel a freshly-saved post would
