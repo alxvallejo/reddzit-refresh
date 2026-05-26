@@ -7,7 +7,7 @@ import { useCoarsePointer } from '../helpers/useCoarsePointer';
 import { useReddit } from '../context/RedditContext';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
-import { faBookmark as faBookmarkSolid, faShareNodes } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faShareNodes, faExpand, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
 const SWIPE_THRESHOLD_PX = 50;
@@ -76,6 +76,34 @@ const SlideActions = ({ isSaved, onToggleSave, onShare, variant }: SlideActionsP
         <FontAwesomeIcon icon={faShareNodes} className="w-3.5 h-3.5" />
       </button>
     </div>
+  );
+};
+
+interface FullscreenEnterButtonProps {
+  onEnter: () => void;
+}
+
+const FullscreenEnterButton = ({ onEnter }: FullscreenEnterButtonProps) => {
+  const { isLight } = useTheme();
+  const stopPointer = (e: React.PointerEvent) => e.stopPropagation();
+  const idleClass = isLight
+    ? 'text-gray-700 bg-white/80 hover:bg-gray-200'
+    : 'text-gray-200 bg-black/60 hover:bg-white/20';
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onEnter();
+      }}
+      onPointerDown={stopPointer}
+      onPointerUp={stopPointer}
+      title="Enter fullscreen"
+      aria-label="Enter fullscreen"
+      className={`absolute right-12 top-2 z-20 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center ${idleClass}`}
+    >
+      <FontAwesomeIcon icon={faExpand} className="w-3.5 h-3.5" />
+    </button>
   );
 };
 
@@ -499,6 +527,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                     onClick={() => onPostClick(p)}
                     onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
                     fillContainer
+                    headerSlot={enableFullscreen && isCoarsePointer && isLast ? (
+                      <FullscreenEnterButton onEnter={() => setIsFullscreen(true)} />
+                    ) : undefined}
                     actionsSlot={isLast ? (
                       <SlideActions
                         isSaved={isCurrentSaved}
