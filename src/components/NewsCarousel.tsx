@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
@@ -104,6 +105,57 @@ const FullscreenEnterButton = ({ onEnter }: FullscreenEnterButtonProps) => {
     >
       <FontAwesomeIcon icon={faExpand} className="w-3.5 h-3.5" />
     </button>
+  );
+};
+
+interface FullscreenShellProps {
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
+  const { isLight } = useTheme();
+  useEffect(() => {
+    document.documentElement.classList.add('fullscreen-open');
+    return () => {
+      document.documentElement.classList.remove('fullscreen-open');
+    };
+  }, []);
+
+  const closeButtonClass = isLight
+    ? 'text-gray-700 bg-white/80 hover:bg-gray-200'
+    : 'text-gray-200 bg-black/60 hover:bg-white/20';
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col bg-[var(--theme-bg)]"
+      style={{
+        width: '100dvw',
+        height: '100dvh',
+        paddingTop: 'max(env(safe-area-inset-top), 0.5rem)',
+        paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+        paddingLeft: 'max(env(safe-area-inset-left), 0.75rem)',
+        paddingRight: 'max(env(safe-area-inset-right), 0.75rem)',
+      }}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        title="Exit fullscreen"
+        aria-label="Exit fullscreen"
+        className={`absolute z-30 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center ${closeButtonClass}`}
+        style={{
+          top: 'max(env(safe-area-inset-top), 0.5rem)',
+          left: 'max(env(safe-area-inset-left), 0.5rem)',
+        }}
+      >
+        <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+      </button>
+      <div className="flex-1 min-h-0 w-full overflow-hidden">
+        {children}
+      </div>
+    </div>,
+    document.body
   );
 };
 
