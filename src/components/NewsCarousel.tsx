@@ -548,17 +548,37 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   const dotsToShow = Math.min(total, MAX_DOTS);
   const dotOffset = Math.max(0, Math.min(total - dotsToShow, safeIndex - Math.floor(dotsToShow / 2)));
 
-  return (
-    <main
-      className="max-w-screen-2xl mx-auto px-4 pt-4 pb-8"
-      onMouseEnter={() => setIsHoverPaused(true)}
-      onMouseLeave={() => setIsHoverPaused(false)}
-      onFocusCapture={() => setIsHoverPaused(true)}
-      onBlurCapture={() => setIsHoverPaused(false)}
-    >
-      <div className={`md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`}>
+  const variant: 'inline' | 'fullscreen' = isFullscreen ? 'fullscreen' : 'inline';
+
+  const heroWrapperClass =
+    variant === 'fullscreen'
+      ? 'relative basis-[62%] flex-shrink-0 min-h-0 overflow-hidden rounded-xl select-none'
+      : 'relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none';
+
+  const asideClass =
+    variant === 'fullscreen'
+      ? `flex-1 min-w-0 max-h-full overflow-y-auto select-none ${
+          isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-3' : ''
+        }`
+      : `mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none ${
+          isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-5 md:p-6' : ''
+        }`;
+
+  const rowClass =
+    variant === 'fullscreen'
+      ? `flex flex-row gap-3 items-stretch flex-1 min-h-0 ${commentCount === 0 ? 'justify-center' : ''}`
+      : `md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`;
+
+  const footerClass =
+    variant === 'fullscreen'
+      ? 'flex flex-col items-center gap-2 mt-2 flex-shrink-0'
+      : 'flex flex-col items-center gap-2 mt-5';
+
+  const carouselBody = (
+    <>
+      <div className={rowClass}>
         <div
-          className="relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none"
+          className={heroWrapperClass}
           style={{ touchAction: 'pan-y' }}
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
@@ -579,7 +599,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                     onClick={() => onPostClick(p)}
                     onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
                     fillContainer
-                    headerSlot={enableFullscreen && isCoarsePointer && isLast ? (
+                    headerSlot={enableFullscreen && isCoarsePointer && isLast && variant === 'inline' ? (
                       <FullscreenEnterButton onEnter={() => setIsFullscreen(true)} />
                     ) : undefined}
                     actionsSlot={isLast ? (
@@ -612,11 +632,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
           />
         </div>
         {commentCount > 0 && (
-          <aside
-            className={`mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none ${
-              isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-5 md:p-6' : ''
-            }`}
-          >
+          <aside className={asideClass}>
             <div className="flex items-center justify-between mb-3">
               <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
                 Top comments
@@ -656,7 +672,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
           </aside>
         )}
       </div>
-      <div className="flex flex-col items-center gap-2 mt-5">
+      <div className={footerClass}>
         <div className="flex items-center gap-3">
           <span className="text-xs text-[var(--theme-textMuted)] tabular-nums">
             {safeIndex + 1} / {total}
@@ -711,12 +727,40 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
       {toast && (
         <div
           role="status"
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]"
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[10000] px-5 py-2.5 rounded-full text-sm font-medium shadow-lg text-[var(--theme-bg)]"
           style={{ backgroundColor: 'var(--theme-primary)' }}
         >
           {toast}
         </div>
       )}
+    </>
+  );
+
+  if (isFullscreen) {
+    return (
+      <FullscreenShell onClose={() => setIsFullscreen(false)}>
+        <main
+          className="flex flex-col h-full w-full"
+          onMouseEnter={() => setIsHoverPaused(true)}
+          onMouseLeave={() => setIsHoverPaused(false)}
+          onFocusCapture={() => setIsHoverPaused(true)}
+          onBlurCapture={() => setIsHoverPaused(false)}
+        >
+          {carouselBody}
+        </main>
+      </FullscreenShell>
+    );
+  }
+
+  return (
+    <main
+      className="max-w-screen-2xl mx-auto px-4 pt-4 pb-8"
+      onMouseEnter={() => setIsHoverPaused(true)}
+      onMouseLeave={() => setIsHoverPaused(false)}
+      onFocusCapture={() => setIsHoverPaused(true)}
+      onBlurCapture={() => setIsHoverPaused(false)}
+    >
+      {carouselBody}
     </main>
   );
 };
