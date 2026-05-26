@@ -160,19 +160,24 @@ const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: Qu
 const SkipButton = ({ onSkip, position = 'top' }: { onSkip: () => void; position?: 'top' | 'bottom' }) => {
   const { isLight } = useTheme();
   const positionClass = position === 'bottom' ? 'right-2 bottom-2' : 'right-2 top-2';
+  // Stop pointer events so a swipe-capturing ancestor (e.g. NewsCarousel's slide)
+  // doesn't setPointerCapture on this tap and swallow the synthesized click on touch.
+  const stopPointer = (e: React.PointerEvent) => e.stopPropagation();
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         onSkip();
       }}
+      onPointerDown={stopPointer}
+      onPointerUp={stopPointer}
       title="Hide post"
       aria-label="Hide post"
-      className={`absolute ${positionClass} z-10 p-1.5 rounded-md backdrop-blur-sm transition ${
+      className={`absolute ${positionClass} z-10 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center ${
         isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20'
       }`}
     >
-      <FontAwesomeIcon icon={faEyeSlash} className="w-3 h-3" />
+      <FontAwesomeIcon icon={faEyeSlash} className="w-3.5 h-3.5" />
     </button>
   );
 };
@@ -211,7 +216,8 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
 export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, headerSlot }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
-  const isTextForward = !post.imageUrl && !!post.bodyPreview;
+  const [imageErrored, setImageErrored] = useState(false);
+  const isTextForward = !post.imageUrl || imageErrored;
   const shapeClass = fillContainer
     ? 'h-full w-full'
     : 'col-span-full aspect-[4/5] md:aspect-[16/9]';
@@ -239,12 +245,18 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, he
               {comments && <span>💬 {comments}</span>}
             </div>
           </div>
-          <h2 className="text-lg md:text-3xl font-semibold leading-tight text-[var(--theme-text)] flex-shrink-0">
+          <h2 className={`font-semibold leading-tight text-[var(--theme-text)] flex-shrink-0 ${
+            post.bodyPreview
+              ? 'text-lg md:text-3xl'
+              : 'text-3xl md:text-5xl flex-1 flex items-center'
+          }`}>
             {getDisplayTitle(post)}
           </h2>
-          <p className="text-sm md:text-base leading-relaxed text-[var(--theme-textMuted)] italic line-clamp-[8] md:line-clamp-[10] flex-1">
-            “{post.bodyPreview}”
-          </p>
+          {post.bodyPreview && (
+            <p className="text-sm md:text-base leading-relaxed text-[var(--theme-textMuted)] italic line-clamp-[8] md:line-clamp-[10] flex-1">
+              “{post.bodyPreview}”
+            </p>
+          )}
           {actionsSlot && <div className="flex-shrink-0">{actionsSlot}</div>}
         </div>
       </article>
@@ -262,7 +274,14 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, he
     >
       {onSkip && <SkipButton onSkip={onSkip} />}
       {headerSlot}
-      <ImageArea post={post} aspect={fillContainer ? 'h-full' : 'aspect-[4/5] md:aspect-[16/9]'} />
+      <img
+        src={post.imageUrl}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onError={() => setImageErrored(true)}
+        className={`${fillContainer ? 'h-full' : 'aspect-[4/5] md:aspect-[16/9]'} w-full object-cover`}
+      />
       <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10 pointer-events-none">
         <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] pointer-events-auto">
           r/{post.subreddit}

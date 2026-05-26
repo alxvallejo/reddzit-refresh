@@ -10,6 +10,7 @@ import DailyService, {
 } from '../helpers/DailyService';
 import MagazineGrid from './MagazineGrid';
 import NewsCarousel from './NewsCarousel';
+import CarouselOnboardingTour, { type CarouselOnboardingTourHandle } from './CarouselOnboardingTour';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const STALE_DATA_THRESHOLD_SECONDS = 60 * 60;
 const SUBREDDIT_OPTIONS = ['worldnews', 'technology', 'science', 'sports'] as const;
@@ -96,6 +97,8 @@ const TopFeed = () => {
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [randomize, setRandomize] = useState<boolean>(() => loadRandomize());
   const [shuffleSeed, setShuffleSeed] = useState(0);
+  const tourRef = useRef<CarouselOnboardingTourHandle>(null);
+  const [tourActive, setTourActive] = useState(false);
 
   const toggleRandomize = useCallback(() => {
     setRandomize(prev => {
@@ -346,7 +349,9 @@ const TopFeed = () => {
     }
   }, [carouselPosts, lazyComments]);
 
-  if (loading) {
+  const isInitialLoad = posts.length === 0;
+
+  if (loading && isInitialLoad) {
     return (
       <div className="py-24 text-center text-[var(--theme-textMuted)]">
         <div className="animate-pulse text-xl">{isNewsRoute ? 'Loading Top News...' : 'Loading Top Posts...'}</div>
@@ -354,7 +359,7 @@ const TopFeed = () => {
     );
   }
 
-  if (error) {
+  if (error && isInitialLoad) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
         <p className="text-[var(--theme-textMuted)]">{error}</p>
@@ -497,13 +502,18 @@ const TopFeed = () => {
             onSkipPost={handleSkipPost}
           />
         ) : (
-          <NewsCarousel
-            posts={carouselPosts}
-            onPostClick={handlePostClick}
-            onSkipPost={handleSkipPost}
-            onVisibleRangeChange={handleVisibleRange}
-            enableFullscreen
-          />
+          <>
+            <NewsCarousel
+              posts={carouselPosts}
+              onPostClick={handlePostClick}
+              onSkipPost={handleSkipPost}
+              onVisibleRangeChange={handleVisibleRange}
+              enableFullscreen
+              tourActive={tourActive}
+              onReplayTour={() => tourRef.current?.open()}
+            />
+            <CarouselOnboardingTour ref={tourRef} onActiveChange={setTourActive} />
+          </>
         )
       ) : (
         <div className="py-24 text-center text-[var(--theme-textMuted)]">

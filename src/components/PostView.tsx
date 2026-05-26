@@ -11,11 +11,13 @@ import QuoteSelectionButton from './QuoteSelectionButton';
 import QuoteModal from './QuoteModal';
 import QuoteService from '../helpers/QuoteService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt, faBook, faPlus, faCheck, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBookmark as faBookmarkSolid, faShareNodes, faQuoteLeft, faImage, faArrowUpRightFromSquare, faSignInAlt, faBook, faPlus, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import StoryService, { Story } from '../helpers/StoryService';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import DailyService, { isDisplayableComment, type TrendingPostTopComment } from '../helpers/DailyService';
 import CommentQuote from './CommentQuote';
+import StickyPromoFooter from './StickyPromoFooter';
+import { usePromoDismissed } from '../helpers/usePromoDismissed';
 
 export default function PostView() {
   const { fullname } = useParams();
@@ -30,11 +32,13 @@ export default function PostView() {
     accessToken
   } = useReddit();
 
+  const promoDismissed = usePromoDismissed();
+  const promoVisible = !signedIn && !promoDismissed;
+
   const [post, setPost] = useState<any>(location.state?.post || null);
   const [content, setContent] = useState<any>(location.state?.content || null);
   const [loading, setLoading] = useState(!location.state?.post);
   const [error, setError] = useState<string | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [selectedText, setSelectedText] = useState('');
   const [selectionPosition, setSelectionPosition] = useState<{ top: number; left: number } | null>(null);
@@ -66,16 +70,6 @@ export default function PostView() {
       document.title = post.title;
     }
   }, [post?.title]);
-
-  // Handle scroll for sticky header
-  useEffect(() => {
-      const handleScroll = () => {
-          const scrollTop = window.scrollY || document.documentElement.scrollTop;
-          setIsScrolled(scrollTop > 50);
-      };
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Handle text selection for quote feature
   useEffect(() => {
@@ -167,7 +161,6 @@ export default function PostView() {
 
   const { isLight, contentFont, setContentFont } = useTheme();
   const bgColor = 'bg-[var(--theme-bg)] text-[var(--theme-text)]';
-  const headerBg = isLight ? 'bg-[#b6aaf1]/95' : 'bg-[var(--theme-bg)]/95';
   const articleClass = !isLight
     ? 'prose-invert prose-p:text-[var(--theme-text)] prose-p:font-light prose-headings:text-gray-100 prose-headings:font-normal prose-strong:text-white prose-strong:font-medium prose-li:text-[var(--theme-text)] prose-li:font-light prose-ul:text-[var(--theme-text)] prose-ol:text-[var(--theme-text)] prose-a:text-[var(--theme-primary)] prose-a:hover:text-white'
     : 'prose-gray prose-p:font-light prose-headings:font-normal prose-strong:font-medium prose-li:font-light';
@@ -285,43 +278,14 @@ export default function PostView() {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${bgColor} w-full`}>
         {/* Header */}
-        {signedIn ? (
-          <MainHeader />
-        ) : (
-          <header className={`sticky top-9 z-40 transition-all duration-300 backdrop-blur-md shadow-sm px-4 py-3 flex items-center justify-between ${headerBg}`}>
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Link to="/" className="flex-shrink-0">
-                      <img src="/favicon.png" alt="Reddzit" className="w-8 h-8 drop-shadow-sm" />
-                  </Link>
-
-                  <div className={`transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 hidden sm:block'}`}>
-                       <h2 className="text-sm font-medium truncate max-w-[200px] sm:max-w-md text-white">
-                          {getDisplayTitle(post)}
-                       </h2>
-                  </div>
-
-                  {!isScrolled && (
-                       <div className="text-white">
-                          <Link to="/" className="text-white font-serif font-bold text-xl no-underline hover:opacity-80">Reddzit</Link>
-                       </div>
-                  )}
-              </div>
-
-              <div className="flex-shrink-0">
-                  <ReadControls
-                      fontSize={fontSize}
-                      setSize={setFontSize}
-                      contentFont={contentFont}
-                      setContentFont={setContentFont}
-                  />
-              </div>
-          </header>
-        )}
+        <MainHeader />
 
         {/* Trending Marquee */}
 
         {/* Content */}
-        <main className="max-w-3xl mx-auto px-4 py-8 pb-32">
+        <main className="max-w-screen-xl mx-auto px-4 py-8 pb-32">
+          <div className="md:flex md:gap-8 md:items-start">
+            <div className="md:flex-1 md:min-w-0 md:max-w-3xl">
              <div className="mb-8">
                  <Link
                      to="/news"
@@ -338,7 +302,7 @@ export default function PostView() {
                         {getDisplayTitle(post)}
                      </a>
                  </h1>
-                 
+
                  {/* Preview Image - skip for video posts since video has its own thumbnail */}
                  {getArticlePreviewImage(post) && !getVideoUrl(post) && (
                      <div className="rounded-xl overflow-hidden my-6 shadow-md">
@@ -351,46 +315,50 @@ export default function PostView() {
                  )}
              </div>
 
-             {/* Read Controls (signed-in users get these inline; signed-out get them in the header) */}
-             {signedIn && (
-               <div className="flex justify-end mb-4">
-                 <ReadControls
-                   fontSize={fontSize}
-                   setSize={setFontSize}
-                   contentFont={contentFont}
-                   setContentFont={setContentFont}
-                 />
-               </div>
-             )}
+             {/* Read Controls */}
+             <div className="flex justify-end mb-4">
+               <ReadControls
+                 fontSize={fontSize}
+                 setSize={setFontSize}
+                 contentFont={contentFont}
+                 setContentFont={setContentFont}
+               />
+             </div>
 
              {/* Article Content */}
              <article className={`prose prose-lg max-w-none break-words ${articleClass}`} style={{ fontSize: `${fontSize}px` }} data-content-font={contentFont}>
                  {getParsedContent(content, false, post, fontSize, !!getArticlePreviewImage(post))}
              </article>
+            </div>
 
-             {/* Top Comments */}
-             {(() => {
-               const displayable = topComments.filter(isDisplayableComment);
-               if (displayable.length === 0) return null;
-               return (
-                 <section className="mt-12 pt-8 border-t border-[var(--theme-border)]">
-                   <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-6">
-                     Top comments
-                   </h2>
-                   <ul className="flex flex-col gap-10 list-none p-0 m-0">
-                     {displayable.map(c => (
-                       <li key={c.id}>
-                         <CommentQuote comment={c} />
-                       </li>
-                     ))}
-                   </ul>
-                 </section>
-               );
-             })()}
+            {/* Top Comments — sticky right column at md+, stacked below on mobile */}
+            {(() => {
+              const displayable = topComments.filter(isDisplayableComment);
+              if (displayable.length === 0) return null;
+              return (
+                <aside
+                  className={`mt-12 md:mt-0 md:w-80 md:flex-shrink-0 md:sticky md:top-28 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:ml-4 lg:ml-8 border-t md:border-t-0 border-[var(--theme-border)] pt-8 md:pt-0 ${
+                    isLight ? 'md:rounded-2xl md:bg-[rgba(249,115,22,0.08)] md:p-5 lg:p-6' : ''
+                  }`}
+                >
+                  <h2 className="text-xs uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70 mb-6">
+                    Top comments
+                  </h2>
+                  <ul className="flex flex-col gap-8 list-none p-0 m-0">
+                    {displayable.map(c => (
+                      <li key={c.id}>
+                        <CommentQuote comment={c} size="sm" />
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+              );
+            })()}
+          </div>
         </main>
         
         {/* Sticky Footer Actions */}
-        <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pointer-events-none flex justify-center">
+        <div className={`fixed bottom-0 left-0 right-0 px-4 pb-6 pointer-events-none flex justify-center transition-[margin] duration-200 ${promoVisible ? 'mb-20' : ''}`}>
             <div className={`pointer-events-auto flex w-full sm:w-auto justify-evenly sm:justify-center gap-0 sm:gap-3 backdrop-blur-xl border px-2 sm:px-6 py-3 rounded-full shadow-2xl items-center ${
               !isLight
                 ? 'bg-white/8 border-white/15 text-white/80'
@@ -637,6 +605,8 @@ export default function PostView() {
             {toast}
           </div>
         )}
+
+        <StickyPromoFooter />
     </div>
   );
 }

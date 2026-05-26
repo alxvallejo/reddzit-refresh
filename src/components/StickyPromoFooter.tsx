@@ -21,6 +21,7 @@ const StickyPromoFooter = () => {
   const handleDismiss = () => {
     setDismissed(true);
     localStorage.setItem(DISMISS_KEY, 'true');
+    window.dispatchEvent(new CustomEvent('rdz-promo-dismissed'));
   };
 
   const ctaBg = 'var(--theme-primary)';

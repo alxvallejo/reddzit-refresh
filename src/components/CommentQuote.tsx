@@ -1,57 +1,201 @@
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { TrendingPostTopComment } from '../helpers/DailyService';
 import { decodeHtmlEntities } from '../helpers/htmlEntities';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShareNodes } from '@fortawesome/free-solid-svg-icons';
 
 interface CommentQuoteProps {
   comment: TrendingPostTopComment;
   size?: 'sm' | 'lg';
 }
 
-// Matches markdown link `[text](url)` OR a bare http(s) URL.
-const LINK_REGEX = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)]+)/g;
-
 const linkClass =
   'underline decoration-[var(--theme-primary)]/40 underline-offset-2 hover:decoration-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-colors';
 
-function renderBodyWithLinks(body: string): { nodes: ReactNode[]; hasLinks: boolean } {
+// Inline tokens, tried left-to-right. Longer markers (e.g. `**`) come before
+// shorter ones (`*`) so bold wins over italic on the same characters.
+const INLINE_REGEX =
+  /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)]+)|\*\*([^*\n]+)\*\*|(?<![*\w])\*([^*\n]+)\*(?!\w)|~~([^~\n]+)~~|`([^`\n]+)`/g;
+
+interface InlineResult {
+  nodes: ReactNode[];
+  hasLinks: boolean;
+}
+
+function renderInline(text: string, keyPrefix: string): InlineResult {
   const nodes: ReactNode[] = [];
   let lastIndex = 0;
   let hasLinks = false;
   let key = 0;
-  LINK_REGEX.lastIndex = 0;
+  INLINE_REGEX.lastIndex = 0;
   let match: RegExpExecArray | null;
-  while ((match = LINK_REGEX.exec(body)) !== null) {
+  while ((match = INLINE_REGEX.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      nodes.push(body.slice(lastIndex, match.index));
+      nodes.push(text.slice(lastIndex, match.index));
     }
-    const text = match[1] ?? match[3];
-    const href = match[2] ?? match[3];
-    nodes.push(
-      <a
-        key={`lnk-${key++}`}
-        href={href}
-        target="_blank"
-        rel="noreferrer noopener"
-        className={linkClass}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {text}
-      </a>,
-    );
-    hasLinks = true;
-    lastIndex = LINK_REGEX.lastIndex;
+    const [, mdText, mdHref, bareUrl, bold, italic, strike, code] = match;
+    const k = `${keyPrefix}-${key++}`;
+    if (mdText && mdHref) {
+      nodes.push(
+        <a
+          key={k}
+          href={mdHref}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={linkClass}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {mdText}
+        </a>,
+      );
+      hasLinks = true;
+    } else if (bareUrl) {
+      nodes.push(
+        <a
+          key={k}
+          href={bareUrl}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={linkClass}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {bareUrl}
+        </a>,
+      );
+      hasLinks = true;
+    } else if (bold) {
+      nodes.push(
+        <strong key={k} className="font-semibold">
+          {bold}
+        </strong>,
+      );
+    } else if (italic) {
+      nodes.push(<em key={k}>{italic}</em>);
+    } else if (strike) {
+      nodes.push(<s key={k}>{strike}</s>);
+    } else if (code) {
+      nodes.push(
+        <code
+          key={k}
+          className="px-1 py-0.5 rounded bg-[var(--theme-text)]/10 text-[0.95em] font-mono"
+        >
+          {code}
+        </code>,
+      );
+    }
+    lastIndex = INLINE_REGEX.lastIndex;
   }
-  if (lastIndex < body.length) {
-    nodes.push(body.slice(lastIndex));
-  }
-  if (nodes.length === 0) nodes.push(body);
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  if (nodes.length === 0) nodes.push(text);
   return { nodes, hasLinks };
+}
+
+interface Block {
+  type: 'p' | 'quote';
+  text: string;
+}
+
+function parseBlocks(body: string): Block[] {
+  const lines = body.split('\n');
+  const blocks: Block[] = [];
+  let current: Block | null = null;
+  for (const raw of lines) {
+    const isQuote = /^>\s?/.test(raw);
+    const text = isQuote ? raw.replace(/^>\s?/, '') : raw;
+    const type: Block['type'] = isQuote ? 'quote' : 'p';
+    if (current && current.type === type) {
+      current.text += '\n' + text;
+    } else {
+      if (current) blocks.push(current);
+      current = { type, text };
+    }
+  }
+  if (current) blocks.push(current);
+  // Trim leading/trailing empty paragraph blocks created by surrounding blank lines.
+  while (blocks.length && blocks[0].type === 'p' && blocks[0].text.trim() === '') {
+    blocks.shift();
+  }
+  while (
+    blocks.length &&
+    blocks[blocks.length - 1].type === 'p' &&
+    blocks[blocks.length - 1].text.trim() === ''
+  ) {
+    blocks.pop();
+  }
+  return blocks;
+}
+
+function renderBody(body: string, bodyClass: string): { nodes: ReactNode[]; hasLinks: boolean } {
+  const blocks = parseBlocks(body);
+  let hasLinks = false;
+  const nodes: ReactNode[] = blocks.map((block, idx) => {
+    const { nodes: inline, hasLinks: blockHasLinks } = renderInline(block.text, `b${idx}`);
+    if (blockHasLinks) hasLinks = true;
+    if (block.type === 'quote') {
+      return (
+        <div
+          key={`q${idx}`}
+          className={`border-l-2 border-[var(--theme-primary)]/40 pl-3 italic opacity-80 whitespace-pre-wrap break-words ${bodyClass}`}
+        >
+          {inline}
+        </div>
+      );
+    }
+    return (
+      <div
+        key={`p${idx}`}
+        className={`whitespace-pre-wrap break-words ${bodyClass}`}
+      >
+        {inline}
+      </div>
+    );
+  });
+  return { nodes, hasLinks };
+}
+
+function buildCommentFullname(id: string): string {
+  return id.startsWith('t1_') ? id : `t1_${id}`;
+}
+
+function ShareCommentButton({ commentId }: { commentId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fullname = buildCommentFullname(commentId);
+    const url = `${window.location.origin}/c/${fullname}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const input = document.createElement('input');
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 -my-0.5 rounded text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)] transition-colors border-none bg-transparent cursor-pointer text-xs"
+      title={copied ? 'Link copied!' : 'Share this comment'}
+    >
+      <FontAwesomeIcon icon={faShareNodes} className="text-xs" />
+      <span>{copied ? 'Copied!' : 'Share'}</span>
+    </button>
+  );
 }
 
 export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps) {
   const body = decodeHtmlEntities(comment.body);
   const href = comment.permalink ? `https://www.reddit.com${comment.permalink}` : null;
-  const { nodes: bodyNodes, hasLinks } = renderBodyWithLinks(body);
 
   const bodyClass =
     size === 'lg'
@@ -59,6 +203,8 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
       : 'text-sm md:text-base leading-relaxed';
   const glyphClass =
     size === 'lg' ? 'text-5xl md:text-6xl' : 'text-4xl md:text-5xl';
+
+  const { nodes: bodyNodes, hasLinks } = renderBody(body, bodyClass);
 
   const figureInner = (
     <>
@@ -68,9 +214,7 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
       >
         “
       </span>
-      <blockquote
-        className={`m-0 text-[var(--theme-text)] whitespace-pre-wrap break-words ${bodyClass}`}
-      >
+      <blockquote className="m-0 text-[var(--theme-text)] space-y-3">
         {bodyNodes}
       </blockquote>
     </>
@@ -82,17 +226,21 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
     return (
       <figure className="m-0">
         {figureInner}
-        <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic">
-          —{' '}
-          <a
-            href={href}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-[var(--theme-primary)] transition-colors"
-          >
-            u/{comment.author}
-          </a>{' '}
-          · ▲ {comment.score.toLocaleString()}
+        <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic flex items-center gap-1.5 flex-wrap">
+          <span>
+            —{' '}
+            <a
+              href={href}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-[var(--theme-primary)] transition-colors"
+            >
+              u/{comment.author}
+            </a>{' '}
+            · ▲ {comment.score.toLocaleString()}
+          </span>
+          <span className="opacity-40">·</span>
+          <ShareCommentButton commentId={comment.id} />
         </figcaption>
       </figure>
     );
@@ -101,8 +249,10 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
   const figure = (
     <figure className="m-0">
       {figureInner}
-      <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic">
-        — u/{comment.author} · ▲ {comment.score.toLocaleString()}
+      <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic flex items-center gap-1.5 flex-wrap">
+        <span>— u/{comment.author} · ▲ {comment.score.toLocaleString()}</span>
+        <span className="opacity-40">·</span>
+        <ShareCommentButton commentId={comment.id} />
       </figcaption>
     </figure>
   );

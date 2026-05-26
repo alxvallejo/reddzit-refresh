@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPause, faPlay, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { useCoarsePointer } from '../helpers/useCoarsePointer';
@@ -10,6 +10,12 @@ import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
 import { faBookmark as faBookmarkSolid, faShareNodes, faExpand, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+
+const Kbd = ({ children }: { children: ReactNode }) => (
+  <kbd className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.25rem] px-1 rounded border border-[var(--theme-border)] bg-[var(--theme-bgSecondary)] text-[var(--theme-text)] font-mono text-[10px] leading-none normal-case">
+    {children}
+  </kbd>
+);
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_DOTS = 9;
@@ -234,9 +240,13 @@ interface NewsCarouselProps {
   onSkipPost?: (postId: string) => void;
   onVisibleRangeChange?: (indices: number[]) => void;
   enableFullscreen?: boolean;
+  /** When true, the carousel's keyboard handler is suspended so an overlay can own input. */
+  tourActive?: boolean;
+  /** Optional callback wired to the footer "?" button; when omitted, the button is not rendered. */
+  onReplayTour?: () => void;
 }
 
-const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, enableFullscreen }: NewsCarouselProps) => {
+const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, enableFullscreen, tourActive = false, onReplayTour }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const isCoarsePointer = useCoarsePointer();
   const { saved, signedIn, savePost, unsavePost, redirectForAuth } = useReddit();
@@ -284,6 +294,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   const wasSwipingRef = useRef(false);
   const commentSwipeStartX = useRef<number | null>(null);
   const commentWasSwipingRef = useRef(false);
+  const tourActiveRef = useRef(tourActive);
+  const isHoverPausedRef = useRef(isHoverPaused);
+  const isManuallyPausedRef = useRef(isManuallyPaused);
   const total = posts.length;
   const effectivelyPaused = isHoverPaused || isManuallyPaused;
   const autoplayActive = total > 1 && !effectivelyPaused && tabVisible;
@@ -357,8 +370,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   }, [post?.id]);
 
   useEffect(() => {
+    tourActiveRef.current = tourActive;
+    isHoverPausedRef.current = isHoverPaused;
+    isManuallyPausedRef.current = isManuallyPaused;
+  });
+
+  useEffect(() => {
     if (total === 0) return;
     const onKey = (e: KeyboardEvent) => {
+      if (tourActiveRef.current) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') {
@@ -375,6 +395,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
         setCommentIndex(i =>
           e.key === 'ArrowDown' ? (i + 1) % commentCount : (i - 1 + commentCount) % commentCount
         );
+      } else if (e.key === ' ' || e.code === 'Space') {
+        if (total <= 1) return;
+        e.preventDefault();
+        if (isHoverPausedRef.current || isManuallyPausedRef.current) {
+          setIsManuallyPaused(false);
+          setIsHoverPaused(false);
+        } else {
+          setIsManuallyPaused(true);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -588,6 +617,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
     if (Math.abs(delta) >= SWIPE_THRESHOLD_PX) {
       wasSwipingRef.current = true;
       if (delta < 0) goNext(); else goPrev();
+    } else if (post) {
+      // setPointerCapture on this wrapper retargets the synthesized click to the
+      // wrapper itself, so HeroCard's onClick never fires. Treat a non-swipe
+      // pointerup as a tap and navigate directly.
+      onPostClick(post);
     }
     if (touchEnd) setIsHoverPaused(false);
   };
@@ -652,6 +686,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
     <>
       <div className={rowClass}>
         <div
+          data-tour="hero"
+          aria-keyshortcuts="ArrowLeft ArrowRight"
           className={heroWrapperClass}
           style={{ touchAction: 'pan-y' }}
           onPointerDown={onPointerDown}
@@ -666,7 +702,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
               return (
                 <div
                   key={p.id}
-                  className={`${isFirst ? 'h-full w-full' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'carousel-fade-out pointer-events-none'}`}
+                  className={`${isFirst ? 'h-full w-full' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'pointer-events-none'}`}
                 >
                   <HeroCard
                     post={p}
@@ -706,7 +742,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
           />
         </div>
         {commentCount > 0 && (
-          <aside className={asideClass}>
+          <aside
+            data-tour="comments"
+            aria-keyshortcuts="ArrowUp ArrowDown"
+            className={asideClass}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
                 Top comments
@@ -755,6 +795,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
             <>
               <button
                 type="button"
+                data-tour="pause"
+                aria-keyshortcuts="Space"
                 onClick={togglePlayback}
                 aria-label={effectivelyPaused ? 'Play' : 'Pause'}
                 title={effectivelyPaused ? 'Play' : 'Pause'}
@@ -790,13 +832,38 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
             </>
           )}
         </div>
-        <span className="text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
-          {total > 1
-            ? (effectivelyPaused
-                ? (isCoarsePointer ? 'paused · swipe' : 'paused · ← → arrows · swipe')
-                : 'auto-advancing · hover to pause')
-            : (isCoarsePointer ? 'swipe' : '← → arrows · swipe')}
-        </span>
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[var(--theme-textMuted)] opacity-70">
+          {(() => {
+            if (total > 1) {
+              if (effectivelyPaused) {
+                if (isCoarsePointer) return <span>paused · swipe</span>;
+                return (
+                  <span className="inline-flex items-center gap-1.5">
+                    paused · <Kbd>←</Kbd><Kbd>→</Kbd> arrows · swipe
+                  </span>
+                );
+              }
+              return <span>auto-advancing · hover to pause</span>;
+            }
+            if (isCoarsePointer) return <span>swipe</span>;
+            return (
+              <span className="inline-flex items-center gap-1.5">
+                <Kbd>←</Kbd><Kbd>→</Kbd> arrows · swipe
+              </span>
+            );
+          })()}
+          {onReplayTour && !isCoarsePointer && (
+            <button
+              type="button"
+              onClick={onReplayTour}
+              aria-label="Show keyboard shortcuts tour"
+              title="Show keyboard shortcuts"
+              className="ml-1 w-5 h-5 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-[var(--theme-textMuted)] hover:text-[var(--theme-text)] transition-colors"
+            >
+              <FontAwesomeIcon icon={faCircleQuestion} className="text-[10px]" />
+            </button>
+          )}
+        </div>
       </div>
       {toast && (
         <div
