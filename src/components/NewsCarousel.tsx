@@ -116,6 +116,12 @@ interface FullscreenShellProps {
 const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
   const { isLight } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  // Keep the ref pointed at the latest onClose without re-running the effect.
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     document.documentElement.classList.add('fullscreen-open');
@@ -137,7 +143,7 @@ const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
       if (!document.fullscreenElement) {
         // The browser exited fullscreen on us (Esc, back gesture, etc.).
         // Mirror that to our state so the overlay closes.
-        onClose();
+        onCloseRef.current();
       }
     };
     document.addEventListener('fullscreenchange', onFsChange);
@@ -145,15 +151,14 @@ const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
     return () => {
       document.documentElement.classList.remove('fullscreen-open');
       document.removeEventListener('fullscreenchange', onFsChange);
-      const orientationCleanup = (screen as unknown as { orientation?: { unlock?: () => void } }).orientation;
-      if (orientationCleanup?.unlock) {
-        try { orientationCleanup.unlock(); } catch { /* not always allowed; ignore */ }
+      if (orientation?.unlock) {
+        try { orientation.unlock(); } catch { /* not always allowed; ignore */ }
       }
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
     };
-  }, [onClose]);
+  }, []);
 
   const closeButtonClass = isLight
     ? 'text-gray-700 bg-white/80 hover:bg-gray-200'
