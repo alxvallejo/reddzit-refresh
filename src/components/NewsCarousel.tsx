@@ -116,15 +116,25 @@ interface FullscreenShellProps {
 const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
   const { isLight } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
-  const [isPortrait, setIsPortrait] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(orientation: portrait)').matches
-  );
+  const matchesRotateHint = () => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.matchMedia('(orientation: portrait)').matches &&
+      window.matchMedia('(pointer: coarse)').matches
+    );
+  };
+  const [showRotateHint, setShowRotateHint] = useState(matchesRotateHint);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mql = window.matchMedia('(orientation: portrait)');
-    const onChange = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
+    const orientationMql = window.matchMedia('(orientation: portrait)');
+    const pointerMql = window.matchMedia('(pointer: coarse)');
+    const update = () => setShowRotateHint(matchesRotateHint());
+    orientationMql.addEventListener('change', update);
+    pointerMql.addEventListener('change', update);
+    return () => {
+      orientationMql.removeEventListener('change', update);
+      pointerMql.removeEventListener('change', update);
+    };
   }, []);
   const onCloseRef = useRef(onClose);
 
@@ -200,7 +210,7 @@ const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
       >
         <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
       </button>
-      {isPortrait && (
+      {showRotateHint && (
         <div
           role="status"
           aria-live="polite"
