@@ -125,8 +125,31 @@ jobs:
             set -e
             echo "Restarting read-api to pick up updated dist/index.html..."
             if command -v pm2 >/dev/null 2>&1; then
-              pm2 restart read-api --update-env || pm2 start /var/www/read-api/server.js --name read-api -i 2
-              pm2 save || true
+              # cd into the app dir so dotenv finds /var/www/read-api/.env and
+              # server.js's relative requires resolve regardless of pm2's cwd.
+              cd /var/www/read-api
+              if pm2 describe read-api >/dev/null 2>&1; then
+                pm2 restart read-api --update-env
+              else
+                # Not in PM2 (e.g. lost after a crash/reboot) — register it fresh.
+                pm2 start server.js --name read-api -i 2 --update-env
+              fi
+              # Persist the process list so the next deploy's restart finds it and
+              # so it survives reboots via pm2 resurrect.
+              pm2 save
+              # A green deploy must NOT hide a dead API: poll until :3000 answers 200.
+              ok=0
+              for i in $(seq 1 15); do
+                code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/ || true)
+                if [ "$code" = "200" ]; then ok=1; break; fi
+                sleep 1
+              done
+              if [ "$ok" != "1" ]; then
+                echo "ERROR: read-api did not return 200 on :3000 after restart."
+                pm2 logs read-api --lines 30 --nostream || true
+                exit 1
+              fi
+              echo "read-api is up (200 on :3000)."
             elif sudo -n true 2>/dev/null && systemctl status read-api >/dev/null 2>&1; then
               sudo systemctl restart read-api
             else
