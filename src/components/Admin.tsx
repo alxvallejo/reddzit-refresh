@@ -39,6 +39,14 @@ interface Subscription {
   unsubscribedAt: string | null;
 }
 
+interface Feedback {
+  id: string;
+  message: string;
+  page: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
 interface Briefing {
   id: number;
   briefingTime: string;
@@ -120,6 +128,9 @@ const Admin = () => {
   const [usersTotalCount, setUsersTotalCount] = useState<number | null>(null);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [subscriptionsTotalCount, setSubscriptionsTotalCount] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [feedbackTotalCount, setFeedbackTotalCount] = useState<number | null>(null);
+  const [feedbackSearch, setFeedbackSearch] = useState('');
   const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [jobs, setJobs] = useState<CronJob[]>([]);
   const [redditUsage, setRedditUsage] = useState<RedditUsage | null>(null);
@@ -131,7 +142,7 @@ const Admin = () => {
   const [usersView, setUsersView] = useState<'loggedIn' | 'newsletter'>('loggedIn');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'briefings' | 'jobs'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'feedback' | 'briefings' | 'jobs'>('stats');
 
   // Auth header
   const getAuthHeaders = useCallback(() => ({
@@ -173,6 +184,25 @@ const Admin = () => {
       }
     } catch {
       setError('Failed to fetch newsletter signups');
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders]);
+
+  // Fetch feedback
+  const fetchFeedback = useCallback(async (search = '') => {
+    setLoading(true);
+    try {
+      const response = await axios.get<{ feedback: Feedback[]; pagination?: { total: number } }>(
+        `${API_BASE_URL}/api/admin/feedback?search=${encodeURIComponent(search)}`,
+        { headers: getAuthHeaders() }
+      );
+      setFeedback(response.data.feedback);
+      if (!search.trim() && response.data.pagination) {
+        setFeedbackTotalCount(response.data.pagination.total);
+      }
+    } catch {
+      setError('Failed to fetch feedback');
     } finally {
       setLoading(false);
     }
@@ -366,10 +396,11 @@ const Admin = () => {
         if (usersView === 'loggedIn') fetchUsers(userSearch);
         if (usersView === 'newsletter') fetchSubscriptions(userSearch);
       }
+      if (activeTab === 'feedback') fetchFeedback(feedbackSearch);
       if (activeTab === 'briefings') fetchBriefings();
       if (activeTab === 'jobs') fetchJobs();
     }
-  }, [authenticated, activeTab, fetchUsers, fetchSubscriptions, fetchBriefings, fetchJobs, fetchRedditUsage, fetchCacheStats, userSearch, usersView]);
+  }, [authenticated, activeTab, fetchUsers, fetchSubscriptions, fetchFeedback, fetchBriefings, fetchJobs, fetchRedditUsage, fetchCacheStats, userSearch, usersView, feedbackSearch]);
 
   // Format date
   const formatDate = (dateStr: string | null) => {
@@ -448,7 +479,7 @@ const Admin = () => {
 
         {/* Tabs */}
         <div className="flex gap-1 p-1 rounded-xl mb-8 bg-[var(--theme-bgSecondary)]">
-          {(['stats', 'users', 'briefings', 'jobs'] as const).map((tab) => (
+          {(['stats', 'users', 'feedback', 'briefings', 'jobs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -875,6 +906,44 @@ const Admin = () => {
                   </table>
                 </div>
               )
+            )}
+          </div>
+        )}
+
+        {/* Feedback Tab */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h2 className="text-xl font-bold text-[var(--theme-text)]">
+                Feedback{feedbackTotalCount !== null ? ` (${feedbackTotalCount.toLocaleString()})` : ''}
+              </h2>
+              <input
+                type="text"
+                value={feedbackSearch}
+                onChange={(e) => setFeedbackSearch(e.target.value)}
+                placeholder="Search message or page..."
+                className="px-4 py-2 rounded-lg bg-[var(--theme-bg)] text-[var(--theme-text)] border border-[var(--theme-border)] focus:outline-none focus:border-[var(--theme-primary)]"
+              />
+            </div>
+
+            {loading ? (
+              <div className="text-center py-12 text-[var(--theme-textMuted)]">Loading…</div>
+            ) : feedback.length === 0 ? (
+              <div className="text-center py-12 text-[var(--theme-textMuted)]">No feedback yet.</div>
+            ) : (
+              <div className="space-y-3">
+                {feedback.map((fb) => (
+                  <div key={fb.id} className="rounded-xl p-4 bg-[var(--theme-bg)] shadow">
+                    <p className="text-[var(--theme-text)] whitespace-pre-wrap break-words">{fb.message}</p>
+                    <div className="mt-3 flex items-center gap-3 flex-wrap text-xs text-[var(--theme-textMuted)]">
+                      <span>{formatDate(fb.createdAt)}</span>
+                      {fb.page && (
+                        <span className="px-2 py-0.5 rounded-full bg-[var(--theme-bgSecondary)]">{fb.page}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
