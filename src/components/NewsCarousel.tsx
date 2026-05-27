@@ -5,6 +5,7 @@ import { faPause, faPlay, faCircleQuestion } from '@fortawesome/free-solid-svg-i
 import { isDisplayableComment, type TrendingPost, type TrendingPostTopComment } from '../helpers/DailyService';
 import { useTheme } from '../context/ThemeContext';
 import { useCoarsePointer } from '../helpers/useCoarsePointer';
+import { usePortraitCoarse } from '../helpers/usePortraitCoarse';
 import { useReddit } from '../context/RedditContext';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
@@ -122,26 +123,7 @@ interface FullscreenShellProps {
 const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
   const { isLight } = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
-  const matchesRotateHint = () => {
-    if (typeof window === 'undefined') return false;
-    return (
-      window.matchMedia('(orientation: portrait)').matches &&
-      window.matchMedia('(pointer: coarse)').matches
-    );
-  };
-  const [showRotateHint, setShowRotateHint] = useState(matchesRotateHint);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const orientationMql = window.matchMedia('(orientation: portrait)');
-    const pointerMql = window.matchMedia('(pointer: coarse)');
-    const update = () => setShowRotateHint(matchesRotateHint());
-    orientationMql.addEventListener('change', update);
-    pointerMql.addEventListener('change', update);
-    return () => {
-      orientationMql.removeEventListener('change', update);
-      pointerMql.removeEventListener('change', update);
-    };
-  }, []);
+  const showRotateHint = usePortraitCoarse();
   const onCloseRef = useRef(onClose);
 
   // Keep the ref pointed at the latest onClose without re-running the effect.
@@ -223,7 +205,7 @@ const FullscreenShell = ({ onClose, children }: FullscreenShellProps) => {
           className="absolute left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-full text-xs font-medium shadow-lg pointer-events-none bg-black/70 text-white"
           style={{ top: 'max(env(safe-area-inset-top), 0.5rem)' }}
         >
-          Rotate your phone for landscape
+          Rotate for a wider view
         </div>
       )}
       <div className="flex-1 min-h-0 w-full overflow-hidden">
@@ -249,6 +231,7 @@ interface NewsCarouselProps {
 const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, enableFullscreen, tourActive = false, onReplayTour }: NewsCarouselProps) => {
   const { isLight } = useTheme();
   const isCoarsePointer = useCoarsePointer();
+  const isPortraitCoarse = usePortraitCoarse();
   const { saved, signedIn, savePost, unsavePost, redirectForAuth } = useReddit();
   const [index, setIndex] = useState(0);
   const [isHoverPaused, setIsHoverPaused] = useState(false);
@@ -651,13 +634,21 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   const dotsToShow = Math.min(total, MAX_DOTS);
   const dotOffset = Math.max(0, Math.min(total - dotsToShow, safeIndex - Math.floor(dotsToShow / 2)));
 
-  const heroWrapperClass =
-    isFullscreen
+  // Touch devices in portrait can't fit the side-by-side fullscreen layout, so
+  // stack hero-over-comments instead of forcing a rotation.
+  const stackedFullscreen = isFullscreen && isPortraitCoarse;
+
+  const heroWrapperClass = stackedFullscreen
+    ? 'relative basis-[55%] flex-shrink-0 min-h-0 overflow-hidden rounded-xl select-none'
+    : isFullscreen
       ? 'relative basis-[62%] flex-shrink-0 min-h-0 overflow-hidden rounded-xl select-none'
       : 'relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none';
 
-  const asideClass =
-    isFullscreen
+  const asideClass = stackedFullscreen
+    ? `flex-1 min-w-0 min-h-0 overflow-y-auto select-none ${
+        isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-3' : ''
+      }`
+    : isFullscreen
       ? `flex-1 min-w-0 max-h-full overflow-y-auto select-none ${
           isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-3' : ''
         }`
@@ -665,8 +656,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
           isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-5 md:p-6' : ''
         }`;
 
-  const rowClass =
-    isFullscreen
+  const rowClass = stackedFullscreen
+    ? `flex flex-col gap-3 flex-1 min-h-0 ${commentCount === 0 ? 'justify-center' : ''}`
+    : isFullscreen
       ? `flex flex-row gap-3 items-stretch flex-1 min-h-0 ${commentCount === 0 ? 'justify-center' : ''}`
       : `md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`;
 
