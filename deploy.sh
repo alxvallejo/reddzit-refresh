@@ -6,7 +6,7 @@ echo "🚀 Starting Reddzit-Refresh Deployment..."
 
 # Pull latest changes
 echo "📥 Pulling latest changes..."
-git pull origin master
+git pull origin main
 
 # Install dependencies
 echo "📦 Installing dependencies..."
