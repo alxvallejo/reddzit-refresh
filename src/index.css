@@ -2,6 +2,14 @@
 
 @plugin "@tailwindcss/typography";
 
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @theme {
   --color-primary: #b6aaf1;
   --color-primary-dark: #7563ca;
