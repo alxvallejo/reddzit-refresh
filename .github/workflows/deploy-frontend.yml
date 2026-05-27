@@ -39,7 +39,7 @@ jobs:
         run: |
           tar -czf dist.tar.gz -C dist .
 
-      - name: Ensure target directory exists and clean
+      - name: Ensure target directory exists
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -65,7 +65,9 @@ jobs:
               sudo chown -R $USER:$USER /var/www/reddzit-refresh
             fi
             mkdir -p /var/www/reddzit-refresh/dist
-            rm -rf /var/www/reddzit-refresh/dist/*
+            # NOTE: the live dist is intentionally NOT cleaned here. It is replaced
+            # atomically in the extract step only after a verified-good upload, so a
+            # failed/partial scp can never leave the site serving an empty dist.
 
       - name: Upload assets
         uses: appleboy/scp-action@v0.1.7
@@ -86,11 +88,26 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -e
-            # Extract without trying to change owner/perms or mtime (avoids utime/mode errors)
-            tar -xzf /tmp/dist.tar.gz -C /var/www/reddzit-refresh/dist --no-same-owner --no-same-permissions -m || true
+            BASE=/var/www/reddzit-refresh
+            STAGING="$BASE/dist.incoming"
+            # Stage the new build in a temp dir on the same filesystem so the final
+            # swap is a cheap atomic rename and a broken build can't clobber the
+            # live dist. --no-same-owner/permissions avoids tar utime/mode errors.
+            rm -rf "$STAGING"
+            mkdir -p "$STAGING"
+            tar -xzf /tmp/dist.tar.gz -C "$STAGING" --no-same-owner --no-same-permissions -m
+            # Fail the deploy WITHOUT touching the live dist if the build is broken.
+            test -f "$STAGING/index.html"
+            # Swap staging into place, keeping the previous build briefly for safety.
+            rm -rf "$BASE/dist.old"
+            if [ -d "$BASE/dist" ]; then
+              mv "$BASE/dist" "$BASE/dist.old"
+            fi
+            mv "$STAGING" "$BASE/dist"
+            rm -rf "$BASE/dist.old"
             rm -f /tmp/dist.tar.gz
             if sudo -n true 2>/dev/null; then
-              sudo chown -R www-data:www-data /var/www/reddzit-refresh/dist
+              sudo chown -R www-data:www-data "$BASE/dist"
               sudo systemctl reload nginx || true
             else
               echo "Skipping chown and nginx reload (no sudo)."
