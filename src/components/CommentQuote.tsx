@@ -180,10 +180,16 @@ function ShareCommentButton({ commentId }: { commentId: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Stop pointer events so the carousel's comment swipe container doesn't
+  // setPointerCapture and swallow the synthesized click on touch devices.
+  const stopPointer = (e: React.PointerEvent) => e.stopPropagation();
+
   return (
     <button
       type="button"
       onClick={handleClick}
+      onPointerDown={stopPointer}
+      onPointerUp={stopPointer}
       className="inline-flex items-center gap-1 px-1.5 py-0.5 -my-0.5 rounded text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)] transition-colors border-none bg-transparent cursor-pointer text-xs"
       title={copied ? 'Link copied!' : 'Share this comment'}
     >
