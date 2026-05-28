@@ -362,6 +362,8 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
     if (total === 0) return;
     const onKey = (e: KeyboardEvent) => {
       if (tourActiveRef.current) return;
+      // Ignore OS key auto-repeat so a slightly-long press advances one slide, not several.
+      if (e.repeat) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === 'ArrowLeft') {
