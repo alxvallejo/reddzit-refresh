@@ -158,19 +158,47 @@ function buildCommentFullname(id: string): string {
   return id.startsWith('t1_') ? id : `t1_${id}`;
 }
 
-function ShareCommentButton({ commentId }: { commentId: string }) {
+const SHARE_BODY_MAX = 240;
+
+function extractPostFullname(permalink: string | null): string | null {
+  if (!permalink) return null;
+  const m = permalink.match(/\/comments\/([^/]+)/);
+  return m ? `t3_${m[1]}` : null;
+}
+
+function buildShareText(body: string, permalink: string | null, commentId: string): string {
+  const decoded = decodeHtmlEntities(body).trim();
+  let excerpt = decoded;
+  if (excerpt.length > SHARE_BODY_MAX) {
+    const slice = excerpt.slice(0, SHARE_BODY_MAX);
+    const lastSpace = slice.lastIndexOf(' ');
+    excerpt = (lastSpace > SHARE_BODY_MAX * 0.6 ? slice.slice(0, lastSpace) : slice).trimEnd() + '…';
+  }
+  const postFullname = extractPostFullname(permalink);
+  const url = postFullname
+    ? `${window.location.origin}/p/${postFullname}`
+    : `${window.location.origin}/c/${buildCommentFullname(commentId)}`;
+  return `"${excerpt}"\n${url}`;
+}
+
+interface ShareCommentButtonProps {
+  commentId: string;
+  body: string;
+  permalink: string | null;
+}
+
+function ShareCommentButton({ commentId, body, permalink }: ShareCommentButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const fullname = buildCommentFullname(commentId);
-    const url = `${window.location.origin}/c/${fullname}`;
+    const text = buildShareText(body, permalink, commentId);
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(text);
     } catch {
-      const input = document.createElement('input');
-      input.value = url;
+      const input = document.createElement('textarea');
+      input.value = text;
       document.body.appendChild(input);
       input.select();
       document.execCommand('copy');
@@ -191,7 +219,7 @@ function ShareCommentButton({ commentId }: { commentId: string }) {
       onPointerDown={stopPointer}
       onPointerUp={stopPointer}
       className="inline-flex items-center gap-1 px-1.5 py-0.5 -my-0.5 rounded text-[var(--theme-textMuted)] hover:text-[var(--theme-primary)] transition-colors border-none bg-transparent cursor-pointer text-xs"
-      title={copied ? 'Link copied!' : 'Share this comment'}
+      title={copied ? 'Copied to clipboard!' : 'Copy comment text + link to share'}
     >
       <FontAwesomeIcon icon={faShareNodes} className="text-xs" />
       <span>{copied ? 'Copied!' : 'Share'}</span>
@@ -246,7 +274,7 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
             · ▲ {comment.score.toLocaleString()}
           </span>
           <span className="opacity-40">·</span>
-          <ShareCommentButton commentId={comment.id} />
+          <ShareCommentButton commentId={comment.id} body={comment.body} permalink={comment.permalink} />
         </figcaption>
       </figure>
     );
