@@ -232,10 +232,10 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, he
         aria-label={getDisplayTitle(post)}
         className={`relative ${shapeClass} cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition bg-gradient-to-br from-[var(--theme-cardBg)] via-[var(--theme-bgSecondary)] to-[var(--theme-cardBg)]`}
       >
-        {onSkip && <SkipButton onSkip={onSkip} position="bottom" />}
+        {onSkip && <SkipButton onSkip={onSkip} />}
         {headerSlot}
         <div className="absolute inset-0 flex flex-col px-5 md:px-8 py-4 md:py-6 gap-3 md:gap-4">
-          <div className="flex items-center justify-between gap-2 flex-shrink-0">
+          <div className={`flex items-center justify-between gap-2 flex-shrink-0 ${onSkip ? 'pr-12' : ''}`}>
             <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] md:text-[0.7rem] font-semibold bg-[var(--theme-primary)] text-[#262129] flex-shrink-0">
               r/{post.subreddit}
             </span>
