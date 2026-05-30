@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
@@ -33,6 +33,13 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
   const location = useLocation();
   const activeTab = getTabFromPath(location.pathname);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Count a menu impression when the dropdown opens with the install item visible.
+  useEffect(() => {
+    if (showUserMenu && signedIn && user && showInstall) {
+      trackEvent('a2hs_prompt_shown', { surface: 'menu', platform });
+    }
+  }, [showUserMenu, signedIn, user, showInstall, platform]);
 
   const tabClass = (tab: Tab) =>
     `px-3 sm:px-4 py-2 text-sm font-medium transition-colors border-0 border-b-2 cursor-pointer whitespace-nowrap ${
@@ -202,7 +209,6 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
           {showInstall && (
             <button
               onClick={() => {
-                trackEvent('a2hs_prompt_shown', { surface: 'menu', platform });
                 trackEvent('a2hs_prompt_clicked', { surface: 'menu', platform });
                 setShowUserMenu(false);
                 void promptInstall('menu');
