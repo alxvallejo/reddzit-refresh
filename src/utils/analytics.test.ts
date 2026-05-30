@@ -1,14 +1,17 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { trackEvent } from './analytics';
 
+// Typed view of globalThis so we can stub `window` without `any`.
+const globalRef = globalThis as { window?: { gtag?: (...args: unknown[]) => void } };
+
 afterEach(() => {
-  delete (globalThis as any).window;
+  delete globalRef.window;
 });
 
 describe('trackEvent', () => {
   it('calls window.gtag with event name and params', () => {
     const calls: unknown[][] = [];
-    (globalThis as any).window = {
+    globalRef.window = {
       gtag: (...args: unknown[]) => calls.push(args),
     };
     trackEvent('a2hs_installed', { platform: 'android' });
@@ -16,7 +19,7 @@ describe('trackEvent', () => {
   });
 
   it('no-ops safely when gtag is absent', () => {
-    (globalThis as any).window = {};
+    globalRef.window = {};
     expect(() => trackEvent('a2hs_installed')).not.toThrow();
   });
 

@@ -116,7 +116,9 @@ export function AddToHomeScreenProvider({ children }: { children: ReactNode }) {
     trackEvent('a2hs_ios_instructions_shown');
   };
 
-  const promptInstall = async (_surface: 'banner' | 'menu') => {
+  // `surface` is part of the public type for call-site clarity; the
+  // implementation behaves identically regardless of which surface invoked it.
+  const promptInstall = async () => {
     if (platform === 'ios') {
       openInstructions();
       return;
