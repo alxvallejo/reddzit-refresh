@@ -286,7 +286,7 @@ export default function CommentQuote({ comment, size = 'lg' }: CommentQuoteProps
       <figcaption className="mt-3 text-xs text-[var(--theme-textMuted)] not-italic flex items-center gap-1.5 flex-wrap">
         <span>— u/{comment.author} · ▲ {comment.score.toLocaleString()}</span>
         <span className="opacity-40">·</span>
-        <ShareCommentButton commentId={comment.id} />
+        <ShareCommentButton commentId={comment.id} body={comment.body} permalink={comment.permalink} />
       </figcaption>
     </figure>
   );
