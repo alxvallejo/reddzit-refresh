@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /foryou
+Disallow: /links
+Disallow: /quotes
+Disallow: /stories
+Disallow: /admin
+Disallow: /reddit
+
+Sitemap: https://reddzit.com/sitemap.xml
