@@ -4,7 +4,9 @@ import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
 import ThemeSwitcher from './ThemeSwitcher';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faCoffee, faSignOutAlt, faQuoteLeft, faBookOpen, faPenNib, faArrowUp, faBookmark, faBinoculars, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faCoffee, faSignOutAlt, faQuoteLeft, faBookOpen, faPenNib, faArrowUp, faBookmark, faBinoculars, faLink, faMobileScreenButton } from '@fortawesome/free-solid-svg-icons';
+import { useAddToHomeScreen } from '../context/AddToHomeScreenContext';
+import { trackEvent } from '../utils/analytics';
 
 type Tab = 'top' | 'saved' | 'foryou' | 'links' | 'stories' | 'quotes' | null;
 
@@ -25,6 +27,8 @@ interface MainHeaderProps {
 export default function MainHeader({ pageTitle }: MainHeaderProps) {
   const { signedIn, user, logout, redirectForAuth } = useReddit();
   const { isLight } = useTheme();
+  const { isStandalone, canPrompt, platform, promptInstall } = useAddToHomeScreen();
+  const showInstall = !isStandalone && (canPrompt || platform === 'ios');
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab = getTabFromPath(location.pathname);
@@ -195,6 +199,22 @@ export default function MainHeader({ pageTitle }: MainHeaderProps) {
             <FontAwesomeIcon icon={faBookOpen} className="w-4 text-gray-400" />
             Your Stories
           </Link>
+          {showInstall && (
+            <button
+              onClick={() => {
+                trackEvent('a2hs_prompt_shown', { surface: 'menu', platform });
+                trackEvent('a2hs_prompt_clicked', { surface: 'menu', platform });
+                setShowUserMenu(false);
+                void promptInstall('menu');
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm no-underline text-left border-none bg-transparent cursor-pointer text-[var(--theme-text)] ${
+                isLight ? 'hover:bg-gray-50' : 'hover:bg-white/10'
+              }`}
+            >
+              <FontAwesomeIcon icon={faMobileScreenButton} className="w-4 text-gray-400" />
+              Add to Home Screen
+            </button>
+          )}
           <a
             href="https://www.buymeacoffee.com/reddzit"
             target="_blank"
