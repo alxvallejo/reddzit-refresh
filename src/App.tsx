@@ -1,9 +1,11 @@
 // import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import ReactGA from 'react-ga';
 import { RedditProvider } from './context/RedditContext';
 import { ThemeProvider } from './context/ThemeContext';
 import AppShell from './components/AppShell';
+import { AddToHomeScreenProvider } from './context/AddToHomeScreenContext';
+import AddToHomeScreenBanner from './components/AddToHomeScreenBanner';
+import AddToHomeScreenInstructions from './components/AddToHomeScreenInstructions';
 import TrendingMarquee from './components/TrendingMarquee';
 import About from './components/About';
 import PostView from './components/PostView';
@@ -27,8 +29,11 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <RedditProvider>
+          <AddToHomeScreenProvider>
           <div className='App'>
           <TrendingMarquee />
+          <AddToHomeScreenBanner />
+          <AddToHomeScreenInstructions />
           <Routes>
             <Route index path='/' element={<HomePage />} />
             <Route path='/welcome' element={<LandingPage />} />
@@ -56,6 +61,7 @@ function App() {
             <Route path='/privacy' element={<PrivacyPolicy />} />
             </Routes>
           </div>
+          </AddToHomeScreenProvider>
         </RedditProvider>
       </ThemeProvider>
     </BrowserRouter>
