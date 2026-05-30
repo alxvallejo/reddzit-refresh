@@ -1,6 +1,8 @@
 # Reddzit
 
-A personalized Reddit client built with React, TypeScript, and Vite.
+**Keep track of your saved Reddit posts and comments.** A clean reader for browsing top stories, saving what matters, and revisiting it later — minus the doomscroll.
+
+Built with React, TypeScript, and Vite.
 
 ## Product Features
 
