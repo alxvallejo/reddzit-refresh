@@ -34,6 +34,40 @@
     <meta property="twitter:title" data-rh="true" content="Reddzit: Keep track of your saved Reddit posts and comments" />
     <meta property="twitter:description" data-rh="true" content="Keep track of your saved Reddit posts and comments. A clean reader for browsing top stories, saving what matters, and revisiting it later — minus the doomscroll." />
     <meta property="twitter:image" data-rh="true" content="https://reddzit.com/og-image.png" />
+
+    <!-- Structured data (schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://reddzit.com/#organization",
+          "name": "Reddzit",
+          "url": "https://reddzit.com/",
+          "logo": "https://reddzit.com/icons/icon-512.png",
+          "sameAs": [
+            "https://chromewebstore.google.com/detail/reddzit-save-quotes-from/pphbloclmhhppmiknfjpddkefnialknl"
+          ]
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://reddzit.com/#webapp",
+          "name": "Reddzit",
+          "url": "https://reddzit.com/",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Web",
+          "description": "Keep track of your saved Reddit posts and comments. A clean reader for browsing top stories, saving what matters, and revisiting it later.",
+          "publisher": { "@id": "https://reddzit.com/#organization" },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        }
+      ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Brygada+1918:ital,wght@0,400..700;1,400..700&family=Cactus+Classical+Serif&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=IBM+Plex+Sans:wght@100;200;300;400&family=Libertinus+Math&family=Noto+Znamenny+Musical+Notation&family=Outfit:wght@100..900&family=Reddit+Sans:ital,wght@0,200..900;1,200..900&family=Tirra:wght@400;500;600;700;800;900&family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
