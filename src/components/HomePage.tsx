@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import AppShell from './AppShell';
+import Seo from './Seo';
 import StickyPromoFooter from './StickyPromoFooter';
 
 const SNAPSHOT_URL = '/snapshots/news.json';
@@ -51,6 +52,11 @@ const HomePage = () => {
 
   return (
     <>
+      <Seo
+        title="Reddzit: Keep track of your saved Reddit posts and comments"
+        description="Keep track of your saved Reddit posts and comments. A clean reader for browsing top stories, saving what matters, and revisiting it later — minus the doomscroll."
+        path="/"
+      />
       <AppShell />
       <StickyPromoFooter />
     </>

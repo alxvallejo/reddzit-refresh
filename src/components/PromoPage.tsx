@@ -1,6 +1,7 @@
 import { useTheme } from '../context/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft, faBookmark, faBinoculars } from '@fortawesome/free-solid-svg-icons';
+import Seo from './Seo';
 
 const CHROME_STORE_URL = 'https://chromewebstore.google.com/detail/reddzit-save-quotes-from/pphbloclmhhppmiknfjpddkefnialknl';
 
@@ -103,6 +104,11 @@ export default function PromoPage() {
       className="min-h-screen"
       style={{ backgroundColor: 'var(--theme-bg)' }}
     >
+      <Seo
+        title="Reddzit — keep track of your saved Reddit posts"
+        description="A clean reader for browsing top stories, saving what matters, and revisiting it later."
+        path="/promo"
+      />
       {/* Hero Section */}
       <section
         className="relative flex flex-col items-center justify-center text-center px-6 md:px-8 min-h-screen md:min-h-0"
