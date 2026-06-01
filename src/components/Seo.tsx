@@ -29,12 +29,15 @@ export default function Seo({
       <meta name="description" content={description} />
       <link rel="canonical" href={url} />
       {noindex ? <meta name="robots" content="noindex" /> : null}
+      <meta property="og:type" content="website" />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
+      <meta property="twitter:card" content="summary_large_image" />
       <meta property="twitter:title" content={title} />
       <meta property="twitter:description" content={description} />
+      <meta property="twitter:url" content={url} />
       <meta property="twitter:image" content={image} />
     </Helmet>
   );
