@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { faArrowAltCircleLeft, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import API_BASE_URL from '../config/api';
+import Seo from './Seo';
 
 const About = () => {
     const location = useLocation();
@@ -39,6 +40,11 @@ const About = () => {
 
     return (
         <div className="min-h-screen bg-[var(--color-primary)] flex items-center justify-center p-4">
+            <Seo
+                title="About Reddzit — a clean reader for your saved Reddit"
+                description="Why we built Reddzit and how it keeps your saved posts and comments organized."
+                path="/about"
+            />
             <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
                 <div className="flex justify-between items-center mb-6">
                     <Link className="text-[var(--color-primary)] text-2xl hover:text-[var(--color-primary-dark)] transition-colors" to="/">

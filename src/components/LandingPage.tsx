@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useReddit } from '../context/RedditContext';
 import { useTheme } from '../context/ThemeContext';
+import Seo from './Seo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowUp,
@@ -182,6 +183,11 @@ export default function LandingPage() {
       className="min-h-screen"
       style={{ backgroundColor: 'var(--theme-bg)' }}
     >
+      <Seo
+        title="Welcome to Reddzit — a calmer Reddit reader"
+        description="Sign in to browse top stories, save what matters, and skip the doomscroll."
+        path="/welcome"
+      />
       <MainHeader />
 
       {/* Hero Section */}

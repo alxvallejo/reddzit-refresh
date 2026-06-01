@@ -2,10 +2,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { faArrowAltCircleLeft } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Seo from './Seo';
 
 const PrivacyPolicy = () => {
     return (
         <div className="min-h-screen bg-[var(--color-primary)] flex items-center justify-center p-4">
+            <Seo
+                title="Privacy Policy — Reddzit"
+                description="How Reddzit handles your data and Reddit account access."
+                path="/privacy"
+            />
             <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full">
                 <div className="flex justify-between items-center mb-6">
                     <Link className="text-[var(--color-primary)] text-2xl hover:text-[var(--color-primary-dark)] transition-colors" to="/">

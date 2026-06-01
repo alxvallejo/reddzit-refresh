@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { RedditProvider } from './context/RedditContext';
 import { ThemeProvider } from './context/ThemeContext';
 import AppShell from './components/AppShell';
+import Seo from './components/Seo';
 import { AddToHomeScreenProvider } from './context/AddToHomeScreenContext';
 import AddToHomeScreenBanner from './components/AddToHomeScreenBanner';
 import AddToHomeScreenInstructions from './components/AddToHomeScreenInstructions';
@@ -37,8 +38,8 @@ function App() {
           <Routes>
             <Route index path='/' element={<HomePage />} />
             <Route path='/welcome' element={<LandingPage />} />
-            <Route path='/news' element={<AppShell />} />
-            <Route path='/top' element={<AppShell />} />
+            <Route path='/news' element={<><Seo title='Trending Reddit news — Reddzit' description="The day's top Reddit stories in a clean, fast reader." path='/news' /><AppShell /></>} />
+            <Route path='/top' element={<><Seo title='Top Reddit posts today — Reddzit' description="Browse today's top posts across Reddit without the noise." path='/top' /><AppShell /></>} />
             <Route path='/feed/:subreddit' element={<AppShell />} />
             <Route path='/foryou' element={<AppShell />} />
             <Route path='/reddit' element={<AppShell />} />
