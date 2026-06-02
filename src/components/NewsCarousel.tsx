@@ -647,14 +647,14 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
       : 'relative w-full aspect-[4/5] md:aspect-[16/9] md:basis-3/4 md:flex-shrink-0 overflow-hidden rounded-xl select-none';
 
   const asideClass = stackedFullscreen
-    ? `flex-1 min-w-0 min-h-0 overflow-y-auto select-none ${
+    ? `flex-1 min-w-0 min-h-0 overflow-y-auto scrollbar-hide select-none ${
         isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-3' : ''
       }`
     : isFullscreen
-      ? `flex-1 min-w-0 max-h-full overflow-y-auto select-none ${
+      ? `flex-1 min-w-0 max-h-full overflow-y-auto scrollbar-hide select-none ${
           isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-3' : ''
         }`
-      : `mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto select-none ${
+      : `mt-6 md:mt-0 md:flex-1 md:min-w-0 md:max-h-[calc(100vh-16rem)] md:overflow-y-auto scrollbar-hide select-none ${
           isLight ? 'rounded-2xl bg-[rgba(249,115,22,0.08)] p-5 md:p-6' : ''
         }`;
 
