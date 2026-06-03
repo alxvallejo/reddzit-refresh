@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useCoarsePointer } from '../helpers/useCoarsePointer';
 import { usePortraitCoarse } from '../helpers/usePortraitCoarse';
 import { useReddit } from '../context/RedditContext';
+import { useAddToHomeScreen } from '../context/AddToHomeScreenContext';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
 import ActionBar from './ActionBar';
@@ -234,6 +235,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   const isCoarsePointer = useCoarsePointer();
   const isPortraitCoarse = usePortraitCoarse();
   const { saved, signedIn, savePost, unsavePost, redirectForAuth } = useReddit();
+  const { shouldAutoShow: a2hsVisible } = useAddToHomeScreen();
   const [index, setIndex] = useState(0);
   const [isHoverPaused, setIsHoverPaused] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
@@ -668,7 +670,9 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
   const footerClass =
     isFullscreen
       ? 'flex flex-col items-center gap-2 mt-2 flex-shrink-0'
-      : 'flex flex-col items-center gap-2 mt-5';
+      : // On mobile the sticky bottom control bar replaces this footer; show it
+        // only from md up. In fullscreen it stays visible (no sticky bar there).
+        'hidden md:flex flex-col items-center gap-2 mt-5';
 
   const pauseHandlers = {
     onMouseEnter: () => setIsHoverPaused(true),
@@ -708,40 +712,6 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                     headerSlot={enableFullscreen && isCoarsePointer && isLast && !isFullscreen ? (
                       <FullscreenEnterButton onEnter={() => setIsFullscreen(true)} />
                     ) : undefined}
-                    actionsSlot={isLast ? (
-                      <ActionBar
-                        className="md:hidden mt-2"
-                        actions={[
-                          {
-                            key: 'save',
-                            icon: isCurrentSaved ? faBookmarkSolid : faBookmarkRegular,
-                            label: isCurrentSaved ? 'Saved' : 'Save',
-                            title: isCurrentSaved ? 'Unsave' : 'Save',
-                            onClick: handleToggleSave,
-                            active: isCurrentSaved,
-                          },
-                          {
-                            key: 'share',
-                            icon: faShareNodes,
-                            label: 'Share',
-                            title: 'Share',
-                            onClick: handleShare,
-                          },
-                          ...(onSkipPost
-                            ? [{
-                                key: 'hide',
-                                icon: faEyeSlash,
-                                label: 'Hide',
-                                title: 'Hide post',
-                                onClick: (e: React.MouseEvent) => {
-                                  e.stopPropagation();
-                                  onSkipPost(p.id);
-                                },
-                              }]
-                            : []),
-                        ]}
-                      />
-                    ) : undefined}
                   />
                 </div>
               );
@@ -755,32 +725,6 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                 style={{ animationDuration: `${AUTOPLAY_INTERVAL_MS}ms` }}
               />
             </div>
-          )}
-          {total > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); goPrev(); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onPointerUp={(e) => e.stopPropagation()}
-                aria-label="Previous post"
-                title="Previous post"
-                className="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center text-white bg-black/50 hover:bg-black/70"
-              >
-                <FontAwesomeIcon icon={faChevronLeft} className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); goNext(); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onPointerUp={(e) => e.stopPropagation()}
-                aria-label="Next post"
-                title="Next post"
-                className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center text-white bg-black/50 hover:bg-black/70"
-              >
-                <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5" />
-              </button>
-            </>
           )}
           <SlideActions
             isSaved={isCurrentSaved}
@@ -938,12 +882,111 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
     );
   }
 
+  // Mobile sticky control bar: position strip (play/pause · dots · counter)
+  // above a pill holding prev · Save · Share · Hide · next. Replaces the
+  // on-slide buttons and the in-flow footer on small screens.
+  const navButton = (dir: 'prev' | 'next') => (
+    <button
+      type="button"
+      onClick={dir === 'prev' ? goPrev : goNext}
+      aria-label={dir === 'prev' ? 'Previous post' : 'Next post'}
+      title={dir === 'prev' ? 'Previous post' : 'Next post'}
+      className="flex items-center justify-center px-3 py-3 text-lg text-inherit hover:text-white transition-colors border-none bg-transparent cursor-pointer"
+    >
+      <FontAwesomeIcon icon={dir === 'prev' ? faChevronLeft : faChevronRight} />
+    </button>
+  );
+
+  const stripClass = `pointer-events-auto flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-xl border ${
+    isLight ? 'bg-gray-900/85 border-gray-700/50 text-gray-200' : 'bg-white/8 border-white/15 text-white/80'
+  }`;
+
+  const mobileControls = (
+    <div
+      className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-2 pointer-events-none flex flex-col items-center gap-2"
+      style={{
+        paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+        marginBottom: a2hsVisible ? '5.5rem' : undefined,
+      }}
+    >
+      {total > 1 && (
+        <div className={stripClass}>
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-label={effectivelyPaused ? 'Play' : 'Pause'}
+            title={effectivelyPaused ? 'Play' : 'Pause'}
+            className="w-5 h-5 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-inherit"
+          >
+            <FontAwesomeIcon icon={effectivelyPaused ? faPlay : faPause} className="text-[10px]" />
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: dotsToShow }).map((_, i) => {
+              const idx = i + dotOffset;
+              const active = idx === safeIndex;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => goTo(idx)}
+                  aria-label={`Go to post ${idx + 1}`}
+                  className={`rounded-full transition border-none cursor-pointer ${
+                    active ? 'bg-[var(--theme-primary)]' : 'bg-white/40 hover:bg-white/60'
+                  }`}
+                  style={{ width: active ? '18px' : '6px', height: '6px' }}
+                />
+              );
+            })}
+          </div>
+          <span className="text-[11px] tabular-nums opacity-80">
+            {safeIndex + 1} / {total}
+          </span>
+        </div>
+      )}
+      <ActionBar
+        className="w-full max-w-md"
+        leading={total > 1 ? navButton('prev') : undefined}
+        trailing={total > 1 ? navButton('next') : undefined}
+        actions={[
+          {
+            key: 'save',
+            icon: isCurrentSaved ? faBookmarkSolid : faBookmarkRegular,
+            label: isCurrentSaved ? 'Saved' : 'Save',
+            title: isCurrentSaved ? 'Unsave' : 'Save',
+            onClick: handleToggleSave,
+            active: isCurrentSaved,
+          },
+          {
+            key: 'share',
+            icon: faShareNodes,
+            label: 'Share',
+            title: 'Share',
+            onClick: handleShare,
+          },
+          ...(onSkipPost
+            ? [{
+                key: 'hide',
+                icon: faEyeSlash,
+                label: 'Hide',
+                title: 'Hide post',
+                onClick: (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  onSkipPost(post.id);
+                },
+              }]
+            : []),
+        ]}
+      />
+    </div>
+  );
+
   return (
     <main
-      className="max-w-screen-2xl mx-auto px-4 pt-4 pb-8"
+      className="max-w-screen-2xl mx-auto px-4 pt-4 pb-36 md:pb-8"
       {...pauseHandlers}
     >
       {carouselBody}
+      {mobileControls}
     </main>
   );
 };

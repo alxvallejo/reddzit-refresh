@@ -1,7 +1,8 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTableCellsLarge, faRectangleList, faShuffle } from '@fortawesome/free-solid-svg-icons';
+import { faTableCellsLarge, faRectangleList, faShuffle, faSliders, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../context/ThemeContext';
 import DailyService, {
   isDisplayableComment,
@@ -96,6 +97,7 @@ const TopFeed = () => {
   const [skippedPostIds, setSkippedPostIds] = useState<Set<string>>(() => loadSkippedPosts());
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [randomize, setRandomize] = useState<boolean>(() => loadRandomize());
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [shuffleSeed, setShuffleSeed] = useState(0);
   const tourRef = useRef<CarouselOnboardingTourHandle>(null);
   const [tourActive, setTourActive] = useState(false);
@@ -409,7 +411,16 @@ const TopFeed = () => {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-end">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              aria-label="Filters"
+              className="sm:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs cursor-pointer border border-[var(--theme-border)] bg-[var(--theme-cardBg)] text-[var(--theme-text)]"
+            >
+              <FontAwesomeIcon icon={faSliders} className="w-3 h-3" />
+              Filters
+            </button>
+            <div className="hidden sm:flex items-center gap-2 flex-wrap justify-end">
               {newestPostAgeSeconds !== null && (
                 <span
                   className={`text-[11px] ${isStaleData ? 'text-amber-600' : 'text-[var(--theme-textMuted)]'}`}
@@ -492,6 +503,109 @@ const TopFeed = () => {
           </div>
         </div>
       </header>
+
+      {/* Mobile filters bottom sheet */}
+      {filtersOpen && createPortal(
+        <div className="sm:hidden fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Filters">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setFiltersOpen(false)}
+          />
+          <div
+            className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-[var(--theme-bg)] border-t border-[var(--theme-border)] p-4 shadow-2xl"
+            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[var(--theme-text)] m-0">Filters</h2>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen(false)}
+                aria-label="Close filters"
+                className="w-8 h-8 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-[var(--theme-textMuted)] hover:text-[var(--theme-text)]"
+              >
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <span className="block text-[11px] uppercase tracking-wide text-[var(--theme-textMuted)] mb-2">View</span>
+                <div role="group" aria-label="View mode" className="inline-flex w-full rounded-md overflow-hidden border border-[var(--theme-border)]">
+                  <button
+                    type="button"
+                    aria-pressed={viewMode === 'grid'}
+                    onClick={() => setViewMode('grid')}
+                    className={`flex-1 px-3 py-2 text-sm cursor-pointer border-none transition flex items-center justify-center gap-2 ${
+                      viewMode === 'grid'
+                        ? isLight ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
+                        : 'bg-[var(--theme-cardBg)] text-[var(--theme-textMuted)]'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faTableCellsLarge} className="w-3.5 h-3.5" /> Grid
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={viewMode === 'carousel'}
+                    onClick={() => setViewMode('carousel')}
+                    className={`flex-1 px-3 py-2 text-sm cursor-pointer border-none transition flex items-center justify-center gap-2 ${
+                      viewMode === 'carousel'
+                        ? isLight ? 'bg-orange-600 text-white' : 'bg-[var(--theme-primary)] text-[#262129]'
+                        : 'bg-[var(--theme-cardBg)] text-[var(--theme-textMuted)]'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faRectangleList} className="w-3.5 h-3.5" /> Carousel
+                  </button>
+                </div>
+              </div>
+
+              {viewMode === 'carousel' && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[var(--theme-text)]">Shuffle order</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={randomize}
+                    onClick={toggleRandomize}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs cursor-pointer border transition ${
+                      randomize
+                        ? isLight ? 'bg-orange-600 text-white border-orange-600' : 'bg-[var(--theme-primary)] text-[#262129] border-[var(--theme-primary)]'
+                        : 'bg-[var(--theme-cardBg)] text-[var(--theme-textMuted)] border-[var(--theme-border)]'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faShuffle} className="w-3 h-3" />
+                    {randomize ? 'On' : 'Off'}
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="subreddit-switcher-sheet" className="block text-[11px] uppercase tracking-wide text-[var(--theme-textMuted)] mb-2">
+                  Subreddit
+                </label>
+                <select
+                  id="subreddit-switcher-sheet"
+                  value={selectedFeed}
+                  onChange={(e) => { handleSubredditSelect(e); setFiltersOpen(false); }}
+                  className="w-full px-3 py-2 rounded-md text-sm border border-[var(--theme-border)] bg-[var(--theme-cardBg)] text-[var(--theme-text)] cursor-pointer"
+                >
+                  <option value="top">Top</option>
+                  <option value="news">News</option>
+                  {SUBREDDIT_OPTIONS.map((subreddit) => (
+                    <option key={subreddit} value={subreddit}>r/{subreddit}</option>
+                  ))}
+                </select>
+              </div>
+
+              {newestPostAgeSeconds !== null && (
+                <p className={`text-xs m-0 ${isStaleData ? 'text-amber-600' : 'text-[var(--theme-textMuted)]'}`}>
+                  Newest: {formatTimeAgo(new Date(Date.now() - newestPostAgeSeconds * 1000).toISOString())}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Posts */}
       {visiblePosts.length > 0 ? (
