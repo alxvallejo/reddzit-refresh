@@ -9,7 +9,8 @@ import { usePortraitCoarse } from '../helpers/usePortraitCoarse';
 import { useReddit } from '../context/RedditContext';
 import { HeroCard } from './MagazineGrid';
 import CommentQuote from './CommentQuote';
-import { faBookmark as faBookmarkSolid, faShareNodes, faExpand, faXmark } from '@fortawesome/free-solid-svg-icons';
+import ActionBar from './ActionBar';
+import { faBookmark as faBookmarkSolid, faShareNodes, faExpand, faXmark, faEyeSlash, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
 const Kbd = ({ children }: { children: ReactNode }) => (
@@ -702,16 +703,43 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                     post={p}
                     onClick={() => onPostClick(p)}
                     onSkip={onSkipPost ? () => onSkipPost(p.id) : undefined}
+                    skipClassName="hidden md:flex"
                     fillContainer
                     headerSlot={enableFullscreen && isCoarsePointer && isLast && !isFullscreen ? (
                       <FullscreenEnterButton onEnter={() => setIsFullscreen(true)} />
                     ) : undefined}
                     actionsSlot={isLast ? (
-                      <SlideActions
-                        isSaved={isCurrentSaved}
-                        onToggleSave={handleToggleSave}
-                        onShare={handleShare}
-                        variant="row"
+                      <ActionBar
+                        className="md:hidden mt-2"
+                        actions={[
+                          {
+                            key: 'save',
+                            icon: isCurrentSaved ? faBookmarkSolid : faBookmarkRegular,
+                            label: isCurrentSaved ? 'Saved' : 'Save',
+                            title: isCurrentSaved ? 'Unsave' : 'Save',
+                            onClick: handleToggleSave,
+                            active: isCurrentSaved,
+                          },
+                          {
+                            key: 'share',
+                            icon: faShareNodes,
+                            label: 'Share',
+                            title: 'Share',
+                            onClick: handleShare,
+                          },
+                          ...(onSkipPost
+                            ? [{
+                                key: 'hide',
+                                icon: faEyeSlash,
+                                label: 'Hide',
+                                title: 'Hide post',
+                                onClick: (e: React.MouseEvent) => {
+                                  e.stopPropagation();
+                                  onSkipPost(p.id);
+                                },
+                              }]
+                            : []),
+                        ]}
                       />
                     ) : undefined}
                   />
@@ -727,6 +755,32 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
                 style={{ animationDuration: `${AUTOPLAY_INTERVAL_MS}ms` }}
               />
             </div>
+          )}
+          {total > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
+                aria-label="Previous post"
+                title="Previous post"
+                className="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center text-white bg-black/50 hover:bg-black/70"
+              >
+                <FontAwesomeIcon icon={faChevronLeft} className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); goNext(); }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
+                aria-label="Next post"
+                title="Next post"
+                className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center text-white bg-black/50 hover:bg-black/70"
+              >
+                <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5" />
+              </button>
+            </>
           )}
           <SlideActions
             isSaved={isCurrentSaved}

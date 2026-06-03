@@ -49,6 +49,8 @@ interface CardProps {
   fillContainer?: boolean;
   actionsSlot?: React.ReactNode;
   headerSlot?: React.ReactNode;
+  // Extra classes for the top-right skip/hide button (e.g. responsive visibility).
+  skipClassName?: string;
 }
 
 const SubredditBadge = ({ subreddit }: { subreddit: string }) => (
@@ -157,7 +159,7 @@ const Quote = ({ post, variant = 'default' }: { post: TrendingPost; variant?: Qu
   );
 };
 
-const SkipButton = ({ onSkip, position = 'top' }: { onSkip: () => void; position?: 'top' | 'bottom' }) => {
+const SkipButton = ({ onSkip, position = 'top', extraClass = '' }: { onSkip: () => void; position?: 'top' | 'bottom'; extraClass?: string }) => {
   const { isLight } = useTheme();
   const positionClass = position === 'bottom' ? 'right-2 bottom-2' : 'right-2 top-2';
   // Stop pointer events so a swipe-capturing ancestor (e.g. NewsCarousel's slide)
@@ -175,7 +177,7 @@ const SkipButton = ({ onSkip, position = 'top' }: { onSkip: () => void; position
       aria-label="Hide post"
       className={`absolute ${positionClass} z-10 w-9 h-9 rounded-full backdrop-blur-sm transition border-none cursor-pointer flex items-center justify-center ${
         isLight ? 'text-gray-700 bg-white/80 hover:bg-gray-200' : 'text-gray-200 bg-black/60 hover:bg-white/20'
-      }`}
+      } ${extraClass}`}
     >
       <FontAwesomeIcon icon={faEyeSlash} className="w-3.5 h-3.5" />
     </button>
@@ -213,7 +215,7 @@ const handleCardKeyDown = (event: React.KeyboardEvent, onClick: () => void) => {
   }
 };
 
-export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, headerSlot }: CardProps) => {
+export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, headerSlot, skipClassName }: CardProps) => {
   const score = formatScore(post.score);
   const comments = formatScore(post.numComments);
   const [imageErrored, setImageErrored] = useState(false);
@@ -232,7 +234,7 @@ export const HeroCard = ({ post, onClick, onSkip, fillContainer, actionsSlot, he
         aria-label={getDisplayTitle(post)}
         className={`relative ${shapeClass} cursor-pointer rounded-xl overflow-hidden border border-[var(--theme-border)] hover:border-[var(--theme-primary)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] transition bg-gradient-to-br from-[var(--theme-cardBg)] via-[var(--theme-bgSecondary)] to-[var(--theme-cardBg)]`}
       >
-        {onSkip && <SkipButton onSkip={onSkip} />}
+        {onSkip && <SkipButton onSkip={onSkip} extraClass={skipClassName} />}
         {headerSlot}
         <div className="absolute inset-0 flex flex-col px-5 md:px-8 py-4 md:py-6 gap-3 md:gap-4">
           <div className={`flex items-center justify-between gap-2 flex-shrink-0 ${onSkip ? 'pr-12' : ''}`}>
