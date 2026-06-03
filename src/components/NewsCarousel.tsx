@@ -667,12 +667,15 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
       ? `flex flex-row gap-3 items-stretch flex-1 min-h-0 ${commentCount === 0 ? 'justify-center' : ''}`
       : `md:flex md:gap-6 md:items-start ${commentCount === 0 ? 'md:justify-center' : ''}`;
 
+  // The bottom control bar replaces this footer on touch/mobile. In normal mode
+  // that's a width breakpoint (md); in fullscreen it's the pointer type, since a
+  // landscape-locked phone can be wider than md yet still wants the touch bar.
   const footerClass =
     isFullscreen
-      ? 'flex flex-col items-center gap-2 mt-2 flex-shrink-0'
-      : // On mobile the sticky bottom control bar replaces this footer; show it
-        // only from md up. In fullscreen it stays visible (no sticky bar there).
-        'hidden md:flex flex-col items-center gap-2 mt-5';
+      ? isCoarsePointer
+        ? 'hidden'
+        : 'flex flex-col items-center gap-2 mt-2 flex-shrink-0'
+      : 'hidden md:flex flex-col items-center gap-2 mt-5';
 
   const pauseHandlers = {
     onMouseEnter: () => setIsHoverPaused(true),
@@ -680,6 +683,115 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
     onFocusCapture: () => setIsHoverPaused(true),
     onBlurCapture: () => setIsHoverPaused(false),
   };
+
+  // Mobile bottom control bar: position strip (play/pause · dots · counter)
+  // above a pill holding prev · Save · Share · Hide · next. Replaces the
+  // on-slide buttons and the in-flow footer on small screens. In normal mode it
+  // is fixed to the viewport bottom; in fullscreen it sits in-flow at the bottom
+  // of the flex column (the shell already handles safe-area padding there).
+  const navButton = (dir: 'prev' | 'next') => (
+    <button
+      type="button"
+      onClick={dir === 'prev' ? goPrev : goNext}
+      aria-label={dir === 'prev' ? 'Previous post' : 'Next post'}
+      title={dir === 'prev' ? 'Previous post' : 'Next post'}
+      className="flex items-center justify-center px-3 py-3 text-lg text-inherit hover:text-white transition-colors border-none bg-transparent cursor-pointer"
+    >
+      <FontAwesomeIcon icon={dir === 'prev' ? faChevronLeft : faChevronRight} />
+    </button>
+  );
+
+  const stripClass = `pointer-events-auto flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-xl border ${
+    isLight ? 'bg-gray-900/85 border-gray-700/50 text-gray-200' : 'bg-white/8 border-white/15 text-white/80'
+  }`;
+
+  const renderMobileControls = (fullscreen: boolean) => (
+    <div
+      className={
+        fullscreen
+          ? // Visibility is gated by the caller (coarse pointer), so no breakpoint here.
+            'flex flex-col items-center gap-2 flex-shrink-0 w-full px-2 pt-2'
+          : 'md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-2 pointer-events-none flex flex-col items-center gap-2'
+      }
+      style={
+        fullscreen
+          ? undefined
+          : {
+              paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+              marginBottom: a2hsVisible ? '5.5rem' : undefined,
+            }
+      }
+    >
+      {total > 1 && (
+        <div className={stripClass}>
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-label={effectivelyPaused ? 'Play' : 'Pause'}
+            title={effectivelyPaused ? 'Play' : 'Pause'}
+            className="w-5 h-5 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-inherit"
+          >
+            <FontAwesomeIcon icon={effectivelyPaused ? faPlay : faPause} className="text-[10px]" />
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: dotsToShow }).map((_, i) => {
+              const idx = i + dotOffset;
+              const active = idx === safeIndex;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => goTo(idx)}
+                  aria-label={`Go to post ${idx + 1}`}
+                  className={`rounded-full transition border-none cursor-pointer ${
+                    active ? 'bg-[var(--theme-primary)]' : 'bg-white/40 hover:bg-white/60'
+                  }`}
+                  style={{ width: active ? '18px' : '6px', height: '6px' }}
+                />
+              );
+            })}
+          </div>
+          <span className="text-[11px] tabular-nums opacity-80">
+            {safeIndex + 1} / {total}
+          </span>
+        </div>
+      )}
+      <ActionBar
+        className="w-full max-w-md"
+        leading={total > 1 ? navButton('prev') : undefined}
+        trailing={total > 1 ? navButton('next') : undefined}
+        actions={[
+          {
+            key: 'save',
+            icon: isCurrentSaved ? faBookmarkSolid : faBookmarkRegular,
+            label: isCurrentSaved ? 'Saved' : 'Save',
+            title: isCurrentSaved ? 'Unsave' : 'Save',
+            onClick: handleToggleSave,
+            active: isCurrentSaved,
+          },
+          {
+            key: 'share',
+            icon: faShareNodes,
+            label: 'Share',
+            title: 'Share',
+            onClick: handleShare,
+          },
+          ...(onSkipPost
+            ? [{
+                key: 'hide',
+                icon: faEyeSlash,
+                label: 'Hide',
+                title: 'Hide post',
+                onClick: (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  onSkipPost(post.id);
+                },
+              }]
+            : []),
+        ]}
+      />
+    </div>
+  );
 
   const carouselBody = (
     <>
@@ -857,6 +969,7 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
           )}
         </div>
       </div>
+      {isFullscreen && isCoarsePointer && renderMobileControls(true)}
       {toast && (
         <div
           role="status"
@@ -882,111 +995,13 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
     );
   }
 
-  // Mobile sticky control bar: position strip (play/pause · dots · counter)
-  // above a pill holding prev · Save · Share · Hide · next. Replaces the
-  // on-slide buttons and the in-flow footer on small screens.
-  const navButton = (dir: 'prev' | 'next') => (
-    <button
-      type="button"
-      onClick={dir === 'prev' ? goPrev : goNext}
-      aria-label={dir === 'prev' ? 'Previous post' : 'Next post'}
-      title={dir === 'prev' ? 'Previous post' : 'Next post'}
-      className="flex items-center justify-center px-3 py-3 text-lg text-inherit hover:text-white transition-colors border-none bg-transparent cursor-pointer"
-    >
-      <FontAwesomeIcon icon={dir === 'prev' ? faChevronLeft : faChevronRight} />
-    </button>
-  );
-
-  const stripClass = `pointer-events-auto flex items-center gap-2.5 px-3 py-1.5 rounded-full backdrop-blur-xl border ${
-    isLight ? 'bg-gray-900/85 border-gray-700/50 text-gray-200' : 'bg-white/8 border-white/15 text-white/80'
-  }`;
-
-  const mobileControls = (
-    <div
-      className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-2 pointer-events-none flex flex-col items-center gap-2"
-      style={{
-        paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-        marginBottom: a2hsVisible ? '5.5rem' : undefined,
-      }}
-    >
-      {total > 1 && (
-        <div className={stripClass}>
-          <button
-            type="button"
-            onClick={togglePlayback}
-            aria-label={effectivelyPaused ? 'Play' : 'Pause'}
-            title={effectivelyPaused ? 'Play' : 'Pause'}
-            className="w-5 h-5 flex items-center justify-center rounded-full border-none cursor-pointer bg-transparent text-inherit"
-          >
-            <FontAwesomeIcon icon={effectivelyPaused ? faPlay : faPause} className="text-[10px]" />
-          </button>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: dotsToShow }).map((_, i) => {
-              const idx = i + dotOffset;
-              const active = idx === safeIndex;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => goTo(idx)}
-                  aria-label={`Go to post ${idx + 1}`}
-                  className={`rounded-full transition border-none cursor-pointer ${
-                    active ? 'bg-[var(--theme-primary)]' : 'bg-white/40 hover:bg-white/60'
-                  }`}
-                  style={{ width: active ? '18px' : '6px', height: '6px' }}
-                />
-              );
-            })}
-          </div>
-          <span className="text-[11px] tabular-nums opacity-80">
-            {safeIndex + 1} / {total}
-          </span>
-        </div>
-      )}
-      <ActionBar
-        className="w-full max-w-md"
-        leading={total > 1 ? navButton('prev') : undefined}
-        trailing={total > 1 ? navButton('next') : undefined}
-        actions={[
-          {
-            key: 'save',
-            icon: isCurrentSaved ? faBookmarkSolid : faBookmarkRegular,
-            label: isCurrentSaved ? 'Saved' : 'Save',
-            title: isCurrentSaved ? 'Unsave' : 'Save',
-            onClick: handleToggleSave,
-            active: isCurrentSaved,
-          },
-          {
-            key: 'share',
-            icon: faShareNodes,
-            label: 'Share',
-            title: 'Share',
-            onClick: handleShare,
-          },
-          ...(onSkipPost
-            ? [{
-                key: 'hide',
-                icon: faEyeSlash,
-                label: 'Hide',
-                title: 'Hide post',
-                onClick: (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  onSkipPost(post.id);
-                },
-              }]
-            : []),
-        ]}
-      />
-    </div>
-  );
-
   return (
     <main
       className="max-w-screen-2xl mx-auto px-4 pt-4 pb-36 md:pb-8"
       {...pauseHandlers}
     >
       {carouselBody}
-      {mobileControls}
+      {renderMobileControls(false)}
     </main>
   );
 };
