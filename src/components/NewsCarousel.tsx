@@ -813,7 +813,11 @@ const NewsCarousel = ({ posts, onPostClick, onSkipPost, onVisibleRangeChange, en
               return (
                 <div
                   key={p.id}
-                  className={`${isFirst ? 'h-full w-full' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'pointer-events-none'}`}
+                  // Opaque backdrop per slide: text-forward HeroCards use a
+                  // near-transparent cardBg, so without this the outgoing slide
+                  // (held at full opacity to avoid blank frames) would show
+                  // straight through the incoming card for the whole fade.
+                  className={`bg-[var(--theme-bg)] ${isFirst ? 'h-full w-full' : 'absolute inset-0'} ${isLast ? 'carousel-fade-in' : 'pointer-events-none'}`}
                 >
                   <HeroCard
                     post={p}
